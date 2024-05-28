@@ -11,10 +11,10 @@ namespace Services.IServicio
 {
     public interface IRoleServicio
     {
-        Task<ResponseHelper> Crear(RoleVM.Create empresa);
-        Task<ResponseHelper> Editar(RoleVM.View empresa);
-        Task<ResponseHelper> Eliminar(int? id);
-        Task<List<RoleVM.View>> ObtenerLista();
-        Task<RoleVM.View> ObtenerPorId(int? id);
+        Task<Response<Role>> Crear(RoleVM.Create empresa);
+        Task<Response<Role>> Editar(RoleVM.View empresa);
+        Task<Response<Role>> Eliminar(int? id);
+        Task<Response<List<RoleVM.View>>> ObtenerLista();
+        Task<Response<RoleVM.View>> ObtenerPorId(int? id);
     }
 }

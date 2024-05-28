@@ -20,22 +20,22 @@ namespace Services.Servicio
         {
             _RoleGR = new GenericRepository<Role>(context);
         }
-        public Task<ResponseHelper> Crear(RoleVM.Create empresa)
+        public Task<Response<Role>> Crear(RoleVM.Create empresa)
         {
             throw new NotImplementedException();
         }
 
-        public Task<ResponseHelper> Editar(RoleVM.View empresa)
+        public Task<Response<Role>> Editar(RoleVM.View empresa)
         {
             throw new NotImplementedException();
         }
 
-        public Task<ResponseHelper> Eliminar(int? id)
+        public Task<Response<Role>> Eliminar(int? id)
         {
             throw new NotImplementedException();
         }
 
-        public async Task<List<RoleVM.View>> ObtenerLista()
+        public async Task<Response<List<RoleVM.View>>> ObtenerLista()
         {
             List<RoleVM.View> lista = new List<RoleVM.View>();
             try
@@ -46,15 +46,15 @@ namespace Services.Servicio
                     Nombre = x.Nombre
 
                 }).ToList();
+                return new Response<List<RoleVM.View>>(lista);
             }
             catch (Exception ex)
             {
-                return lista;
+                return new Response<List<RoleVM.View>>(null, ex.Message);
             }
-            return lista;
         }
 
-        public Task<RoleVM.View> ObtenerPorId(int? id)
+        public Task<Response<RoleVM.View>> ObtenerPorId(int? id)
         {
             throw new NotImplementedException();
         }
