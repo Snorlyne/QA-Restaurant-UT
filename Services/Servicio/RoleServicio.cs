@@ -43,6 +43,7 @@ namespace Services.Servicio
                 var listaDB = await _RoleGR.ObtieneLista();
                 lista = listaDB.Select(x => new RoleVM.View
                 {
+                    Id = x.Id,
                     Nombre = x.Nombre
 
                 }).ToList();
