@@ -6,6 +6,7 @@ namespace BaseWeb.Controllers.API
 {
     [Route("[controller]")]
     [ApiController]
+    [Authorize]
     public class APIRoleController : ControllerBase
     {
         private readonly IRoleServicio _roleServicio;
