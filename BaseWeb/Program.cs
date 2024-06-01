@@ -24,10 +24,12 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 //SERVICES
+builder.Services.AddTransient<ApplicationDbSeeder>();
 builder.Services.AddTransient<IRoleServicio, RoleServicio>();
 
-var app = builder.Build();
 
+var app = builder.Build();
+var env = builder.Environment;
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -35,6 +37,20 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+if (!env.IsProduction())
+{
+    // Ensure we have the default user added to the store
+    SeedData(app);
+    void SeedData(IHost app)
+    {
+        var scopedFactory = app.Services.GetService<IServiceScopeFactory>();
+        using (var scope = scopedFactory.CreateScope())
+        {
+            var dbSeeder = scope.ServiceProvider.GetService<ApplicationDbSeeder>();
+            dbSeeder.EnsureSeed().GetAwaiter().GetResult();
+        }
+    }
+}
 app.UseHttpsRedirection();
 
 app.UseAuthorization();
