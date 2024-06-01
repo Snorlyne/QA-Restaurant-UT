@@ -1,11 +1,7 @@
 ﻿using Domain.Entidades;
 using Microsoft.EntityFrameworkCore;
-using Repository.Repositorio.GenericRepository;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace Repository.Context
 {
@@ -45,11 +41,11 @@ namespace Repository.Context
                             await _dbContext.SaveChangesAsync();
                         }
                     }
-
+                    string password = HashPassword("QA-RestaurantRALL123");
                     User user = new()
                     {
                         Email = "root@root.com",
-                        Password = "QA-RestaurantRALL123",
+                        Password = password,
                         FK_Rol_Id = 1
                     };
                     _dbContext.Add(user);
@@ -65,6 +61,22 @@ namespace Repository.Context
                     return;
                 }
              }
+        }
+        public static string HashPassword(string password)
+        {
+            using (var sha256 = SHA256.Create())
+            {
+                // Calcula el hash de la contraseña
+                byte[] hashedBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(password));
+
+                // Convierte el hash a una cadena hexadecimal
+                StringBuilder builder = new StringBuilder();
+                for (int i = 0; i < hashedBytes.Length; i++)
+                {
+                    builder.Append(hashedBytes[i].ToString("x2"));
+                }
+                return builder.ToString();
+            }
         }
 
     }
