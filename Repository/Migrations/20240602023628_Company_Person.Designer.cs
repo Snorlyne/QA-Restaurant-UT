@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Repository.Context;
 
@@ -11,9 +12,10 @@ using Repository.Context;
 namespace Repository.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240602023628_Company_Person")]
+    partial class Company_Person
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -31,35 +33,11 @@ namespace Repository.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
                     b.Property<string>("Nombre")
-                        .IsRequired()
-                        .HasMaxLength(60)
-                        .HasColumnType("nvarchar(60)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Company");
-                });
-
-            modelBuilder.Entity("Domain.Entidades.ConfiguracionGeneral", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
-
-                    b.Property<int>("FK_Company_Id")
-                        .HasColumnType("int");
-
-                    b.Property<string>("PasswordGeneral")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("FK_Company_Id");
-
-                    b.ToTable("ConfiguracionGeneral");
+                    b.ToTable("Company");
                 });
 
             modelBuilder.Entity("Domain.Entidades.Person", b =>
@@ -71,21 +49,13 @@ namespace Repository.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
                     b.Property<string>("Apellido_Materno")
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Apellido_Paterno")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("CURP")
-                        .IsRequired()
-                        .HasMaxLength(60)
-                        .HasColumnType("nvarchar(60)");
-
-                    b.Property<int?>("CompanyId")
-                        .HasColumnType("int");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("FK_Company_Id")
                         .HasColumnType("int");
@@ -97,18 +67,13 @@ namespace Repository.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Nombre")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CompanyId");
-
                     b.HasIndex("FK_Company_Id");
 
-                    b.HasIndex("FK_User_Id")
-                        .IsUnique();
+                    b.HasIndex("FK_User_Id");
 
                     b.ToTable("Person");
                 });
@@ -140,15 +105,12 @@ namespace Repository.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
                     b.Property<string>("Email")
-                        .IsRequired()
-                        .HasMaxLength(60)
-                        .HasColumnType("nvarchar(60)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("FK_Rol_Id")
                         .HasColumnType("int");
 
                     b.Property<string>("Password")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
@@ -158,32 +120,17 @@ namespace Repository.Migrations
                     b.ToTable("User");
                 });
 
-            modelBuilder.Entity("Domain.Entidades.ConfiguracionGeneral", b =>
-                {
-                    b.HasOne("Domain.Entidades.Company", "Company")
-                        .WithMany()
-                        .HasForeignKey("FK_Company_Id")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Company");
-                });
-
             modelBuilder.Entity("Domain.Entidades.Person", b =>
                 {
-                    b.HasOne("Domain.Entidades.Company", null)
-                        .WithMany("Persons")
-                        .HasForeignKey("CompanyId");
-
                     b.HasOne("Domain.Entidades.Company", "Company")
-                        .WithMany()
+                        .WithMany("Persons")
                         .HasForeignKey("FK_Company_Id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("Domain.Entidades.User", "User")
-                        .WithOne()
-                        .HasForeignKey("Domain.Entidades.Person", "FK_User_Id")
+                        .WithMany()
+                        .HasForeignKey("FK_User_Id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 

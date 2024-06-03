@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using BaseWeb.Middleware;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -29,6 +30,8 @@ builder.Services.AddSwaggerGen(swagger =>
         Version = "v1.0",
         Description = "Web API for QA-Restaurant"
     });
+    //Mensajes
+    swagger.OperationFilter<AuthResponsesOperationFilter>();
     //Ventana emergente de autorizacion que se muestra en la esquina superior derecha
     swagger.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme()
     {
@@ -66,17 +69,29 @@ builder.Services.AddAuthentication(config => {
     config.SaveToken = false;
     config.TokenValidationParameters = new TokenValidationParameters
     {
+        ValidateLifetime = true,
         ValidateIssuerSigningKey = true,
         IssuerSigningKey = new SymmetricSecurityKey(keyBytes),
         ValidateIssuer = false,
         ValidateAudience = false
     };
 });
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("AdminPolicy", policy => policy.RequireRole("Admin"));
+    options.AddPolicy("RootPolicy", policy => policy.RequireRole("Root"));
+    options.AddPolicy("ChefPolicy", policy => policy.RequireRole("Chef"));
+    options.AddPolicy("WaiterPolicy", policy => policy.RequireRole("Waiter"));
+    options.AddPolicy("CashierPolicy", policy => policy.RequireRole("Cashier"));
+    // Agrega más políticas según sea necesario
+});
 
 //SERVICES
 builder.Services.AddTransient<ApplicationDbSeeder>();
 builder.Services.AddTransient<IRoleServicio, RoleServicio>();
 builder.Services.AddTransient<IAuthServicio, AuthServicio>();
+builder.Services.AddTransient<ICompanyServicio, CompanyServicio>();
+builder.Services.AddTransient<IClienteServicio, ClienteServicio>();
 
 
 var app = builder.Build();
@@ -107,6 +122,7 @@ app.UseHttpsRedirection();
 app.UseAuthentication();
 
 app.UseAuthorization();
+
 
 app.MapControllers();
 

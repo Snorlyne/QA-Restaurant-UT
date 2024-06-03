@@ -1,19 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace Domain.ViewModels
 {
-    public class RoleVM
+    public class CompanyVM
     {
-        public class RoleCreate
+        public class CompanyCreate
         {
             public string Nombre { get; set; }
         }
-        public class RoleView
+        public class CompanyView
         {
             public int Id { get; set; }
             public string Nombre { get; set; }

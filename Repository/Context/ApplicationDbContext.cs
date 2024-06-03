@@ -12,6 +12,9 @@ namespace Repository.Context
     {
         public virtual DbSet<Role> Role { get; set; }
         public virtual DbSet<User> User { get; set; }
+        public virtual DbSet<Person> Person { get; set; }
+        public virtual DbSet<Company> Company { get; set; }
+        public virtual DbSet<ConfiguracionGeneral> ConfiguracionGeneral { get; set; }
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
         {
 

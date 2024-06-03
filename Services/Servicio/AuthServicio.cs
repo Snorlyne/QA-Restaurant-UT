@@ -63,6 +63,7 @@ namespace Services.Servicio
 
             var claims = new ClaimsIdentity();
             claims.AddClaim(new Claim(ClaimTypes.NameIdentifier, user.Email));
+            claims.AddClaim(new Claim(ClaimTypes.Role, user.Role.Nombre));
 
             var credencialesToken = new SigningCredentials(
                 new SymmetricSecurityKey(keyBytes),
