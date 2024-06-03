@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static Domain.ViewModels.RoleVM;
 
 namespace Services.Servicio
 {
@@ -20,44 +21,25 @@ namespace Services.Servicio
         {
             _RoleGR = new GenericRepository<Role>(context);
         }
-        public Task<Response<Role>> Crear(RoleVM.Create empresa)
-        {
-            throw new NotImplementedException();
-        }
 
-        public Task<Response<Role>> Editar(RoleVM.View empresa)
+        public async Task<Response<List<RoleView>>> ObtenerLista()
         {
-            throw new NotImplementedException();
-        }
-
-        public Task<Response<Role>> Eliminar(int? id)
-        {
-            throw new NotImplementedException();
-        }
-
-        public async Task<Response<List<RoleVM.View>>> ObtenerLista()
-        {
-            List<RoleVM.View> lista = new List<RoleVM.View>();
+            List<RoleView> lista = new List<RoleView>();
             try
             {
                 var listaDB = await _RoleGR.ObtieneLista();
-                lista = listaDB.Select(x => new RoleVM.View
+                lista = listaDB.Select(x => new RoleView
                 {
                     Id = x.Id,
                     Nombre = x.Nombre
 
                 }).ToList();
-                return new Response<List<RoleVM.View>>(lista);
+                return new Response<List<RoleView>>(lista);
             }
             catch (Exception ex)
             {
-                return new Response<List<RoleVM.View>>(null, ex.Message);
+                return new Response<List<RoleView>>(null, ex.Message);
             }
-        }
-
-        public Task<Response<RoleVM.View>> ObtenerPorId(int? id)
-        {
-            throw new NotImplementedException();
         }
     }
 }
