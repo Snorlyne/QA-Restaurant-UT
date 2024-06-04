@@ -11,6 +11,7 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
+using static Domain.ViewModels.CompanyVM;
 using static Domain.ViewModels.PersonVM;
 
 namespace Services.Servicio
@@ -29,21 +30,24 @@ namespace Services.Servicio
             {
                 List<ClienteView> view = await _context.Person
                     .Include(x => x.Company)
-                    .Include(y => y.User)
+                    .Where(p => p.User.Role.Nombre == "Admin")
                     .Select(p => new ClienteView
                     {
                         Apellido_Paterno = p.Apellido_Paterno,
                         Apellido_Materno = p.Apellido_Materno,
                         FechaNacimiento = p.FechaNacimiento,
-                        Company = p.Company,
                         Id = p.Id,
                         Nombre = p.Nombre,
                         CURP = p.CURP,
-                        User = p.User
+                        Company = new CompanyView()
+                        {
+                            Id = p.Company.Id,
+                            Nombre = p.Company.Nombre
+                        }
                     })
                     .ToListAsync();
 
-                return new Response<List<ClienteView>>(view);
+                 return new Response<List<ClienteView>>(view);
 
             } catch (Exception ex)
             {
@@ -56,7 +60,6 @@ namespace Services.Servicio
             {
                 Person person = await _context.Person
                     .Include(x => x.Company)
-                    .Include(y => y.User)
                     .FirstOrDefaultAsync(p => p.Id == Id);
 
                 if (person == null)
@@ -67,11 +70,14 @@ namespace Services.Servicio
                 ClienteView view = new()
                 {
                     Nombre = person.Nombre,
-                    Company = person.Company,
+                    Company = new CompanyView()
+                    {
+                        Id = person.Company.Id,
+                        Nombre = person.Company.Nombre
+                    },
                     Apellido_Materno = person.Apellido_Materno,
                     Apellido_Paterno = person.Apellido_Paterno,
                     CURP = person.CURP,
-                    User = person.User,
                     FechaNacimiento = person.FechaNacimiento
 
                 };
@@ -204,7 +210,7 @@ namespace Services.Servicio
             try
             {
                 Company company = await _context.Company.FirstOrDefaultAsync(x => x.Id == persona.FK_Company_Id);
-                string contrasena = $"{company.Nombre.ToLower()}";
+                string contrasena = $"{company.Nombre.ToLower()}@1234";
                 string contrasenaHash = HashPassword(contrasena);
                 return contrasenaHash;
             }

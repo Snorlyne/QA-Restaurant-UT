@@ -9,14 +9,14 @@ namespace Domain.ViewModels
 {
     public class UserVM
     {
-        public class Create
+        public class UserCreate
         {
             public string Email { get; set; }
             public string Password { get; set; }
             public int FK_Rol_Id { get; set; }
         }
 
-        public class View
+        public class UserView
         {
             public string Email { get; set; }
             public string Password { get; set; }
