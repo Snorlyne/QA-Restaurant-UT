@@ -93,6 +93,8 @@ builder.Services.AddTransient<IAuthServicio, AuthServicio>();
 builder.Services.AddTransient<ICompanyServicio, CompanyServicio>();
 builder.Services.AddTransient<IClienteServicio, ClienteServicio>();
 
+//Configuraci?n para permitir el host del front para hace uso del Web API //Configurar cuando se pase a produccion.
+builder.Services.AddCors(options => options.AddPolicy("AllowWebApp", builder => builder.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod()));
 
 var app = builder.Build();
 var env = builder.Environment;
@@ -117,6 +119,8 @@ if (!env.IsProduction())
         }
     }
 }
+app.UseCors("AllowWebApp");
+
 app.UseHttpsRedirection();
 
 app.UseAuthentication();

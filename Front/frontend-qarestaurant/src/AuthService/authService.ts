@@ -1,10 +1,9 @@
-import Login from "../Desktop/login";
 
 const authService = {
     login: (email: string, password: string): Promise<void> => {
       return new Promise((resolve, reject) => {
         setTimeout(() => {
-          if (email === 'prueba@gmail.com' && password === '12345') {
+          if (email === '' && password === '') {
             resolve();
           } else {
             reject('error');

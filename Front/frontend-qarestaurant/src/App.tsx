@@ -1,9 +1,11 @@
-import React from 'react';
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
-import Dashboard from './Desktop/Dashboard';
-import Login from './Desktop/login';
-import Bienvenido from '../src/Mobil/bienvenido';
-import DashboardMeseros from './Meseros/DashboardMeseros';
+import React from "react";
+import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import Dashboard from "./Desktop/Administrador/Dashboard";
+import Login from "./AuthService/login";
+import Bienvenido from "../src/Mobil/bienvenido";
+import DashboardMeseros from "./Meseros/DashboardMeseros";
+import EmpresaComponent from "./Desktop/Administrador/Empresa/Empresa";
+import EmpresaCreateEditComponent from "./Desktop/Administrador/Empresa/EmpresaCE";
 
 const App: React.FC = () => {
   return (
@@ -11,9 +13,14 @@ const App: React.FC = () => {
       <Routes>
         <Route path="/bienvenido" element={<Bienvenido />} />
         <Route path="/login" element={<Login />} />
-        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/dashboard/*" element={<Dashboard />}>
+          <Route path="empresas" element={<EmpresaComponent />}>
+          <Route path="crear" element={<EmpresaCreateEditComponent />} />
+          <Route path="editar/:id" element={<EmpresaCreateEditComponent />} />
+          </Route>
+        </Route>
         <Route path="/" element={<Login />} />
-        <Route path='/meseros' element={<DashboardMeseros/>}></Route>
+        <Route path="/meseros" element={<DashboardMeseros />}></Route>
       </Routes>
     </Router>
   );

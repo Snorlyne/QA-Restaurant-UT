@@ -76,7 +76,7 @@ namespace Services.Servicio
                 _context.Add(company);
                 await _context.SaveChangesAsync();
 
-                return new Response<Company>(company);
+                return new Response<Company>(company, "Registro exitoso.");
 
             }catch (Exception ex)
             {
@@ -96,10 +96,10 @@ namespace Services.Servicio
 
                 company.Nombre = request.Nombre;
 
-                _context.Add(company);
+                _context.Update(company);
                 await _context.SaveChangesAsync();
 
-                return new Response<Company>(company);
+                return new Response<Company>(company, "Edición con éxito.");
 
             }catch (Exception ex)
             {
@@ -119,7 +119,7 @@ namespace Services.Servicio
                 // Llamar al procedimiento almacenado para eliminar
                 await _context.Database.ExecuteSqlRawAsync("EXEC sp_DeleteCompany @CompanyId", new SqlParameter("@CompanyId", Id));
 
-                return new Response<Company>(company);
+                return new Response<Company>(company, "Eliminación con éxito.");
 
             }
             catch (Exception ex)
