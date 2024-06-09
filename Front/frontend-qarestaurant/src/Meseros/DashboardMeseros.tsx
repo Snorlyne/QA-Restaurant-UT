@@ -1,10 +1,10 @@
-import { Button, Card, CardContent, Grid, Typography, Checkbox, FormControlLabel } from "@mui/material";
+import { Button, Card, CardContent, Grid, Typography, Checkbox, FormControlLabel, Box } from "@mui/material";
 import AddIcon from '@mui/icons-material/Add';
 
 const tools = [
     { title: 'Mesa 1', description: 'Ultimo pedido a las:', pedido: '7:00pm', preparado: 'Pedido listo', preparacion: 'Pedidos en preparacion', pedidos: ['Caldo de pollo', 'Tacos de taco', 'orden3', 'orden4', 'Caldo de res', 'Tacos de taco', 'orden7', 'orden8'] },
     { title: 'Mesa 2', description: 'Ultimo pedido a las:', pedido: '9:00pm', preparado: 'Pedido listo', preparacion: 'Pedidos en preparacion', pedidos: ['Caldo de ave', 'Ensalada','Orden3','Orden4'] },
-    { title: 'Mesa 3', description: 'Ultimo pedido a las:', pedido: '9:00pm', preparado: 'Pedido listo', preparacion: 'Pedidos en preparacion', pedidos: ['Nachos', 'Cheve','Orden gigantititiisisisma','Orden milochomil', 'Orden5'] },
+    { title: 'Mesa 3', description: 'Ultimo pedido a las:', pedido: '9:00pm', preparado: 'Pedido listo', preparacion: 'Pedidos en preparacion', pedidos: ['Nachos', 'Cheve','Pescado al ajillo','Orden milochomil', 'Orden5'] },
     { title: 'Mesa 4', description: 'Ultimo pedido a las:', pedido: '9:00pm', preparado: 'Pedido listo', preparacion: 'Pedidos en preparacion', pedidos: ['Guacamole', 'Tacos al pastor'] },
 ]
 
@@ -17,16 +17,19 @@ const DashboardMeseros = () => (
                 <Card sx={{
                     display: 'flex',
                     flexDirection: 'column',
-                    padding: 2,
+                    padding: '20px',
                     backgroundColor: 'white',
                     borderRadius: 5,
-                    minHeight: 350,
+                    minHeight: '350px',
                 }}>
                     <CardContent sx={{ flexGrow: 1 }}>
-                        <Grid container sx={{flexDirection:'row'}}>
-                            <Grid item sx={{ padding: 1, flexDirection: 'column', width:'50%',justifyContent:'start' }}>
+                        <Grid container sx={{flexDirection:{sm:'column',md:'column',lg:'row'}}}>
+                            <Grid item sx={{ padding: 1, flexDirection: 'column', width:{sm:'100%',md:'100%',lg:'50%'},justifyContent:'start' }}>
                                 <Grid item>
-                                    <Typography variant="h5" sx={{ fontWeight: 600 }}>{tool.title}</Typography>
+                                    <Typography sx={{
+                                        fontSize: '20px',
+                                        fontWeight: 600 
+                                        }}>{tool.title}</Typography>
                                 </Grid>
                                 <Grid item sx={{ display: 'flex', gap: 1 }}>
                                     <Typography variant="body2">{tool.description}</Typography>
@@ -37,7 +40,7 @@ const DashboardMeseros = () => (
                                 </Grid>                                
                             </Grid>
 
-                            <Grid item sx={{ display: 'flex', justifyContent: 'end', alignItems: 'center', gap: 2, width:'50%' }}>
+                            <Grid item sx={{ display: 'flex', justifyContent: {sm:'center',md:'center',lg:'end'}, alignItems: 'center', gap: 2, width:{sm:'100%', md:'100%',lg:'50%'} }}>
                             {cardButtons.map((cardButton) => (
                                 <Button
                                     key={cardButton}
@@ -47,7 +50,7 @@ const DashboardMeseros = () => (
                                         border: '1px solid',
                                         borderColor: '#a0c9d7',
                                         borderRadius: '8px',
-                                        minWidth: '120px',
+                                        minWidth: {sm:'60px', md:'60px',lg:'120px'},
                                         maxHeight: '50px',
                                         padding: '20px',
                                         display: 'flex',
@@ -65,20 +68,27 @@ const DashboardMeseros = () => (
                         </Grid>
                         
                         <Grid container sx={{padding: 1, mt:2}}>
-                                <Grid item>
-                                    <Typography variant='body2' sx={{ fontWeight: 600 }}>Pedidos listos:</Typography>
-                                    <Grid container sx={{ display: 'inline-grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 2, maxHeight: '150px'}}>
+                                <Grid item sx={{flexGrow: 1, overflowY:{xs:'scroll',sm:'scroll', md:'scroll',lg:'hidden'}, }}>
+                                    <Typography variant='body2' sx={{ fontWeight: 600}}>Pedidos listos:</Typography>
+                                    <Box sx={{ 
+                                        display: 'inline-grid', 
+                                        gridTemplateColumns: {sm:'repeat(1,1fr)', md:'repeat(2,1fr)',lg:'repeat(4, 1fr)'},                                     
+                                        maxHeight: '150px',
+                                        gap: 2,
+                                        }}>
                                         {tool.pedidos.map((pedido, idx) => (
-                                            <Grid item key={idx} xs={6} md={4} lg={3}>
+                                            <Grid item key={idx} xs={12} sm={12} md={4} lg={3}>
                                                 <FormControlLabel
-                                                    control={<Checkbox/>}
+                                                    control={
+                                                        <Checkbox sx={{ transform: { xs: 'scale(1)', sm: 'scale(0.75)', md: 'scale(1)' } }} />
+                                                    }
                                                     label={
                                                         <Typography variant="body2" noWrap>{pedido}</Typography>
                                                     }
                                                 />
                                             </Grid>
                                         ))}
-                                    </Grid>
+                                    </Box>
                                 </Grid>
                         </Grid>
 
