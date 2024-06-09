@@ -16,8 +16,9 @@ import ListItemText from "@mui/material/ListItemText";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import SearchIcon from "@mui/icons-material/Search";
 import StorefrontIcon from "@mui/icons-material/Storefront";
+import HailIcon from "@mui/icons-material/Hail";
 import logoSinBG from "./../../img/logoSinBG.png";
-import ClientesComponent from "./Clientes";
+import ClientesComponent from "./Cliente/Cliente";
 import { useEffect, useState } from "react";
 import InicioComponent from "./Inicio";
 import {
@@ -37,6 +38,7 @@ import {
   useNavigate,
 } from "react-router-dom";
 import EmpresaCreateEditComponent from "./Empresa/EmpresaCE";
+import ClienteCEComponent from "./Cliente/ClienteCE";
 
 const drawerWidth = 240;
 
@@ -128,7 +130,7 @@ const menuItems = [
   // { text: 'Empleados', icon: <InboxIcon />, component: <EmpleadosComponent /> },
   // { text: 'Inventario', icon: <MailIcon />, component: <InventarioComponent /> },
   // { text: 'Categoria', icon: <InboxIcon />, component: <CategoriaComponent /> },
-  // { text: "Clientes", icon: <HailIcon />, link: "/dashboard/clientes" },
+  { text: "Clientes", icon: <HailIcon />, link: "/dashboard/clientes" },
   {
     text: "Empresas",
     icon: <StorefrontIcon />,
@@ -148,16 +150,18 @@ const Dashboard: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-useEffect(() => {
-  const currentPathname = location.pathname;
-  const segments = currentPathname.split('/');
-  const baseRoute = segments.length >= 3 ? `/${segments[2]}` : '';
-  const selectedItem = menuItems.find((item) => item.link === '/dashboard'+baseRoute);
-  if (selectedItem) {
-    setSelectedItem(selectedItem);
-    setSelectedComponent(selectedItem);
-  }
-}, [location.pathname]);
+  useEffect(() => {
+    const currentPathname = location.pathname;
+    const segments = currentPathname.split("/");
+    const baseRoute = segments.length >= 3 ? `/${segments[2]}` : "";
+    const selectedItem = menuItems.find(
+      (item) => item.link === "/dashboard" + baseRoute
+    );
+    if (selectedItem) {
+      setSelectedItem(selectedItem);
+      setSelectedComponent(selectedItem);
+    }
+  }, [location.pathname]);
 
   const handleAutocompleteChange = (event: any, value: any) => {
     setSearchTerm(value);
@@ -412,8 +416,23 @@ useEffect(() => {
           <Route index element={<InicioComponent />} />
           <Route path="clientes" element={<ClientesComponent />} />
           <Route path="empresas" element={<EmpresaComponent />} />
-          <Route path="empresas/crear" element={<EmpresaCreateEditComponent />} />
-          <Route path="empresas/editar/:id" element={<EmpresaCreateEditComponent />} />
+          <Route
+            path="empresas/crear"
+            element={<EmpresaCreateEditComponent />}
+          />
+          <Route
+            path="empresas/editar/:id"
+            element={<EmpresaCreateEditComponent />}
+          />
+          <Route path="clientes" element={<ClientesComponent />} />
+          <Route
+            path="clientes/crear"
+            element={<ClienteCEComponent />}
+          />
+          <Route
+            path="clientes/editar/:id"
+            element={<ClienteCEComponent />}
+          />
         </Routes>
       </Box>
     </Box>

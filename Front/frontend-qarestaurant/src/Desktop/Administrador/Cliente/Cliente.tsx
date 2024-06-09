@@ -28,7 +28,7 @@ const filterRows = (rows: CompanyData[], term: string) => {
   );
 };
 const token = localStorage.getItem('token');
-export default function EmpresaComponent() {
+export default function ClientesComponent() {
   const [rows, setRows] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredRows, setFilteredRows] = useState<CompanyData[]>(rows);
@@ -57,7 +57,7 @@ export default function EmpresaComponent() {
             variant="contained"
             color="primary"
             onClick={() =>
-              navigate(`/dashboard/empresas/editar/${params.row.id}`)
+              navigate(`/dashboard/clientes/editar/${params.row.id}`)
             }
             sx={{
               marginRight: 3,
@@ -82,7 +82,7 @@ export default function EmpresaComponent() {
   const fetchData = async () => {
     try {
       const response = await axios.get(
-        "https://localhost:7047/APICompany/lista",
+        "https://localhost:7047/APICliente/lista",
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -108,9 +108,6 @@ export default function EmpresaComponent() {
         cancelButtonColor: "#d33",
         confirmButtonText: "Si",
         cancelButtonText: "No",
-        customClass: {
-          container: 'custom-swal-container',
-        }
       }).then(async (result) => {
         if (result.isConfirmed) {
           setLoading(true);
@@ -185,7 +182,7 @@ export default function EmpresaComponent() {
         <Grid container mb={3}>
           <Grid item xs={12} md={6}>
             <Typography variant="h4" color="#0C0C0C">
-              Empresas registradas
+              Clientes registrados
             </Typography>
           </Grid>
           <Grid
@@ -201,7 +198,7 @@ export default function EmpresaComponent() {
             <Button
               variant="contained"
               color="success"
-              onClick={() => navigate("/dashboard/empresas/crear")}
+              onClick={() => navigate("/dashboard/clientes/crear")}
               endIcon={<AddCircleIcon />}
             >
               Agregar

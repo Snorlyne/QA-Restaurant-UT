@@ -14,3 +14,6 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+.custom-swal-container {
+  z-index: 99999 !important;
+}

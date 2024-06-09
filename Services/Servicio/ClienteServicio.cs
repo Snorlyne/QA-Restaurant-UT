@@ -39,6 +39,7 @@ namespace Services.Servicio
                         Id = p.Id,
                         Nombre = p.Nombre,
                         CURP = p.CURP,
+                        Foto = p.Foto,
                         Company = new CompanyView()
                         {
                             Id = p.Company.Id,
@@ -78,8 +79,8 @@ namespace Services.Servicio
                     Apellido_Materno = person.Apellido_Materno,
                     Apellido_Paterno = person.Apellido_Paterno,
                     CURP = person.CURP,
-                    FechaNacimiento = person.FechaNacimiento
-
+                    FechaNacimiento = person.FechaNacimiento,
+                    Foto = person.Foto
                 };
 
                 return new Response<ClienteView>(view);
@@ -116,7 +117,8 @@ namespace Services.Servicio
                     Nombre = request.Nombre,
                     CURP = request.CURP,
                     FechaNacimiento = request.FechaNacimiento,
-                    FK_Company_Id = request.FK_Company_Id
+                    FK_Company_Id = request.FK_Company_Id,
+                    Foto = request.Foto,
                 };
 
                 _context.Person.Add(person);
@@ -152,6 +154,7 @@ namespace Services.Servicio
                 cliente.Apellido_Materno = request.Apellido_Materno;
                 cliente.CURP = request.CURP;
                 cliente.FechaNacimiento = request.FechaNacimiento;
+                cliente.Foto = request.Foto;
 
                 _context.Update(cliente);
                 await _context.SaveChangesAsync();

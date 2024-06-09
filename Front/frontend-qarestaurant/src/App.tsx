@@ -6,6 +6,8 @@ import Bienvenido from "../src/Mobil/bienvenido";
 import DashboardMeseros from "./Meseros/DashboardMeseros";
 import EmpresaComponent from "./Desktop/Administrador/Empresa/Empresa";
 import EmpresaCreateEditComponent from "./Desktop/Administrador/Empresa/EmpresaCE";
+import ClientesComponent from "./Desktop/Administrador/Cliente/Cliente";
+import ClienteCEComponent from "./Desktop/Administrador/Cliente/ClienteCE";
 
 const App: React.FC = () => {
   return (
@@ -15,8 +17,12 @@ const App: React.FC = () => {
         <Route path="/login" element={<Login />} />
         <Route path="/dashboard/*" element={<Dashboard />}>
           <Route path="empresas" element={<EmpresaComponent />}>
-          <Route path="crear" element={<EmpresaCreateEditComponent />} />
-          <Route path="editar/:id" element={<EmpresaCreateEditComponent />} />
+            <Route path="crear" element={<EmpresaCreateEditComponent />} />
+            <Route path="editar/:id" element={<EmpresaCreateEditComponent />} />
+          </Route>
+          <Route path="clientes" element={<ClientesComponent />}>
+            <Route path="crear" element={<ClienteCEComponent />} />
+            <Route path="editar/:id" element={<ClienteCEComponent />} />
           </Route>
         </Route>
         <Route path="/" element={<Login />} />

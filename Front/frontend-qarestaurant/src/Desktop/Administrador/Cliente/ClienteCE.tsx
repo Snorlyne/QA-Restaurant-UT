@@ -13,16 +13,30 @@ import axios from "axios";
 import Swal from "sweetalert2";
 import Loader from "../../../components/loader";
 import { useParams } from "react-router-dom";
+import LoadingButton from "@mui/lab/LoadingButton";
+import { useDropzone } from "react-dropzone";
 import { Cancel } from "@mui/icons-material";
 
-interface CompanyData {
+interface PersonData {
   nombre: string;
+  apellidoPaterno: string;
+  apellidoMaterno: string;
+  curp: string;
+  fechaNacimiento: Date;
+  foto: string | null;
+  fkCompanyId: number;
 }
+
+const MAX_FILE_SIZE_MB = 2; // Tamaño máximo de archivo en MB
+const MAX_WIDTH = 800; // Ancho máximo de la imagen
+const MAX_HEIGHT = 600; // Altura máxima de la imagen
+
 const token = localStorage.getItem("token");
-export default function EmpresaCreateEditComponent() {
+export default function ClienteCEComponent() {
   const { id } = useParams();
   const [nombre, setNombre] = useState<string>("");
-  const [title, setTitle] = useState<string>("Registrar empresa");
+  const [file, setFile] = useState<any>(null);
+  const [foto, setFoto] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [disabledBtn, setdisabledBtn] = useState(true);
@@ -43,8 +57,14 @@ export default function EmpresaCreateEditComponent() {
     let response: any;
 
     try {
-      let data: CompanyData = {
+      let data: PersonData = {
         nombre: nombre,
+        apellidoPaterno: "",
+        apellidoMaterno: "",
+        curp: "",
+        fechaNacimiento: new Date(),
+        foto: file,
+        fkCompanyId: 0,
       };
       if (!id) {
         response = await axios.post("https://localhost:7047/APICompany", data, {
@@ -135,17 +155,73 @@ export default function EmpresaCreateEditComponent() {
     if (id) {
       setdisabledBtn(false);
       fetchData();
-      setTitle("Editar empresa");
     }
   }, [id]);
+
+  const { getRootProps, getInputProps } = useDropzone({
+    accept: {
+      "image/png": [".png"],
+      "image/jpeg": [".jpg", ".jpeg"],
+      "image/webp": [".webp"],
+    },
+    onDrop: (acceptedFiles, rejectedFiles) => {
+      if (rejectedFiles.length > 0) {
+        Swal.fire({
+          icon: "info",
+          text: "Solo se aceptan imágenes con las extensiones .png, .jpg, .jpeg y .webp.",
+          customClass: {
+            container: 'custom-swal-container',
+          }
+        });
+        return;
+      }
+
+      if (acceptedFiles.length === 0) {
+        Swal.fire({
+          icon: "info",
+          text: "No se detectó ninguna imagen cargada.",
+          customClass: {
+            container: 'custom-swal-container',
+          }
+        });
+        return;
+      }
+
+      const file = acceptedFiles[0];
+      if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
+        Swal.fire({
+          icon: "info",
+          text: `El tamaño de la imagen es mayor a ${MAX_FILE_SIZE_MB}MB.`,
+          customClass: {
+            container: 'custom-swal-container',
+          }
+        });
+        return;
+      }
+
+      setFile(file);
+
+      const reader = new FileReader();
+      reader.onload = () => {
+          setFoto(reader.result);
+      };
+      reader.readAsDataURL(file);
+    },
+  });
+
+  const handleRemove = () => {
+    setFile(null);
+    if (foto != null) {
+      setFoto(null);
+    }
+  };
   return (
     <>
-      {loading && <Loader />}
       <Grid container mt={2}>
         <Grid container mb={3}>
           <Grid item xs={12} md={6}>
             <Typography variant="h4" color="#0C0C0C">
-              {title}
+              Registrar Empresa
             </Typography>
           </Grid>
           <Grid
@@ -200,6 +276,44 @@ export default function EmpresaCreateEditComponent() {
             }}
           >
             <Grid container spacing={2} p={5}>
+              <Grid item xs={12} md={6} lg={6}>
+                <Grid container justifyContent="center" alignItems="center">
+                  {file && (
+                    <Grid item xs={12} md={12} lg={12}>
+                      <Typography variant="body1">
+                        Imagen seleccionada: {file.name}
+                      </Typography>
+                      <img
+                        src={URL.createObjectURL(file)}
+                        alt="Imagen seleccionada"
+                        style={{
+                          maxWidth: "100%",
+                          maxHeight: "300px",
+                          marginTop: "10px",
+                        }}
+                      />
+                    </Grid>
+                  )}
+                  <Grid item xs={12} md={12} lg={12}>
+                    <div
+                      {...getRootProps()}
+                      style={{
+                        border: "2px dashed #ccc",
+                        padding: "20px 0",
+                        textAlign: "center",
+                        width: "100%",
+                      }}
+                    >
+                      <input {...getInputProps()} />
+                      <Typography variant="body1">
+                        Arrastra y suelta aquí una imagen o haz clic para
+                        seleccionarla.
+                      </Typography>
+                    </div>
+                    <Button onClick={handleRemove}>Eliminar archivo</Button>
+                  </Grid>
+                </Grid>
+              </Grid>
               <Grid item xs={12} md={6} lg={6}>
                 <FormControl fullWidth>
                   <TextField

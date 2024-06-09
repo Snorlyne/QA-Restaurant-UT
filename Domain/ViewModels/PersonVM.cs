@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using static Domain.ViewModels.CompanyVM;
+using static Domain.ViewModels.UserVM;
 
 namespace Domain.ViewModels
 {
@@ -18,6 +19,7 @@ namespace Domain.ViewModels
             public string Apellido_Materno { get; set; }
             public string CURP { get; set; }
             public DateTime FechaNacimiento { get; set; }
+            public byte[] Foto { get; set; }
             public int FK_Company_Id { get; set; }
         }
         public class ClienteView
@@ -28,6 +30,7 @@ namespace Domain.ViewModels
             public string Apellido_Materno { get; set; }
             public string CURP { get; set; }
             public DateTime FechaNacimiento { get; set; }
+            public byte[] Foto { get; set; }
             public CompanyView Company { get; set; }
         }
         public class ColaboradorCreate
@@ -37,6 +40,7 @@ namespace Domain.ViewModels
             public string Apellido_Materno { get; set; }
             public string CURP { get; set; }
             public DateTime FechaNacimiento { get; set; }
+            public byte[] Foto { get; set; }
             public int FK_Company_Id { get; set; }
         }
         public class ColaboradorView
@@ -47,8 +51,9 @@ namespace Domain.ViewModels
             public string Apellido_Materno { get; set; }
             public string CURP { get; set; }
             public DateTime FechaNacimiento { get; set; }
+            public byte[] Foto { get; set; }
             public Company Company { get; set; }
-            public User User { get; set; }
+            public UserView User { get; set; }
         }
     }
 }
