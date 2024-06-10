@@ -18,20 +18,40 @@ import Swal from "sweetalert2";
 import IResponse from "../../../interfaces/IResponse.";
 import Loader from "../../../components/loader";
 
-interface CompanyData {
+interface PersonData {
   nombre: string;
+  apellido_Paterno: string;
+  apellido_Materno: string;
+  curp: string;
+  fechaNacimiento: Date | string;
+  foto: string | null;
+  company: {
+    id: number;
+    nombre: string;
+  };
+  user: {
+    id: number;
+    email: string;
+  };
 }
 
-const filterRows = (rows: CompanyData[], term: string) => {
-  return rows.filter((row) =>
-    row.nombre.toLowerCase().includes(term.toLowerCase())
-  );
+const filterRows = (rows: PersonData[], term: string) => {
+  return rows.filter((row) => {
+    const searchTerm = term.toLowerCase();
+    return (
+      row.nombre.toLowerCase().includes(searchTerm) ||
+      row.apellido_Paterno.toLowerCase().includes(searchTerm) ||
+      row.apellido_Materno.toLowerCase().includes(searchTerm) ||
+      row.user.email.toLowerCase().includes(searchTerm) ||
+      row.company.nombre.toLowerCase().includes(searchTerm)
+    );
+  });
 };
-const token = localStorage.getItem('token');
+const token = localStorage.getItem("token");
 export default function ClientesComponent() {
   const [rows, setRows] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [filteredRows, setFilteredRows] = useState<CompanyData[]>(rows);
+  const [filteredRows, setFilteredRows] = useState<PersonData[]>(rows);
   const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
@@ -41,7 +61,55 @@ export default function ClientesComponent() {
     setSearchTerm(event.target.value);
   };
   const columns: GridColDef[] = [
-    { field: "nombre", headerName: "Nombre", flex: 1, minWidth: 150 },
+    {
+      field: "foto",
+      headerName: "Foto",
+      flex: 1,
+      maxWidth: 100,
+      renderCell: (params) =>
+        params.value ? ( // Verifica si el valor de la imagen no es nulo
+          <img
+            src={URL.createObjectURL(dataURLToFile(params.value, "photo.png"))} // Crea un objeto File para la imagen y obtén su URL
+            alt="Imagen"
+            style={{ width: "100%", height: "100%", objectFit: "contain" }} // Estilo para la imagen
+          />
+        ) : (
+          <div
+            style={{
+              width: "100%",
+              height: "100%",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          ></div>
+        ),
+    },
+    {
+      field: "nombre",
+      headerName: "Nombre",
+      flex: 1,
+      minWidth: 150,
+      valueGetter: (value, row) => {
+        return `${row.nombre || ""} ${row.apellido_Paterno || ""} ${
+          row.apellido_Materno || ""
+        }`;
+      },
+    },
+    {
+      field: "user",
+      headerName: "Email",
+      flex: 1,
+      minWidth: 150,
+      valueFormatter: (user: any) => user.email,
+    },
+    {
+      field: "company",
+      headerName: "Restaurante",
+      flex: 1,
+      minWidth: 150,
+      valueFormatter: (company: any) => company.nombre,
+    },
     {
       field: "actions",
       headerName: "Acciones",
@@ -96,12 +164,24 @@ export default function ClientesComponent() {
       console.error("Error:", error);
     }
   };
+  const dataURLToFile = (dataurl: any, filename: any) => {
+    console.log(dataurl, filename);
+    const arr = dataurl.split(",");
+    const mime = arr[0].match(/:(.*?);/)[1];
+    const bstr = atob(arr[1]);
+    let n = bstr.length;
+    const u8arr = new Uint8Array(n);
+    while (n--) {
+      u8arr[n] = bstr.charCodeAt(n);
+    }
+    return new File([u8arr], filename, { type: mime });
+  };
   const fetchDelete = async (id: number) => {
     let response: any;
 
     try {
       await Swal.fire({
-        title: "¿Está seguro de eliminar la empresa?",
+        title: "¿Está seguro de eliminar al cliente?",
         icon: "warning",
         showCancelButton: true,
         confirmButtonColor: "#3085d6",
@@ -112,7 +192,7 @@ export default function ClientesComponent() {
         if (result.isConfirmed) {
           setLoading(true);
           response = await axios.delete(
-            `https://localhost:7047/APICompany/Id?Id=${id}`,
+            `https://localhost:7047/APICliente/Id?Id=${id}`,
             {
               headers: {
                 Authorization: `Bearer ${token}`,
@@ -133,8 +213,8 @@ export default function ClientesComponent() {
               cancelButtonColor: "#d33",
               confirmButtonText: "Ok",
               customClass: {
-                container: 'custom-swal-container',
-              }
+                container: "custom-swal-container",
+              },
             });
           } else {
             Swal.fire({
@@ -145,8 +225,8 @@ export default function ClientesComponent() {
               cancelButtonColor: "#d33",
               confirmButtonText: "Ok",
               customClass: {
-                container: 'custom-swal-container',
-              }
+                container: "custom-swal-container",
+              },
             });
           }
         }
@@ -161,8 +241,8 @@ export default function ClientesComponent() {
         cancelButtonColor: "#d33",
         confirmButtonText: "Ok",
         customClass: {
-          container: 'custom-swal-container',
-        }
+          container: "custom-swal-container",
+        },
       });
     } finally {
       setLoading(false);

@@ -19,7 +19,7 @@ namespace Domain.ViewModels
             public string Apellido_Materno { get; set; }
             public string CURP { get; set; }
             public DateTime FechaNacimiento { get; set; }
-            public byte[] Foto { get; set; }
+            public string Foto { get; set; }
             public int FK_Company_Id { get; set; }
         }
         public class ClienteView
@@ -30,8 +30,9 @@ namespace Domain.ViewModels
             public string Apellido_Materno { get; set; }
             public string CURP { get; set; }
             public DateTime FechaNacimiento { get; set; }
-            public byte[] Foto { get; set; }
+            public string Foto { get; set; }
             public CompanyView Company { get; set; }
+            public UserView User { get; set; }
         }
         public class ColaboradorCreate
         {

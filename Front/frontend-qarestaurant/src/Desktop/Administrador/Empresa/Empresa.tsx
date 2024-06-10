@@ -33,6 +33,7 @@ export default function EmpresaComponent() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredRows, setFilteredRows] = useState<CompanyData[]>(rows);
   const [loading, setLoading] = useState(false);
+  
 
   const navigate = useNavigate();
 

@@ -13,6 +13,7 @@ using System.Text;
 using System.Threading.Tasks;
 using static Domain.ViewModels.CompanyVM;
 using static Domain.ViewModels.PersonVM;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace Services.Servicio
 {
@@ -30,6 +31,7 @@ namespace Services.Servicio
             {
                 List<ClienteView> view = await _context.Person
                     .Include(x => x.Company)
+                    .Include(y => y.User)
                     .Where(p => p.User.Role.Nombre == "Admin")
                     .Select(p => new ClienteView
                     {
@@ -39,11 +41,15 @@ namespace Services.Servicio
                         Id = p.Id,
                         Nombre = p.Nombre,
                         CURP = p.CURP,
-                        Foto = p.Foto,
-                        Company = new CompanyView()
+                        Foto = p.Foto != null ? "data:image/png;base64,"+Convert.ToBase64String(p.Foto) : null,
+                        Company = new()
                         {
                             Id = p.Company.Id,
                             Nombre = p.Company.Nombre
+                        },
+                        User = new()
+                        {
+                            Email = p.User.Email
                         }
                     })
                     .ToListAsync();
@@ -67,7 +73,9 @@ namespace Services.Servicio
                 {
                     throw new Exception("Usuario no encontrado");
                 }
-
+                string? base64String = person.Foto != null
+                    ? Convert.ToBase64String(person.Foto)
+                    : null;
                 ClienteView view = new()
                 {
                     Nombre = person.Nombre,
@@ -80,8 +88,8 @@ namespace Services.Servicio
                     Apellido_Paterno = person.Apellido_Paterno,
                     CURP = person.CURP,
                     FechaNacimiento = person.FechaNacimiento,
-                    Foto = person.Foto
-                };
+                    Foto = person.Foto != null ? "data:image/png;base64," + base64String:null
+            };
 
                 return new Response<ClienteView>(view);
 
@@ -109,17 +117,23 @@ namespace Services.Servicio
                 _context.User.Add(user);
                 await _context.SaveChangesAsync();
 
+                string? cleanBase64 = !string.IsNullOrEmpty(request.Foto) && request.Foto.Split(',').Length > 1
+                    ? request.Foto.Split(',')[1]
+                    : null;
+
                 Person person = new()
                 {
                     FK_User_Id = user.Id,
-                    Apellido_Paterno = request.Apellido_Paterno,
-                    Apellido_Materno = request.Apellido_Materno,
-                    Nombre = request.Nombre,
-                    CURP = request.CURP,
+                    Apellido_Paterno = request.Apellido_Paterno.Replace(" ", "").Normalize(),
+                    Apellido_Materno = request.Apellido_Materno.Replace(" ", "").Normalize(),
+                    Nombre = request.Nombre.Normalize(),
+                    CURP = request.CURP.ToUpper(),
                     FechaNacimiento = request.FechaNacimiento,
                     FK_Company_Id = request.FK_Company_Id,
-                    Foto = request.Foto,
-                };
+                    Foto = !string.IsNullOrEmpty(cleanBase64)
+                    ? Convert.FromBase64String(cleanBase64)
+                    : null
+            };
 
                 _context.Person.Add(person);
                 await _context.SaveChangesAsync();
@@ -127,7 +141,7 @@ namespace Services.Servicio
                 // Commit la transacción si todo es exitoso
                 await transaction.CommitAsync();
 
-                return new Response<ClienteCreate>(request);
+                return new Response<ClienteCreate>(request, "Cliente registrado con éxito.");
 
             }
             catch (Exception ex)
@@ -148,18 +162,23 @@ namespace Services.Servicio
                 {
                     throw new Exception("Cliente no encontrado");
                 }
+                string? cleanBase64 = !string.IsNullOrEmpty(request.Foto) && request.Foto.Split(',').Length > 1
+                    ? request.Foto.Split(',')[1]
+                    : null;
 
-                cliente.Nombre = request.Nombre;
-                cliente.Apellido_Paterno = request.Apellido_Paterno;
-                cliente.Apellido_Materno = request.Apellido_Materno;
-                cliente.CURP = request.CURP;
+                cliente.Nombre = request.Nombre.Normalize().Replace(" ", "");
+                cliente.Apellido_Paterno = request.Apellido_Paterno.Normalize().Replace(" ", "");
+                cliente.Apellido_Materno = request.Apellido_Materno.Normalize().Replace(" ", "");
+                cliente.CURP = request.CURP.ToUpper();
                 cliente.FechaNacimiento = request.FechaNacimiento;
-                cliente.Foto = request.Foto;
+                cliente.Foto = !string.IsNullOrEmpty(cleanBase64)
+                    ? Convert.FromBase64String(cleanBase64)
+                    : null;
 
                 _context.Update(cliente);
                 await _context.SaveChangesAsync();
 
-                return new Response<ClienteCreate>(request);
+                return new Response<ClienteCreate>(request, "Cliente editado con éxito.");
 
             }catch (Exception ex)
             {
@@ -179,14 +198,8 @@ namespace Services.Servicio
                 // Llamar al procedimiento almacenado para eliminar
                 await _context.Database.ExecuteSqlRawAsync("EXEC sp_DeletePerson @PersonId", new SqlParameter("@PersonId", Id));
 
-                return new Response<ClienteView>(new ClienteView()
-                {
-                    Nombre = cliente.Nombre,
-                    Apellido_Materno = cliente.Apellido_Materno,
-                    Apellido_Paterno = cliente.Apellido_Paterno,
-                    FechaNacimiento = cliente.FechaNacimiento,
-                    CURP = cliente.CURP
-                });
+                return new Response<ClienteView>(null, "Cliente eliminado con éxito.");
+
             }
             catch (Exception ex)
             {
@@ -199,7 +212,8 @@ namespace Services.Servicio
             {
                 string curpPrimerosTres = persona.CURP[..3];
                 Company company = await _context.Company.FirstOrDefaultAsync(x => x.Id == persona.FK_Company_Id);
-                string direccionCorreo = $"{persona.Nombre.ToLower()}{persona.Apellido_Paterno[..1].ToLower()}{curpPrimerosTres}@{company.Nombre.ToLower().Replace(" ", "")}.com";
+                string nombreEmpresa = company.Nombre.ToLower().Replace(" ", "");
+                string direccionCorreo = $"{persona.Nombre.ToLower().Replace(" ", "")}{persona.Apellido_Paterno.Trim()[..1].ToLower()}{curpPrimerosTres.Trim().ToLower()}@{nombreEmpresa}.com";
 
                 return direccionCorreo;
             }
@@ -213,7 +227,8 @@ namespace Services.Servicio
             try
             {
                 Company company = await _context.Company.FirstOrDefaultAsync(x => x.Id == persona.FK_Company_Id);
-                string contrasena = $"{company.Nombre.ToLower()}@1234";
+                string nombreEmpresa = company.Nombre.ToLower().Replace(" ", "");
+                string contrasena = $"{nombreEmpresa}@1234";
                 string contrasenaHash = HashPassword(contrasena);
                 return contrasenaHash;
             }
