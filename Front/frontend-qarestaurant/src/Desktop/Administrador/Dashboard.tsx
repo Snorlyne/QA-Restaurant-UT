@@ -16,6 +16,7 @@ import ListItemText from "@mui/material/ListItemText";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import SearchIcon from "@mui/icons-material/Search";
 import StorefrontIcon from "@mui/icons-material/Storefront";
+import InventoryIcon from '@mui/icons-material/Inventory';
 import logoSinBG from "./../../img/logoSinBG.png";
 import ClientesComponent from "./Clientes";
 import { useEffect, useState } from "react";
@@ -37,6 +38,7 @@ import {
   useNavigate,
 } from "react-router-dom";
 import EmpresaCreateEditComponent from "./Empresa/EmpresaCE";
+import Inventario from "./Inventario/Inventario";
 
 const drawerWidth = 240;
 
@@ -133,6 +135,12 @@ const menuItems = [
     text: "Empresas",
     icon: <StorefrontIcon />,
     link: "/dashboard/empresas",
+  },
+
+  {
+    text: "Inventario",
+    icon: <InventoryIcon />,
+    link: "/dashboard/inventario",
   },
 
   // { text: 'Configuración General', icon: <InboxIcon />, component: <ConfiguracionGeneralComponent /> }
@@ -414,6 +422,7 @@ useEffect(() => {
           <Route path="empresas" element={<EmpresaComponent />} />
           <Route path="empresas/crear" element={<EmpresaCreateEditComponent />} />
           <Route path="empresas/editar/:id" element={<EmpresaCreateEditComponent />} />
+          <Route path="inventario" element={<Inventario />} />
         </Routes>
       </Box>
     </Box>
