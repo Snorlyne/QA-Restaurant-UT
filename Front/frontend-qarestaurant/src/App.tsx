@@ -6,7 +6,6 @@ import Bienvenido from "../src/Mobil/bienvenido";
 import DashboardMeseros from "./Meseros/DashboardMeseros";
 import EmpresaComponent from "./Desktop/Administrador/Empresa/Empresa";
 import EmpresaCreateEditComponent from "./Desktop/Administrador/Empresa/EmpresaCE";
-import GuardarPedidos from "./Meseros/GuardarPedidos";
 
 const App: React.FC = () => {
   return (
@@ -22,7 +21,6 @@ const App: React.FC = () => {
         </Route>
         <Route path="/" element={<Login />} />
         <Route path="/meseros" element={<DashboardMeseros />}></Route>
-        <Route path="/GuardarPedidos" element={<GuardarPedidos />}></Route>
       </Routes>
     </Router>
   );
