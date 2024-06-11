@@ -30,7 +30,7 @@ import TableChartIcon from '@mui/icons-material/TableChart';
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
 import OrderItem from './OrdenItem';
-
+import { Card } from '@mui/material';
 
 const handleSave = () => {
   console.log('Guardar');
@@ -189,7 +189,8 @@ const App: React.FC = () => {
 
   return (
     <>
-    <Box sx={{ display: 'flex' }}>
+    <Card sx={{display:'flex', flexDirection: 'column', height:'100vh', justifyContent:'space-between'}}>
+    <Box sx={{ display: 'fixed', backgroundColor:'white' }}>
       <CssBaseline />
       <AppBar position="fixed" open={open}>
       <Toolbar sx={{ backgroundColor: '#486F99' }}> 
@@ -249,6 +250,8 @@ const App: React.FC = () => {
           ))}
         </List>
       </Drawer>
+
+
 <Box component="main" sx={{ flexGrow: 1, p: 3, marginTop: '64px' }}>
   {/* ...otros componentes... */}
   <Grid container spacing={2}>
@@ -269,13 +272,14 @@ const App: React.FC = () => {
   </Grid>
 </Box>
 </Box>
+
 <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end', gap: 2,  }}>
 <Grid container spacing={2} justifyContent="flex-end">
 <Grid item xs={12} sm={6} md={4} lg={3}>
         <Button variant="contained" onClick={handleSave}
             sx={{ 
               position: 'relative',
-              right: { xs: '-70%', md: '-15%', lg: '55%'},
+              right: { xs: '-20%', sm: '-70%', md: '-15%', lg: '55%'},
               fontSize: '16px', 
               padding: '10px 20px',
               borderRadius: '15px',
@@ -283,8 +287,8 @@ const App: React.FC = () => {
               alignContent: 'center',
               textTransform: 'none',
               backgroundColor: 'green',
-              marginTop: { xs: '70%', md: '85%', lg: '115%'},
-              width: { xs: '80%', md: '80%', lg: '100%'}
+              width: { xs: '70%', sm:'80%', md: '80%', lg: '100%'},
+              top: '-10px'
             }}
             >
           Guardar
@@ -294,7 +298,7 @@ const App: React.FC = () => {
         <Button variant="contained" onClick={handleCancel}
             sx={{ 
               position: 'relative',
-              left: { xs: '70%', md: '65%', lg: '55%'},
+              left: { xs: '20%', sm:'68%',md: '65%', lg: '45%'},
               fontSize: '16px', 
               padding: '3px 10px',
               borderRadius: '10px',
@@ -302,14 +306,17 @@ const App: React.FC = () => {
               alignContent: 'center',
               textTransform: 'none',
               backgroundColor: 'red',
-              marginTop: { xs: '73%', md: '85%', lg: '120%'},
+              width: { xs: '70%', sm:'30%', md: '80%', lg: '40%'},
+              top: { xs:'-10%', sm:'-10%'}
+              
             }}
             >
           Cancelar
         </Button>
         </Grid>
         </Grid>
-      </Box>
+        </Box>
+        </Card>
     </>
   );
 };
