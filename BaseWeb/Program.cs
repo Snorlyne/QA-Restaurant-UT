@@ -92,6 +92,8 @@ builder.Services.AddTransient<IRoleServicio, RoleServicio>();
 builder.Services.AddTransient<IAuthServicio, AuthServicio>();
 builder.Services.AddTransient<ICompanyServicio, CompanyServicio>();
 builder.Services.AddTransient<IClienteServicio, ClienteServicio>();
+builder.Services.AddScoped<IInventarioServicio, InventarioServicio>();
+
 builder.Services.AddTransient<IColaboradorServicio, ColaboradorServicio>();
 
 //Configuraci?n para permitir el host del front para hace uso del Web API //Configurar cuando se pase a produccion.

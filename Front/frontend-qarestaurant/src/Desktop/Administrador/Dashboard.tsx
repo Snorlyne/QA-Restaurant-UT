@@ -16,6 +16,7 @@ import ListItemText from "@mui/material/ListItemText";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import SearchIcon from "@mui/icons-material/Search";
 import StorefrontIcon from "@mui/icons-material/Storefront";
+import InventoryIcon from '@mui/icons-material/Inventory';
 import HailIcon from "@mui/icons-material/Hail";
 import LogoutIcon from "@mui/icons-material/Logout";
 import logoSinBG from "./../../img/logoSinBG.png";
@@ -40,6 +41,8 @@ import {
   useNavigate,
 } from "react-router-dom";
 import EmpresaCreateEditComponent from "./Empresa/EmpresaCE";
+import Inventario from "./Inventario/Inventario";
+import CrearProducto from "./Inventario/CrearProducto";
 import ClienteCEComponent from "./Cliente/ClienteCE";
 import UsuarioComponent from "./Usuario/Usuario";
 import authService from "../../AuthService/authService";
@@ -142,6 +145,12 @@ const menuItems = [
     text: "Empresas",
     icon: <StorefrontIcon />,
     link: "/dashboard/empresas",
+  },
+
+  {
+    text: "Inventario",
+    icon: <InventoryIcon />,
+    link: "/dashboard/inventario",
   },
 
   // { text: 'Configuración General', icon: <InboxIcon />, component: <ConfiguracionGeneralComponent /> }
@@ -503,6 +512,11 @@ const Dashboard: React.FC = () => {
             element={<EmpresaCreateEditComponent />}
           />
           <Route path="clientes" element={<ClientesComponent />} />
+          <Route path="empresas" element={<EmpresaComponent />} />
+          <Route path="empresas/crear" element={<EmpresaCreateEditComponent />} />
+          <Route path="empresas/editar/:id" element={<EmpresaCreateEditComponent />} />
+          <Route path="inventario" element={<Inventario />} />
+          <Route path="inventario/crearproduc" element={<CrearProducto />} />
           <Route path="clientes/crear" element={<ClienteCEComponent />} />
           <Route path="clientes/editar/:id" element={<ClienteCEComponent />} />
 
