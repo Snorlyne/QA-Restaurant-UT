@@ -12,8 +12,8 @@ using Repository.Context;
 namespace Repository.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20240610024310_Inventario")]
-    partial class Inventario
+    [Migration("20240610151347_inv")]
+    partial class inv
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {

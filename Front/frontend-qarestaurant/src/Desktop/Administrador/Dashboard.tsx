@@ -39,6 +39,7 @@ import {
 } from "react-router-dom";
 import EmpresaCreateEditComponent from "./Empresa/EmpresaCE";
 import Inventario from "./Inventario/Inventario";
+import CrearProducto from "./Inventario/CrearProducto";
 
 const drawerWidth = 240;
 
@@ -423,6 +424,7 @@ useEffect(() => {
           <Route path="empresas/crear" element={<EmpresaCreateEditComponent />} />
           <Route path="empresas/editar/:id" element={<EmpresaCreateEditComponent />} />
           <Route path="inventario" element={<Inventario />} />
+          <Route path="inventario/crearproduc" element={<CrearProducto />} />
         </Routes>
       </Box>
     </Box>

@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace Repository.Migrations
 {
-    public partial class Inventario : Migration
+    public partial class inv : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
