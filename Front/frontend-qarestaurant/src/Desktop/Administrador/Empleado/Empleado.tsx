@@ -15,7 +15,7 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
-import IResponse from "../../../interfaces/IResponse.";
+// import IResponse from "../../../interfaces/IResponse.";
 import Loader from "../../../components/loader";
 
 interface PersonData {
@@ -25,41 +25,55 @@ interface PersonData {
   curp: string;
   fechaNacimiento: Date | string;
   foto: string | null;
-  company: {
-    id: number;
-    nombre: string;
-  };
-  user: {
-    id: number;
-    email: string;
-  };
+  email: string;
+  puesto: string;
 }
 
+// Función para filtrar filas
 const filterRows = (rows: PersonData[], term: string) => {
-  return rows.filter((row) => {
-    const searchTerm = term.toLowerCase();
-    return (
-      row.nombre.toLowerCase().includes(searchTerm) ||
-      row.apellido_Paterno.toLowerCase().includes(searchTerm) ||
-      row.apellido_Materno.toLowerCase().includes(searchTerm) ||
-      row.user.email.toLowerCase().includes(searchTerm) ||
-      row.company.nombre.toLowerCase().includes(searchTerm)
-    );
-  });
+  const searchTerm = term.toLowerCase();
+  return rows.filter((row) =>
+    [
+      row.nombre,
+      row.apellido_Paterno,
+      row.apellido_Materno,
+      row.email,
+      row.curp,
+      row.puesto,
+    ].some((field) => field.toLowerCase().includes(searchTerm))
+  );
 };
-export default function ClientesComponent() {
-  const [rows, setRows] = useState([]);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [filteredRows, setFilteredRows] = useState<PersonData[]>(rows);
-  const [loading, setLoading] = useState(false);
-  const token = localStorage.getItem("token");
 
+// Función para convertir dataURL a File
+const dataURLToFile = (dataurl: string, filename: string): File => {
+  const [header, data] = dataurl.split(",");
+  const mimeMatch = header.match(/:(.*?);/);
+  if (!mimeMatch) throw new Error("Invalid data URL format");
+  const mime = mimeMatch[1];
+  const bstr = atob(data);
+  const u8arr = new Uint8Array(bstr.length);
+
+  for (let i = 0; i < bstr.length; i++) {
+    u8arr[i] = bstr.charCodeAt(i);
+  }
+
+  return new File([u8arr], filename, { type: mime });
+};
+
+export default function EmpleadoComponent() {
+  const [rows, setRows] = useState<PersonData[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filteredRows, setFilteredRows] = useState<PersonData[]>([]);
+  const [loading, setLoading] = useState(false);
+  const token = localStorage.getItem("token") || "";
   const navigate = useNavigate();
 
   // Manejar el cambio del término de búsqueda
-  const handleSearchChange = (event: any) => {
+  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(event.target.value);
   };
+
+  // Columnas para DataGrid
   const columns: GridColDef[] = [
     {
       field: "foto",
@@ -67,11 +81,11 @@ export default function ClientesComponent() {
       flex: 1,
       maxWidth: 100,
       renderCell: (params) =>
-        params.value ? ( // Verifica si el valor de la imagen no es nulo
+        params.value ? (
           <img
-            src={URL.createObjectURL(dataURLToFile(params.value, "photo.png"))} // Crea un objeto File para la imagen y obtén su URL
+            src={URL.createObjectURL(dataURLToFile(params.value, "photo.png"))}
             alt="Imagen"
-            style={{ width: "100%", height: "100%", objectFit: "contain" }} // Estilo para la imagen
+            style={{ width: "100%", height: "100%", objectFit: "contain" }}
           />
         ) : (
           <div
@@ -82,12 +96,14 @@ export default function ClientesComponent() {
               alignItems: "center",
               justifyContent: "center",
             }}
-          ></div>
+          >
+            No Image
+          </div>
         ),
     },
     {
       field: "nombre",
-      headerName: "Nombre",
+      headerName: "Nombre Completo",
       flex: 1,
       minWidth: 150,
       valueGetter: (value, row) => {
@@ -97,18 +113,16 @@ export default function ClientesComponent() {
       },
     },
     {
-      field: "user",
+      field: "email",
       headerName: "Email",
       flex: 1,
       minWidth: 150,
-      valueFormatter: (user: any) => user.email,
     },
     {
-      field: "company",
-      headerName: "Restaurante",
+      field: "puesto",
+      headerName: "Puesto",
       flex: 1,
       minWidth: 150,
-      valueFormatter: (company: any) => company.nombre,
     },
     {
       field: "actions",
@@ -125,12 +139,9 @@ export default function ClientesComponent() {
             variant="contained"
             color="primary"
             onClick={() =>
-              navigate(`/dashboard/clientes/editar/${params.row.id}`)
+              navigate(`/dashboard/empleados/editar/${params.row.id}`)
             }
-            sx={{
-              marginRight: 3,
-              marginLeft: 2,
-            }}
+            sx={{ marginRight: 3, marginLeft: 2 }}
           >
             <EditIcon />
           </Button>
@@ -145,114 +156,71 @@ export default function ClientesComponent() {
       ),
     },
   ];
+
+  // Función para obtener datos
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
       const response = await axios.get(
-        "https://localhost:7047/APICliente/lista",
+        "https://localhost:7047/APIColaborador/lista",
         {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          headers: { Authorization: `Bearer ${token}` },
         }
       );
-      const data = response.data;
-      setRows(data.result);
-      setFilteredRows(data.result);
+      const data = response.data.result;
+      setRows(data);
+      setFilteredRows(data);
     } catch (error) {
       console.error("Error:", error);
     }
     setLoading(false);
-  }, [token]); 
-  
-  const dataURLToFile = (dataurl: any, filename: any) => {
-    console.log(dataurl, filename);
-    const arr = dataurl.split(",");
-    const mime = arr[0].match(/:(.*?);/)[1];
-    const bstr = atob(arr[1]);
-    let n = bstr.length;
-    const u8arr = new Uint8Array(n);
-    while (n--) {
-      u8arr[n] = bstr.charCodeAt(n);
-    }
-    return new File([u8arr], filename, { type: mime });
-  };
-  const fetchDelete = async (id: number) => {
-    let response: any;
+  }, [token]);
 
+  // Función para eliminar un colaborador
+  const fetchDelete = async (id: number) => {
     try {
-      await Swal.fire({
-        title: "¿Está seguro de eliminar al cliente?",
+      const result = await Swal.fire({
+        title: "¿Está seguro de eliminar al colaborador?",
         icon: "warning",
         showCancelButton: true,
         confirmButtonColor: "#3085d6",
         cancelButtonColor: "#d33",
         confirmButtonText: "Si",
         cancelButtonText: "No",
-      }).then(async (result) => {
-        if (result.isConfirmed) {
-          setLoading(true);
-          response = await axios.delete(
-            `https://localhost:7047/APICliente/Id?Id=${id}`,
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            }
-          );
-          if (response.status !== 200) {
-            throw new Error("Network response was not ok");
-          }
-          const dataResponse: IResponse = response.data;
+      });
 
-          if (dataResponse.isSuccess) {
-            Swal.fire({
-              title: dataResponse.message,
-              icon: "success",
-              showCancelButton: false,
-              confirmButtonColor: "#3085d6",
-              cancelButtonColor: "#d33",
-              confirmButtonText: "Ok",
-              customClass: {
-                container: "custom-swal-container",
-              },
-            });
-          } else {
-            Swal.fire({
-              title: dataResponse.message,
-              icon: "error",
-              showCancelButton: false,
-              confirmButtonColor: "#3085d6",
-              cancelButtonColor: "#d33",
-              confirmButtonText: "Ok",
-              customClass: {
-                container: "custom-swal-container",
-              },
-            });
+      if (result.isConfirmed) {
+        setLoading(true);
+        const response = await axios.delete(
+          `https://localhost:7047/APIColaborador/Id?Id=${id}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
           }
+        );
+
+        const dataResponse = response.data;
+
+        if (response.status === 200 && dataResponse.isSuccess) {
+          Swal.fire("Eliminado!", dataResponse.message, "success");
+        } else {
+          Swal.fire("Error!", dataResponse.message, "error");
         }
+
         fetchData();
-      });
+      }
     } catch (error: any) {
-      Swal.fire({
-        title: error.message,
-        icon: "error",
-        showCancelButton: false,
-        confirmButtonColor: "#3085d6",
-        cancelButtonColor: "#d33",
-        confirmButtonText: "Ok",
-        customClass: {
-          container: "custom-swal-container",
-        },
-      });
+      Swal.fire("Error!", error.message, "error");
     } finally {
       setLoading(false);
     }
   };
+
+  // Obtener datos al montar el componente
   useEffect(() => {
     fetchData();
   }, [fetchData]);
 
+  // Filtrar filas cuando cambian las filas o el término de búsqueda
   useEffect(() => {
     setFilteredRows(filterRows(rows, searchTerm));
   }, [rows, searchTerm]);
@@ -263,7 +231,7 @@ export default function ClientesComponent() {
         <Grid container mb={3}>
           <Grid item xs={12} md={6}>
             <Typography variant="h4" color="#0C0C0C">
-              Clientes registrados
+              Empleados registrados
             </Typography>
           </Grid>
           <Grid
@@ -279,9 +247,10 @@ export default function ClientesComponent() {
             <Button
               variant="contained"
               color="success"
-              onClick={() => navigate("/dashboard/clientes/crear")}
+              onClick={() => navigate("/dashboard/empleados/crear")}
+              endIcon={<AddCircleIcon />}
             >
-              <AddCircleIcon />
+              Agregar
             </Button>
           </Grid>
         </Grid>

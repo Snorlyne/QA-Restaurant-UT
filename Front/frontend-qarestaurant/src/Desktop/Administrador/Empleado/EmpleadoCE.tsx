@@ -16,7 +16,8 @@ import Loader from "../../../components/loader";
 import { useParams } from "react-router-dom";
 import { useDropzone } from "react-dropzone";
 import { Cancel } from "@mui/icons-material";
-interface Company {
+
+interface RoleData {
   id: number;
   nombre: string;
 }
@@ -27,7 +28,7 @@ interface PersonData {
   curp: string;
   fechaNacimiento: Date | string;
   foto: string | null;
-  fk_company_id: number | null;
+  role: number | null; 
 }
 const initialPersonData: PersonData = {
   nombre: "",
@@ -36,7 +37,7 @@ const initialPersonData: PersonData = {
   curp: "",
   fechaNacimiento: "",
   foto: null,
-  fk_company_id: null,
+  role: null,
 };
 const initialErrors = {
   nombre: "",
@@ -45,22 +46,26 @@ const initialErrors = {
   curp: "",
   fechaNacimiento: "",
   foto: "",
-  fkCompanyId: "",
+  role: "",
 };
 
 const MAX_FILE_SIZE_MB = 2; // Tamaño máximo de archivo en MB
 
-export default function ClienteCEComponent() {
+export default function EmpleadoCEComponent() {
   const { id } = useParams();
-  const [title, setTitle] = useState<string>("Registrar cliente");
+  const [title, setTitle] = useState<string>("Registrar empleado");
   const [personData, setPersonData] = useState<PersonData>(initialPersonData);
   const [file, setFile] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState(initialErrors);
   const [disabledBtn, setDisabledBtn] = useState(true);
-  const [companies, setCompanies] = useState<Company[]>([]);
-  const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
   const token = localStorage.getItem("token");
+  const [selectedRole, setSelectedRole] = useState<RoleData | null>(null);
+  const roles: RoleData[] = [
+    { id: 3, nombre: "Chef" },
+    { id: 4, nombre: "Mesero" },
+    { id: 5, nombre: "Cajero" },
+  ];
   // Manejador genérico para cambios en los inputs
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
@@ -78,17 +83,17 @@ export default function ClienteCEComponent() {
     setDisabledBtn(hasErrorsOrEmptyFields());
   };
   // Manejo del cambio de selección de empresa
-  const handleCompanyChange = (event: any, value: Company | null) => {
+  const handleRoleChange = (event: any, value: RoleData | null) => {
     setPersonData((prevData) => ({
       ...prevData,
-      fk_company_id: value ? value.id : 0,
+      role: value ? value.id : 0,
     }));
-    setSelectedCompany(value);
+    setSelectedRole(value);
 
-    const error = validateField("fkCompanyId", value ? value.id : 0);
+    const error = validateField("role", value ? value.id : 0);
     setErrors((prevErrors) => ({
       ...prevErrors,
-      fkCompanyId: error,
+      role: error,
     }));
 
     // Actualizar el estado del botón
@@ -104,7 +109,7 @@ export default function ClienteCEComponent() {
       "curp",
       "fechaNacimiento",
       "foto",
-      "fk_company_id",
+      "role",
     ];
     const hasErrors = Object.values(errors).some((error) => error !== "");
 
@@ -178,9 +183,9 @@ export default function ClienteCEComponent() {
           }
         }
         break;
-      case "fkCompanyId":
+      case "role":
         if (value === 0) {
-          return "Debes seleccionar una empresa.";
+          return "Debes seleccionar un rol.";
         }
         break;
       default:
@@ -194,14 +199,18 @@ export default function ClienteCEComponent() {
       let response: any;
       const data = personData;
       if (!id) {
-        response = await axios.post("https://localhost:7047/APICliente", data, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        response = await axios.post(
+          "https://localhost:7047/APIColaborador",
+          data,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
       } else {
         response = await axios.put(
-          `https://localhost:7047/APICliente/Id?Id=${id}`,
+          `https://localhost:7047/APIColaborador/Id?Id=${id}`,
           data,
           {
             headers: {
@@ -268,26 +277,6 @@ export default function ClienteCEComponent() {
       });
     }
   };
-  const fetchCompanies = useCallback(async (selectedId: number | null) => {
-    try {
-      const response = await axios.get("https://localhost:7047/APICompany/lista", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      const companiesData = response.data.result;
-      setCompanies(companiesData);
-      if (selectedId) {
-        const selectedCompany = companiesData.find(
-          (company: Company) => company.id === selectedId
-        );
-        setSelectedCompany(selectedCompany || null);
-      }
-    } catch (error) {
-      console.error("Error fetching companies", error);
-    }
-  }, [token]); 
-  
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -308,9 +297,8 @@ export default function ClienteCEComponent() {
           curp: data.curp,
           fechaNacimiento: data.fechaNacimiento,
           foto: data.foto,
-          fk_company_id: data.company.id,
+          role: data.user.role.id,
         });
-        fetchCompanies(data.company.id);
         setFile(data.foto ? dataURLToFile(data.foto, "foto.png") : null);
       } catch (error) {
         console.error("Error fetching cliente data:", error);
@@ -332,15 +320,14 @@ export default function ClienteCEComponent() {
     if (id) {
       setDisabledBtn(false);
       fetchData();
-      setTitle("Editar cliente");
+      setTitle("Editar empleado");
     }
-  }, [fetchCompanies, id, token]);
+  }, [id, token]);
 
   useEffect(() => {
     // Verificar errores y campos vacíos iniciales y actualizar el estado del botón
     setDisabledBtn(hasErrorsOrEmptyFields());
   }, [personData, errors, hasErrorsOrEmptyFields]);
-
 
   const { getRootProps, getInputProps } = useDropzone({
     accept: {
@@ -608,16 +595,16 @@ export default function ClienteCEComponent() {
                   <Grid item xs={12} md={6} lg={6}>
                     <FormControl fullWidth>
                       <Autocomplete
-                        options={companies}
-                        value={selectedCompany}
+                        options={roles}
+                        value={selectedRole}
                         getOptionLabel={(option) => option.nombre}
-                        onChange={handleCompanyChange}
+                        onChange={handleRoleChange}
                         renderInput={(params) => (
                           <TextField
                             {...params}
-                            label="Selecciona una empresa"
-                            error={!!errors.fkCompanyId}
-                            helperText={errors.fkCompanyId}
+                            label="Selecciona un rol"
+                            error={!!errors.role}
+                            helperText={errors.role}
                             sx={{ backgroundColor: "#F8F3F3" }}
                           />
                         )}

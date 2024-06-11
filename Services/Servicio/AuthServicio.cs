@@ -40,11 +40,13 @@ namespace Services.Servicio
                 {
                     throw new Exception("Credenciales Invalidas");
                 }
-                string accessToken = await GenerarToken(au);
+                Person person = await _context.Person.Include(x => x.Company).FirstOrDefaultAsync(x => x.User.Id == au.Id);
+                string accessToken = await GenerarToken(au, person);
                 AuthVM.Response response = new()
                 {
                     Email = request.Email,
                     Rol = au.Role.Nombre,
+                    Nombre = person != null ? $"{person.Nombre} {person.Apellido_Paterno}": "RALL",
                     JWTtoken = accessToken
                 };
                 return new Response<AuthVM.Response>(response);
@@ -55,15 +57,17 @@ namespace Services.Servicio
             }
         }
 
-        public Task<string> GenerarToken(User user)
+        public Task<string> GenerarToken(User user, Person? person)
         {
-
+            string? company = person != null ? person.Company.Id.ToString() : "root";
             var key = _configuration.GetSection("settings").GetSection("secretKey").ToString();
             var keyBytes = Encoding.ASCII.GetBytes(key);
 
             var claims = new ClaimsIdentity();
-            claims.AddClaim(new Claim(ClaimTypes.NameIdentifier, user.Email));
+            claims.AddClaim(new Claim(ClaimTypes.Email, user.Email));
             claims.AddClaim(new Claim(ClaimTypes.Role, user.Role.Nombre));
+            claims.AddClaim(new Claim("companyId", company));
+            claims.AddClaim(new Claim("userId", user.Id.ToString()));
 
             var credencialesToken = new SigningCredentials(
                 new SymmetricSecurityKey(keyBytes),

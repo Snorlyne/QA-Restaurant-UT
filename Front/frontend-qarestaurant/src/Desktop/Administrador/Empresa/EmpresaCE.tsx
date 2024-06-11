@@ -18,7 +18,6 @@ import { Cancel } from "@mui/icons-material";
 interface CompanyData {
   nombre: string;
 }
-const token = localStorage.getItem("token");
 export default function EmpresaCreateEditComponent() {
   const { id } = useParams();
   const [nombre, setNombre] = useState<string>("");
@@ -26,6 +25,7 @@ export default function EmpresaCreateEditComponent() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [disabledBtn, setdisabledBtn] = useState(true);
+  const token = localStorage.getItem("token");
 
   const handleInputNombre = (event: ChangeEvent<HTMLInputElement>) => {
     const inputValue = event.target.value;
@@ -137,7 +137,7 @@ export default function EmpresaCreateEditComponent() {
       fetchData();
       setTitle("Editar empresa");
     }
-  }, [id]);
+  }, [id, token]);
   return (
     <>
       {loading && <Loader />}

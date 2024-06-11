@@ -41,8 +41,8 @@ namespace Domain.ViewModels
             public string Apellido_Materno { get; set; }
             public string CURP { get; set; }
             public DateTime FechaNacimiento { get; set; }
-            public byte[] Foto { get; set; }
-            public int FK_Company_Id { get; set; }
+            public string Foto { get; set; }
+            public int Role { get; set; }
         }
         public class ColaboradorView
         {
@@ -52,9 +52,9 @@ namespace Domain.ViewModels
             public string Apellido_Materno { get; set; }
             public string CURP { get; set; }
             public DateTime FechaNacimiento { get; set; }
-            public byte[] Foto { get; set; }
-            public Company Company { get; set; }
-            public UserView User { get; set; }
+            public string Foto { get; set; }
+            public string Email { get; set; }
+            public string Puesto { get; set; }
         }
     }
 }

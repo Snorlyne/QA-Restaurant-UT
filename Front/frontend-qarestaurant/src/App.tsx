@@ -8,6 +8,9 @@ import EmpresaComponent from "./Desktop/Administrador/Empresa/Empresa";
 import EmpresaCreateEditComponent from "./Desktop/Administrador/Empresa/EmpresaCE";
 import ClientesComponent from "./Desktop/Administrador/Cliente/Cliente";
 import ClienteCEComponent from "./Desktop/Administrador/Cliente/ClienteCE";
+import UsuarioComponent from "./Desktop/Administrador/Usuario/Usuario";
+import EmpleadoComponent from "./Desktop/Administrador/Empleado/Empleado";
+import EmpleadoCEComponent from "./Desktop/Administrador/Empleado/EmpleadoCE";
 
 const App: React.FC = () => {
   return (
@@ -24,6 +27,11 @@ const App: React.FC = () => {
             <Route path="crear" element={<ClienteCEComponent />} />
             <Route path="editar/:id" element={<ClienteCEComponent />} />
           </Route>
+          <Route path="empleados" element={<EmpleadoComponent />}>
+            <Route path="crear" element={<EmpleadoCEComponent />} />
+            <Route path="editar/:id" element={<EmpleadoCEComponent />} />
+          </Route>
+          <Route path="usuario" element={<UsuarioComponent />}></Route>
         </Route>
         <Route path="/" element={<Login />} />
         <Route path="/meseros" element={<DashboardMeseros />}></Route>

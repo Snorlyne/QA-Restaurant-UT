@@ -1,7 +1,7 @@
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
 import Box from "@mui/material/Box";
 import axios from "axios";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   Button,
   Grid,
@@ -15,32 +15,35 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
-import IResponse from "../../../interfaces/IResponse.";
+// import IResponse from "../../../interfaces/IResponse.";
 import Loader from "../../../components/loader";
 
+
 interface CompanyData {
+  id: number;
   nombre: string;
 }
 
 const filterRows = (rows: CompanyData[], term: string) => {
-  return rows.filter((row) =>
-    row.nombre.toLowerCase().includes(term.toLowerCase())
+  const searchTerm = term.toLowerCase();
+  return rows.filter(row =>
+    row.nombre.toLowerCase().includes(searchTerm)
   );
 };
-const token = localStorage.getItem('token');
+
 export default function EmpresaComponent() {
-  const [rows, setRows] = useState([]);
+  const [rows, setRows] = useState<CompanyData[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [filteredRows, setFilteredRows] = useState<CompanyData[]>(rows);
+  const [filteredRows, setFilteredRows] = useState<CompanyData[]>([]);
   const [loading, setLoading] = useState(false);
-  
+  const token = localStorage.getItem("token") || "";
 
   const navigate = useNavigate();
 
-  // Manejar el cambio del término de búsqueda
-  const handleSearchChange = (event: any) => {
+  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(event.target.value);
   };
+
   const columns: GridColDef[] = [
     { field: "nombre", headerName: "Nombre", flex: 1, minWidth: 150 },
     {
@@ -53,34 +56,29 @@ export default function EmpresaComponent() {
       align: "center",
       headerAlign: "center",
       renderCell: (params) => (
-        <>
+        <Box display="flex" alignItems="center" justifyContent="center">
           <Button
             variant="contained"
             color="primary"
-            onClick={() =>
-              navigate(`/dashboard/empresas/editar/${params.row.id}`)
-            }
-            sx={{
-              marginRight: 3,
-              marginLeft: 2,
-            }}
-            endIcon={<EditIcon />}
+            onClick={() => navigate(`/dashboard/empresas/editar/${params.row.id}`)}
+            sx={{ marginRight: 1 }}
           >
-            Editar
+            <EditIcon />
           </Button>
           <Button
             variant="contained"
             color="error"
-            onClick={() => fetchDelete(params.row.id)}
-            endIcon={<DeleteIcon />}
+            onClick={() => handleDelete(params.row.id)}
           >
-            Eliminar
+            <DeleteIcon />
           </Button>
-        </>
+        </Box>
       ),
     },
   ];
-  const fetchData = async () => {
+
+  const fetchData = useCallback(async () => {
+    setLoading(true);
     try {
       const response = await axios.get(
         "https://localhost:7047/APICompany/lista",
@@ -90,91 +88,54 @@ export default function EmpresaComponent() {
           },
         }
       );
-      const data = response.data;
-      setRows(data.result);
-      setFilteredRows(data.result);
+      const data = response.data.result;
+      setRows(data);
+      setFilteredRows(data);
     } catch (error) {
-      console.error("Error:", error);
-    }
-  };
-  const fetchDelete = async (id: number) => {
-    let response: any;
-
-    try {
-      await Swal.fire({
-        title: "¿Está seguro de eliminar la empresa?",
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonColor: "#3085d6",
-        cancelButtonColor: "#d33",
-        confirmButtonText: "Si",
-        cancelButtonText: "No",
-        customClass: {
-          container: 'custom-swal-container',
-        }
-      }).then(async (result) => {
-        if (result.isConfirmed) {
-          setLoading(true);
-          response = await axios.delete(
-            `https://localhost:7047/APICompany/Id?Id=${id}`,
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            }
-          );
-          if (response.status !== 200) {
-            throw new Error("Network response was not ok");
-          }
-          const dataResponse: IResponse = response.data;
-
-          if (dataResponse.isSuccess) {
-            Swal.fire({
-              title: dataResponse.message,
-              icon: "success",
-              showCancelButton: false,
-              confirmButtonColor: "#3085d6",
-              cancelButtonColor: "#d33",
-              confirmButtonText: "Ok",
-              customClass: {
-                container: 'custom-swal-container',
-              }
-            });
-          } else {
-            Swal.fire({
-              title: dataResponse.message,
-              icon: "error",
-              showCancelButton: false,
-              confirmButtonColor: "#3085d6",
-              cancelButtonColor: "#d33",
-              confirmButtonText: "Ok",
-              customClass: {
-                container: 'custom-swal-container',
-              }
-            });
-          }
-        }
-        fetchData();
-      });
-    } catch (error: any) {
-      Swal.fire({
-        title: error.message,
-        icon: "error",
-        showCancelButton: false,
-        confirmButtonColor: "#3085d6",
-        cancelButtonColor: "#d33",
-        confirmButtonText: "Ok",
-        customClass: {
-          container: 'custom-swal-container',
-        }
-      });
+      console.error("Error fetching data:", error);
     } finally {
       setLoading(false);
     }
+  }, [token]);
+
+  const handleDelete = async (id: number) => {
+    const confirmation = await Swal.fire({
+      title: "¿Está seguro de eliminar la empresa?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Si",
+      cancelButtonText: "No",
+    });
+
+    if (confirmation.isConfirmed) {
+      setLoading(true);
+      try {
+        const response = await axios.delete(
+          `https://localhost:7047/APICompany/Id?Id=${id}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+
+        if (response.status === 200 && response.data.isSuccess) {
+          Swal.fire("Eliminado!", response.data.message, "success");
+          fetchData();
+        } else {
+          Swal.fire("Error!", response.data.message, "error");
+        }
+      } catch (error: any) {
+        Swal.fire("Error!", error.message, "error");
+      } finally {
+        setLoading(false);
+      }
+    }
   };
+
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [fetchData]);
 
   useEffect(() => {
     setFilteredRows(filterRows(rows, searchTerm));
