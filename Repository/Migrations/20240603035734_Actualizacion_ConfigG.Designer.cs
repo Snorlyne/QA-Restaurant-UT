@@ -12,8 +12,8 @@ using Repository.Context;
 namespace Repository.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20240610151347_inv")]
-    partial class inv
+    [Migration("20240603035734_Actualizacion_ConfigG")]
+    partial class Actualizacion_ConfigG
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -62,31 +62,6 @@ namespace Repository.Migrations
                     b.HasIndex("FK_Company_Id");
 
                     b.ToTable("ConfiguracionGeneral");
-                });
-
-            modelBuilder.Entity("Domain.Entidades.Inventario", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
-
-                    b.Property<string>("Categoria")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Descripcion")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<byte[]>("ImagenInventario")
-                        .HasColumnType("varbinary(max)");
-
-                    b.Property<string>("Nombre")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Inventario");
                 });
 
             modelBuilder.Entity("Domain.Entidades.Person", b =>
