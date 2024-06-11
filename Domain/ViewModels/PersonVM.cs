@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using static Domain.ViewModels.CompanyVM;
+using static Domain.ViewModels.RoleVM;
 using static Domain.ViewModels.UserVM;
 
 namespace Domain.ViewModels
@@ -55,6 +56,18 @@ namespace Domain.ViewModels
             public string Foto { get; set; }
             public string Email { get; set; }
             public string Puesto { get; set; }
+        }
+        public class ColaboradorViewById
+        {
+            public int Id { get; set; }
+            public string Nombre { get; set; }
+            public string Apellido_Paterno { get; set; }
+            public string Apellido_Materno { get; set; }
+            public string CURP { get; set; }
+            public DateTime FechaNacimiento { get; set; }
+            public string Foto { get; set; }
+            public string Email { get; set; }
+            public RoleView Role { get; set; }
         }
     }
 }

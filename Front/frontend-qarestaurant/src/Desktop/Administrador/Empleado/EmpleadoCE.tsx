@@ -82,7 +82,7 @@ export default function EmpleadoCEComponent() {
     }));
     setDisabledBtn(hasErrorsOrEmptyFields());
   };
-  // Manejo del cambio de selección de empresa
+  // Manejo del cambio de selección del rol
   const handleRoleChange = (event: any, value: RoleData | null) => {
     setPersonData((prevData) => ({
       ...prevData,
@@ -282,7 +282,7 @@ export default function EmpleadoCEComponent() {
       try {
         setLoading(true);
         const response = await axios.get(
-          `https://localhost:7047/APICliente/Id?Id=${id}`,
+          `https://localhost:7047/APIColaborador/Id?Id=${id}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -297,8 +297,9 @@ export default function EmpleadoCEComponent() {
           curp: data.curp,
           fechaNacimiento: data.fechaNacimiento,
           foto: data.foto,
-          role: data.user.role.id,
+          role: data.role.id,
         });
+        setSelectedRole(data.role);
         setFile(data.foto ? dataURLToFile(data.foto, "foto.png") : null);
       } catch (error) {
         console.error("Error fetching cliente data:", error);

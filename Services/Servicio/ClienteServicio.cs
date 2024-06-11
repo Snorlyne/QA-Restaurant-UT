@@ -166,7 +166,7 @@ namespace Services.Servicio
                     ? request.Foto.Split(',')[1]
                     : null;
 
-                cliente.Nombre = request.Nombre.Normalize().Replace(" ", "");
+                cliente.Nombre = request.Nombre.Normalize();
                 cliente.Apellido_Paterno = request.Apellido_Paterno.Normalize().Replace(" ", "");
                 cliente.Apellido_Materno = request.Apellido_Materno.Normalize().Replace(" ", "");
                 cliente.CURP = request.CURP.ToUpper();

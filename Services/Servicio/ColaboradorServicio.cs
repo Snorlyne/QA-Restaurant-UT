@@ -1,5 +1,6 @@
 ﻿using Domain.Entidades;
 using Domain.Util;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Repository.Context;
 using Services.IServicio;
@@ -52,13 +53,14 @@ namespace Services.Servicio
                 return new Response<List<ColaboradorView>>(ex.Message);
             }
         }
-        public async Task<Response<ClienteView>> ObtenerCliente(int Id, int IdEmpresa)
+        public async Task<Response<ColaboradorViewById>> ObtenerColaborador(int Id, int IdEmpresa)
         {
             try
             {
                 Person person = await _context.Person
-                    .Include(x => x.Company)
-                    .FirstOrDefaultAsync(p => p.Id == Id);
+                    .Include(x => x.User)
+                    .Include(y => y.User.Role)
+                    .FirstOrDefaultAsync(p => p.Id == Id && p.User.Role.Nombre != "Admin" && p.Company.Id == IdEmpresa);
 
                 if (person == null)
                 {
@@ -67,27 +69,28 @@ namespace Services.Servicio
                 string? base64String = person.Foto != null
                     ? Convert.ToBase64String(person.Foto)
                     : null;
-                ClienteView view = new()
+                ColaboradorViewById view = new()
                 {
                     Nombre = person.Nombre,
-                    Company = new CompanyView()
-                    {
-                        Id = person.Company.Id,
-                        Nombre = person.Company.Nombre
-                    },
                     Apellido_Materno = person.Apellido_Materno,
                     Apellido_Paterno = person.Apellido_Paterno,
                     CURP = person.CURP,
                     FechaNacimiento = person.FechaNacimiento,
-                    Foto = person.Foto != null ? "data:image/png;base64," + base64String : null
+                    Foto = person.Foto != null ? "data:image/png;base64," + base64String : null,
+                    Role = new()
+                    {
+                       Nombre = TranslateRoleToSpanish(person.User.Role.Nombre),
+                       Id = person.User.Role.Id,
+                    },
+                    Email = person.User.Email,
                 };
 
-                return new Response<ClienteView>(view);
+                return new Response<ColaboradorViewById>(view);
 
             }
             catch (Exception ex)
             {
-                return new Response<ClienteView>(ex.Message);
+                return new Response<ColaboradorViewById>(ex.Message);
             }
         }
         public async Task<Response<ColaboradorCreate>> CrearColaborador(ColaboradorCreate request, int IdEmpresa)
@@ -145,6 +148,65 @@ namespace Services.Servicio
                 await transaction.RollbackAsync();
 
                 return new Response<ColaboradorCreate>(ex.Message);
+            }
+        }
+        public async Task<Response<ColaboradorCreate>> EditarColaborador(ColaboradorCreate request, int Id, int IdEmpresa)
+        {
+            try
+            {
+                if (request.Role == 1 || request.Role == 2)
+                {
+                    throw new Exception("Rol invalido");
+                }
+                Person empleado = await _context.Person.FirstOrDefaultAsync(x => x.Id == Id && x.Company.Id == IdEmpresa);
+
+                if (empleado == null)
+                {
+                    throw new Exception("Colaborador no encontrado");
+                }
+                string? cleanBase64 = !string.IsNullOrEmpty(request.Foto) && request.Foto.Split(',').Length > 1
+                    ? request.Foto.Split(',')[1]
+                    : null;
+
+                empleado.Nombre = request.Nombre.Normalize();
+                empleado.Apellido_Paterno = request.Apellido_Paterno.Normalize().Replace(" ", "");
+                empleado.Apellido_Materno = request.Apellido_Materno.Normalize().Replace(" ", "");
+                empleado.CURP = request.CURP.ToUpper();
+                empleado.FechaNacimiento = request.FechaNacimiento;
+                empleado.Foto = !string.IsNullOrEmpty(cleanBase64)
+                    ? Convert.FromBase64String(cleanBase64)
+                    : null;
+
+                _context.Update(empleado);
+                await _context.SaveChangesAsync();
+
+                return new Response<ColaboradorCreate>(request, "Colaborador editado con éxito.");
+
+            }
+            catch (Exception ex)
+            {
+                return new Response<ColaboradorCreate>(ex.Message);
+            }
+        }
+        public async Task<Response<ClienteView>> EliminarColaborador(int Id, int IdEmpresa)
+        {
+            try
+            {
+                Person empleado = await _context.Person.FirstOrDefaultAsync(x => x.Id == Id && x.Company.Id == IdEmpresa);
+
+                if (empleado == null)
+                {
+                    throw new Exception("Empleado no encontrado");
+                }
+                // Llamar al procedimiento almacenado para eliminar
+                await _context.Database.ExecuteSqlRawAsync("EXEC sp_DeletePerson @PersonId", new SqlParameter("@PersonId", Id));
+
+                return new Response<ClienteView>(null, "Empleado eliminado con éxito.");
+
+            }
+            catch (Exception ex)
+            {
+                return new Response<ClienteView>(ex.Message);
             }
         }
 
