@@ -16,6 +16,7 @@ namespace Repository.Context
         public virtual DbSet<Company> Company { get; set; }
         public virtual DbSet<ConfiguracionGeneral> ConfiguracionGeneral { get; set; }
         public virtual DbSet<Inventario> Inventario { get; set; }
+        public virtual DbSet<Categorias> Categorias { get; set; }
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
         {
 

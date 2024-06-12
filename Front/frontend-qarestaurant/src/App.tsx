@@ -9,6 +9,8 @@ import EmpresaCreateEditComponent from "./Desktop/Administrador/Empresa/EmpresaC
 import Inventario from "./Desktop/Administrador/Inventario/Inventario";
 import CrearProducto from "./Desktop/Administrador/Inventario/CrearProducto";
 import GuardarPedidos from "./Meseros/GuardarPedidos";
+import Categoria from "./Desktop/Administrador/Categoria/Categoria";
+import CategoriaCreateEditComponent from "./Desktop/Administrador/Categoria/CategoriaCE";
 
 const App: React.FC = () => {
   return (
@@ -23,6 +25,9 @@ const App: React.FC = () => {
           </Route>
           <Route path="inventario" element={<Inventario></Inventario>}>
           <Route path="crearproduc" element={<CrearProducto />} />
+          </Route>
+          <Route path="categoria" element={<Categoria />}>
+          <Route path="crearcategoria" element={<CategoriaCreateEditComponent />} />
           </Route>
         </Route>
         <Route path="/" element={<Login />} />
