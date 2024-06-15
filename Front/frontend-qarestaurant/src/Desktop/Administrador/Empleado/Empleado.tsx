@@ -17,6 +17,7 @@ import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 // import IResponse from "../../../interfaces/IResponse.";
 import Loader from "../../../components/loader";
+import authService from "../../../AuthService/authService";
 
 interface PersonData {
   nombre: string;
@@ -65,7 +66,7 @@ export default function EmpleadoComponent() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredRows, setFilteredRows] = useState<PersonData[]>([]);
   const [loading, setLoading] = useState(false);
-  const token = localStorage.getItem("token") || "";
+  const token = authService.getToken();
   const navigate = useNavigate();
 
   // Manejar el cambio del término de búsqueda

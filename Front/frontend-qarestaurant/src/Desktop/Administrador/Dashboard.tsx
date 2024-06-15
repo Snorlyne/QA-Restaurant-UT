@@ -16,7 +16,7 @@ import ListItemText from "@mui/material/ListItemText";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import SearchIcon from "@mui/icons-material/Search";
 import StorefrontIcon from "@mui/icons-material/Storefront";
-import InventoryIcon from '@mui/icons-material/Inventory';
+import InventoryIcon from "@mui/icons-material/Inventory";
 import HailIcon from "@mui/icons-material/Hail";
 import LogoutIcon from "@mui/icons-material/Logout";
 import CategoryIcon from '@mui/icons-material/Category';
@@ -50,8 +50,7 @@ import authService from "../../AuthService/authService";
 import Swal from "sweetalert2";
 import EmpleadoComponent from "./Empleado/Empleado";
 import EmpleadoCEComponent from "./Empleado/EmpleadoCE";
-import Categoria from "./Categoria/Categoria";
-import CategoriaCreateEditComponent from "./Categoria/CategoriaCE";
+import ProtectedRoute from "../../AuthService/ProtectedRoute";
 
 const drawerWidth = 240;
 
@@ -140,7 +139,6 @@ const menuItems = [
     icon: <DashboardIcon />,
     link: "/dashboard",
   },
-  { text: "Empleados", icon: <HailIcon />, link: "/dashboard/empleados" },
   // { text: 'Inventario', icon: <MailIcon />, component: <InventarioComponent /> },
   // { text: 'Categoria', icon: <InboxIcon />, component: <CategoriaComponent /> },
   { text: "Clientes", icon: <HailIcon />, link: "/dashboard/clientes" },
@@ -149,18 +147,13 @@ const menuItems = [
     icon: <StorefrontIcon />,
     link: "/dashboard/empresas",
   },
+  { text: "Empleados", icon: <HailIcon />, link: "/dashboard/empleados" },
 
-  {
-    text: "Inventario",
-    icon: <InventoryIcon />,
-    link: "/dashboard/inventario",
-  },
-
-  {
-    text: "Categoria",
-    icon: <CategoryIcon />,
-    link: "/dashboard/categoria",
-  },
+  // {
+  //   text: "Inventario",
+  //   icon: <InventoryIcon />,
+  //   link: "/dashboard/inventario",
+  // },
 
   // { text: 'Configuración General', icon: <InboxIcon />, component: <ConfiguracionGeneralComponent /> }
 ];
@@ -172,6 +165,7 @@ const Dashboard: React.FC = () => {
   const [userNombre, setUserNombre] = useState<string | null>("");
   const [selectedItem, setSelectedItem] = useState<any>();
   const [selectedComponent, setSelectedComponent] = useState<any>();
+  const [selectedMenuItems, setSelectedMenuItems] = useState<any[]>([]);
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -180,7 +174,7 @@ const Dashboard: React.FC = () => {
     const currentPathname = location.pathname;
     const segments = currentPathname.split("/");
     const baseRoute = segments.length >= 3 ? `/${segments[2]}` : "";
-    const selectedItem = menuItems.find(
+    const selectedItem = selectedMenuItems.find(
       (item) => item.link === "/dashboard" + baseRoute
     );
     if (selectedItem) {
@@ -191,7 +185,7 @@ const Dashboard: React.FC = () => {
 
   const handleAutocompleteChange = (event: any, value: any) => {
     setSearchTerm(value);
-    const selectedItem = menuItems.find((item) => item.text === value);
+    const selectedItem = selectedMenuItems.find((item) => item.text === value);
     if (selectedItem) {
       setSelectedItem(selectedItem);
       navigate(selectedItem.link);
@@ -221,8 +215,20 @@ const Dashboard: React.FC = () => {
     });
   };
   useEffect(() => {
-    setUserNombre(localStorage.getItem("usuario"));
-  }, []);
+    setUserNombre(authService.getUser());
+    const role = authService.getRole();
+    if (role === "Root") {
+      setSelectedMenuItems(
+        menuItems.filter((item) => item.text !== "Empleados")
+      );
+    } else {
+      setSelectedMenuItems(
+        menuItems.filter(
+          (item) => item.text !== "Empresas" && item.text !== "Clientes"
+        )
+      );
+    }
+  }, [navigate, userNombre]);
 
   return (
     <Box sx={{ display: "flex" }}>
@@ -375,7 +381,7 @@ const Dashboard: React.FC = () => {
               paddingY: "10px",
               ...(!open && { display: "none", transition: "ease-in" }),
             }}
-            options={menuItems.map((option) => option.text)}
+            options={selectedMenuItems.map((option) => option.text)}
             value={searchTerm}
             onChange={handleAutocompleteChange}
             renderInput={(params) => (
@@ -412,7 +418,7 @@ const Dashboard: React.FC = () => {
                 backgroundColor: "rgba(72, 111, 153, 1)",
               }}
             >
-              {menuItems.map((item, index) => {
+              {selectedMenuItems.map((item, index) => {
                 return (
                   <ListItem
                     key={index}
@@ -491,8 +497,8 @@ const Dashboard: React.FC = () => {
               padding: 1,
               fontSize: "12px",
               "& .MuiButton-startIcon": {
-                ...(!open && {margin: 0})
-              }
+                ...(!open && { margin: 0 }),
+              },
             }}
             onClick={handleLogout}
           >
@@ -511,30 +517,44 @@ const Dashboard: React.FC = () => {
         <Routes>
           <Route index element={<InicioComponent />} />
           <Route path="usuario" element={<UsuarioComponent />} />
-          <Route path="empresas" element={<EmpresaComponent />} />
+
           <Route
-            path="empresas/crear"
-            element={<EmpresaCreateEditComponent />}
-          />
+            path="empresas/*"
+            element={
+              <ProtectedRoute roles={["Root"]} element={<EmpresaComponent />} />
+            }
+          >
+            <Route path="crear" element={<EmpresaCreateEditComponent />} />
+            <Route path="editar/:id" element={<EmpresaCreateEditComponent />} />
+          </Route>
           <Route
-            path="empresas/editar/:id"
-            element={<EmpresaCreateEditComponent />}
-          />
-          <Route path="clientes" element={<ClientesComponent />} />
-          <Route path="empresas" element={<EmpresaComponent />} />
-          <Route path="empresas/crear" element={<EmpresaCreateEditComponent />} />
-          <Route path="empresas/editar/:id" element={<EmpresaCreateEditComponent />} />
+            path="clientes/*"
+            element={
+              <ProtectedRoute
+                roles={["Root"]}
+                element={<ClientesComponent />}
+              />
+            }
+          >
+            <Route path="crear" element={<ClienteCEComponent />} />
+            <Route path="editar/:id" element={<ClienteCEComponent />} />
+          </Route>
+
           <Route path="inventario" element={<Inventario />} />
           <Route path="inventario/crearproduc" element={<CrearProducto />} />
-          <Route path="clientes/crear" element={<ClienteCEComponent />} />
-          <Route path="clientes/editar/:id" element={<ClienteCEComponent />} />
 
-          <Route path="empleados" element={<EmpleadoComponent />} />
-          <Route path="empleados/crear" element={<EmpleadoCEComponent />} />
-          <Route path="empleados/editar/:id" element={<EmpleadoCEComponent />} />
-          <Route path="categoria" element={<Categoria />} />
-          <Route path="categoria/crearcategoria" element={<CategoriaCreateEditComponent />} />
-          
+          <Route
+            path="empleados/*"
+            element={
+              <ProtectedRoute
+                roles={["Admin"]}
+                element={<EmpleadoComponent />}
+              />
+            }
+          >
+            <Route path="crear" element={<EmpleadoCEComponent />} />
+            <Route path="editar/:id" element={<EmpleadoCEComponent />} />
+          </Route>
         </Routes>
       </Box>
     </Box>

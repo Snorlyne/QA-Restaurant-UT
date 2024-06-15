@@ -1,6 +1,5 @@
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
 import Box from "@mui/material/Box";
-import axios from "axios";
 import { useCallback, useEffect, useState } from "react";
 import {
   Button,
@@ -17,6 +16,7 @@ import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import IResponse from "../../../interfaces/IResponse.";
 import Loader from "../../../components/loader";
+import apiClient from "../../../AuthService/authInterceptor";
 
 interface PersonData {
   nombre: string;
@@ -52,7 +52,6 @@ export default function ClientesComponent() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredRows, setFilteredRows] = useState<PersonData[]>(rows);
   const [loading, setLoading] = useState(false);
-  const token = localStorage.getItem("token");
 
   const navigate = useNavigate();
 
@@ -148,14 +147,7 @@ export default function ClientesComponent() {
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await axios.get(
-        "https://localhost:7047/APICliente/lista",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const response = await apiClient.get("/APICliente/lista");
       const data = response.data;
       setRows(data.result);
       setFilteredRows(data.result);
@@ -163,8 +155,8 @@ export default function ClientesComponent() {
       console.error("Error:", error);
     }
     setLoading(false);
-  }, [token]); 
-  
+  }, []);
+
   const dataURLToFile = (dataurl: any, filename: any) => {
     console.log(dataurl, filename);
     const arr = dataurl.split(",");
@@ -192,14 +184,7 @@ export default function ClientesComponent() {
       }).then(async (result) => {
         if (result.isConfirmed) {
           setLoading(true);
-          response = await axios.delete(
-            `https://localhost:7047/APICliente/Id?Id=${id}`,
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            }
-          );
+          response = await apiClient.delete(`/APICliente/Id?Id=${id}`);
           if (response.status !== 200) {
             throw new Error("Network response was not ok");
           }
@@ -234,17 +219,7 @@ export default function ClientesComponent() {
         fetchData();
       });
     } catch (error: any) {
-      Swal.fire({
-        title: error.message,
-        icon: "error",
-        showCancelButton: false,
-        confirmButtonColor: "#3085d6",
-        cancelButtonColor: "#d33",
-        confirmButtonText: "Ok",
-        customClass: {
-          container: "custom-swal-container",
-        },
-      });
+      console.error("Error:", error);
     } finally {
       setLoading(false);
     }

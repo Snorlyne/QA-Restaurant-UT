@@ -14,6 +14,7 @@ import Swal from "sweetalert2";
 import Loader from "../../../components/loader";
 import { useParams } from "react-router-dom";
 import { Cancel } from "@mui/icons-material";
+import authService from "../../../AuthService/authService";
 
 interface CompanyData {
   nombre: string;
@@ -25,7 +26,7 @@ export default function EmpresaCreateEditComponent() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [disabledBtn, setdisabledBtn] = useState(true);
-  const token = localStorage.getItem("token");
+  const token = authService.getToken();
 
   const handleInputNombre = (event: ChangeEvent<HTMLInputElement>) => {
     const inputValue = event.target.value;

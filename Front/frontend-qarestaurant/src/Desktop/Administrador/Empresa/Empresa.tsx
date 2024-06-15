@@ -17,6 +17,7 @@ import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 // import IResponse from "../../../interfaces/IResponse.";
 import Loader from "../../../components/loader";
+import authService from "../../../AuthService/authService";
 
 
 interface CompanyData {
@@ -36,7 +37,7 @@ export default function EmpresaComponent() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredRows, setFilteredRows] = useState<CompanyData[]>([]);
   const [loading, setLoading] = useState(false);
-  const token = localStorage.getItem("token") || "";
+  const token = authService.getToken();
 
   const navigate = useNavigate();
 
