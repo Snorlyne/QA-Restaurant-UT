@@ -16,6 +16,7 @@ import Loader from "../../../components/loader";
 import { useParams } from "react-router-dom";
 import { useDropzone } from "react-dropzone";
 import { Cancel } from "@mui/icons-material";
+import authService from "../../../AuthService/authService";
 
 interface RoleData {
   id: number;
@@ -59,7 +60,7 @@ export default function EmpleadoCEComponent() {
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState(initialErrors);
   const [disabledBtn, setDisabledBtn] = useState(true);
-  const token = localStorage.getItem("token");
+  const token = authService.getToken();
   const [selectedRole, setSelectedRole] = useState<RoleData | null>(null);
   const roles: RoleData[] = [
     { id: 3, nombre: "Chef" },

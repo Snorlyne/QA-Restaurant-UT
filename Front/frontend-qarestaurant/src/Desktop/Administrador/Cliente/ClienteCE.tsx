@@ -10,12 +10,13 @@ import {
 import CheckIcon from "@mui/icons-material/Check";
 import { useCallback, useEffect, useState } from "react";
 import IResponse from "../../../interfaces/IResponse.";
-import axios from "axios";
 import Swal from "sweetalert2";
 import Loader from "../../../components/loader";
 import { useParams } from "react-router-dom";
 import { useDropzone } from "react-dropzone";
 import { Cancel } from "@mui/icons-material";
+import authService from "../../../AuthService/authService";
+import apiClient from "../../../AuthService/authInterceptor";
 interface Company {
   id: number;
   nombre: string;
@@ -60,7 +61,7 @@ export default function ClienteCEComponent() {
   const [disabledBtn, setDisabledBtn] = useState(true);
   const [companies, setCompanies] = useState<Company[]>([]);
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
-  const token = localStorage.getItem("token");
+  const token = authService.getToken();
   // Manejador genérico para cambios en los inputs
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
@@ -194,24 +195,9 @@ export default function ClienteCEComponent() {
       let response: any;
       const data = personData;
       if (!id) {
-        response = await axios.post("https://localhost:7047/APICliente", data, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        response = await apiClient.post("/APICliente", data);
       } else {
-        response = await axios.put(
-          `https://localhost:7047/APICliente/Id?Id=${id}`,
-          data,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-      }
-      if (response.status !== 200) {
-        throw new Error("Network response was not ok");
+        response = await apiClient.put(`/APICliente/Id?Id=${id}`, data);
       }
       const dataResponse: IResponse = response.data;
 
@@ -243,17 +229,7 @@ export default function ClienteCEComponent() {
         });
       }
     } catch (error: any) {
-      Swal.fire({
-        title: error.message,
-        icon: "error",
-        showCancelButton: false,
-        confirmButtonColor: "#3085d6",
-        cancelButtonColor: "#d33",
-        confirmButtonText: "Ok",
-        customClass: {
-          container: "custom-swal-container",
-        },
-      });
+      console.error("Error", error);
     } finally {
       setLoading(false);
     }
@@ -270,11 +246,7 @@ export default function ClienteCEComponent() {
   };
   const fetchCompanies = useCallback(async (selectedId: number | null) => {
     try {
-      const response = await axios.get("https://localhost:7047/APICompany/lista", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await apiClient.get("/APICompany/lista");
       const companiesData = response.data.result;
       setCompanies(companiesData);
       if (selectedId) {
@@ -286,20 +258,13 @@ export default function ClienteCEComponent() {
     } catch (error) {
       console.error("Error fetching companies", error);
     }
-  }, [token]); 
-  
+  }, []);
+
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const response = await axios.get(
-          `https://localhost:7047/APICliente/Id?Id=${id}`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+        const response = await apiClient.get(`/APICliente/Id?Id=${id}`);
         const data = response.data.result;
         setPersonData({
           nombre: data.nombre,
@@ -340,7 +305,6 @@ export default function ClienteCEComponent() {
     // Verificar errores y campos vacíos iniciales y actualizar el estado del botón
     setDisabledBtn(hasErrorsOrEmptyFields());
   }, [personData, errors, hasErrorsOrEmptyFields]);
-
 
   const { getRootProps, getInputProps } = useDropzone({
     accept: {
