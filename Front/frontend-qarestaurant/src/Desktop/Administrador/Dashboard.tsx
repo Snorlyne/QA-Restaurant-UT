@@ -16,10 +16,8 @@ import ListItemText from "@mui/material/ListItemText";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import SearchIcon from "@mui/icons-material/Search";
 import StorefrontIcon from "@mui/icons-material/Storefront";
-import InventoryIcon from "@mui/icons-material/Inventory";
 import HailIcon from "@mui/icons-material/Hail";
 import LogoutIcon from "@mui/icons-material/Logout";
-import CategoryIcon from '@mui/icons-material/Category';
 import logoSinBG from "./../../img/logoSinBG.png";
 import ClientesComponent from "./Cliente/Cliente";
 import { useEffect, useState } from "react";
@@ -42,8 +40,6 @@ import {
   useNavigate,
 } from "react-router-dom";
 import EmpresaCreateEditComponent from "./Empresa/EmpresaCE";
-import Inventario from "./Inventario/Inventario";
-import CrearProducto from "./Inventario/CrearProducto";
 import ClienteCEComponent from "./Cliente/ClienteCE";
 import UsuarioComponent from "./Usuario/Usuario";
 import authService from "../../AuthService/authService";
@@ -539,10 +535,6 @@ const Dashboard: React.FC = () => {
             <Route path="crear" element={<ClienteCEComponent />} />
             <Route path="editar/:id" element={<ClienteCEComponent />} />
           </Route>
-
-          <Route path="inventario" element={<Inventario />} />
-          <Route path="inventario/crearproduc" element={<CrearProducto />} />
-
           <Route
             path="empleados/*"
             element={
