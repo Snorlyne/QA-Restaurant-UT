@@ -12,8 +12,8 @@ using Repository.Context;
 namespace Repository.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20240609051838_Actualizacion_Person")]
-    partial class Actualizacion_Person
+    [Migration("20240615045915_Actualizacion14-06-2024_2")]
+    partial class Actualizacion14062024_2
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -23,6 +23,28 @@ namespace Repository.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder, 1L, 1);
+
+            modelBuilder.Entity("Domain.Entidades.Categorias", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<int>("FK_Company")
+                        .HasColumnType("int");
+
+                    b.Property<string>("NombreCategoria")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FK_Company");
+
+                    b.ToTable("Categorias");
+                });
 
             modelBuilder.Entity("Domain.Entidades.Company", b =>
                 {
@@ -62,6 +84,33 @@ namespace Repository.Migrations
                     b.HasIndex("FK_Company_Id");
 
                     b.ToTable("ConfiguracionGeneral");
+                });
+
+            modelBuilder.Entity("Domain.Entidades.Inventario", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<string>("Descripcion")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("FK_Categoria")
+                        .HasColumnType("int");
+
+                    b.Property<byte[]>("ImagenInventario")
+                        .HasColumnType("varbinary(max)");
+
+                    b.Property<string>("Nombre")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FK_Categoria");
+
+                    b.ToTable("Inventario");
                 });
 
             modelBuilder.Entity("Domain.Entidades.Person", b =>
@@ -157,6 +206,17 @@ namespace Repository.Migrations
                     b.ToTable("User");
                 });
 
+            modelBuilder.Entity("Domain.Entidades.Categorias", b =>
+                {
+                    b.HasOne("Domain.Entidades.Company", "Company")
+                        .WithMany("Categorias")
+                        .HasForeignKey("FK_Company")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Company");
+                });
+
             modelBuilder.Entity("Domain.Entidades.ConfiguracionGeneral", b =>
                 {
                     b.HasOne("Domain.Entidades.Company", "Company")
@@ -166,6 +226,17 @@ namespace Repository.Migrations
                         .IsRequired();
 
                     b.Navigation("Company");
+                });
+
+            modelBuilder.Entity("Domain.Entidades.Inventario", b =>
+                {
+                    b.HasOne("Domain.Entidades.Categorias", "Categorias")
+                        .WithMany("Inventarios")
+                        .HasForeignKey("FK_Categoria")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Categorias");
                 });
 
             modelBuilder.Entity("Domain.Entidades.Person", b =>
@@ -198,8 +269,15 @@ namespace Repository.Migrations
                     b.Navigation("Role");
                 });
 
+            modelBuilder.Entity("Domain.Entidades.Categorias", b =>
+                {
+                    b.Navigation("Inventarios");
+                });
+
             modelBuilder.Entity("Domain.Entidades.Company", b =>
                 {
+                    b.Navigation("Categorias");
+
                     b.Navigation("Persons");
                 });
 

@@ -11,10 +11,11 @@ namespace Services.IServicio
 {
     public interface ICategoriaServicio
     {
-        public Task<Response<List<Categorias>>> ObtenerCategoria();
-        public Task<Response<Categorias>> CrearCategoria(CategoriaVM request);
-        public Task<Response<Categorias>> ActualizarCategoria(int id, CategoriaVM categoria);
-        public Task<Response<Categorias>> EliminarCategoria(int id);
+        public Task<Response<List<Categorias>>> ObtenerCategoria(int companyId);
+        public Task<Response<ViewCategoriaVM>> ObtenerCategoriaById(int id, int companyId);
+        public Task<Response<Categorias>> CrearCategoria(CreateCategiaVM request, int companyId);
+        public Task<Response<Categorias>> ActualizarCategoria(int id, CreateCategiaVM categoria, int companyId);
+        public Task<Response<Categorias>> EliminarCategoria(int id, int companyId);
 
 
 

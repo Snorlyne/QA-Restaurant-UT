@@ -16,6 +16,7 @@ import Loader from "../../../components/loader";
 import { useParams } from "react-router-dom";
 import { useDropzone } from "react-dropzone";
 import { Cancel } from "@mui/icons-material";
+
 interface Company {
   id: number;
   nombre: string;
@@ -333,6 +334,9 @@ export default function ClienteCEComponent() {
       setDisabledBtn(false);
       fetchData();
       setTitle("Editar cliente");
+      
+    }else {
+      fetchCompanies(null);
     }
   }, [fetchCompanies, id, token]);
 

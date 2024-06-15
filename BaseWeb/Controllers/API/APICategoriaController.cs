@@ -2,15 +2,15 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Services.IServicio;
+using System.Threading.Tasks;
 
 namespace BaseWeb.Controllers.API
 {
     [ApiController]
-    [Authorize(Roles = "Root")]
+    [Authorize(Roles = "Admin")]
     [Route("[controller]")]
     public class APICategoriaController : ControllerBase
     {
-
         private readonly ICategoriaServicio _categoriaService;
 
         public APICategoriaController(ICategoriaServicio categoriaService)
@@ -21,31 +21,74 @@ namespace BaseWeb.Controllers.API
         [HttpGet]
         public async Task<IActionResult> ObtenerLista()
         {
-            var result = await _categoriaService.ObtenerCategoria();
-            return Ok(result);
+            try
+            {
+                var companyIdClaim = User.Claims.FirstOrDefault(c => c.Type == "companyId");
+                var companyId = int.Parse(companyIdClaim.Value);
+                var result = await _categoriaService.ObtenerCategoria(companyId);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+        [HttpGet("id")]
+        public async Task<IActionResult> ObtenerPorId(int Id)
+        {
+            var companyIdClaim = User.Claims.FirstOrDefault(c => c.Type == "companyId");
+            var companyId = int.Parse(companyIdClaim.Value);
+            var response = await _categoriaService.ObtenerCategoriaById(Id, companyId);
+            return Ok(response);
         }
 
         [HttpPost]
-        public async Task<IActionResult> Crear([FromBody] CategoriaVM request)
+        public async Task<IActionResult> Crear([FromBody] CreateCategiaVM request)
         {
-            var result = await _categoriaService.CrearCategoria(request);
-            return Ok(result);
+            try
+            {
+                var companyIdClaim = User.Claims.FirstOrDefault(c => c.Type == "companyId");
+                var companyId = int.Parse(companyIdClaim.Value);
+                var result = await _categoriaService.CrearCategoria(request, companyId);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
         }
 
-        [HttpPut("{id}")]
-        public async Task<IActionResult> Actualizar(int id, [FromBody] CategoriaVM inventario)
+        [HttpPut("id")]
+        public async Task<IActionResult> Actualizar(int id, [FromBody] CreateCategiaVM request)
         {
-            var result = await _categoriaService.ActualizarCategoria(id, inventario);
-            return Ok(result);
+            try
+            {
+                var companyIdClaim = User.Claims.FirstOrDefault(c => c.Type == "companyId");
+                var companyId = int.Parse(companyIdClaim.Value);
+                var result = await _categoriaService.ActualizarCategoria(id, request, companyId);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
         }
 
-        [HttpDelete("{id}")]
+        [HttpDelete("id")]
         public async Task<IActionResult> Eliminar(int id)
         {
-            var result = await _categoriaService.EliminarCategoria(id);
-            return Ok(result);
+            try
+            {
+                var companyIdClaim = User.Claims.FirstOrDefault(c => c.Type == "companyId");
+                var companyId = int.Parse(companyIdClaim.Value);
+                var result = await _categoriaService.EliminarCategoria(id, companyId);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
         }
-
-
     }
 }
