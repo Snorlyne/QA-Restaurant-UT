@@ -31,7 +31,7 @@ const filterRows = (rows: CompanyData[], term: string) => {
   );
 };
 
-export default function EmpresaComponent() {
+export default function Categoria() {
   const [rows, setRows] = useState<CompanyData[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredRows, setFilteredRows] = useState<CompanyData[]>([]);
@@ -81,7 +81,7 @@ export default function EmpresaComponent() {
     setLoading(true);
     try {
       const response = await axios.get(
-        "https://localhost:7047/APICompany/lista",
+        "https://localhost:7047/APICategoria",
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -147,7 +147,7 @@ export default function EmpresaComponent() {
         <Grid container mb={3}>
           <Grid item xs={12} md={6}>
             <Typography variant="h4" color="#0C0C0C">
-              Empresas registradas
+              Categorias
             </Typography>
           </Grid>
           <Grid
@@ -163,7 +163,7 @@ export default function EmpresaComponent() {
             <Button
               variant="contained"
               color="success"
-              onClick={() => navigate("/dashboard/empresas/crear")}
+              onClick={() => navigate("/dashboard/categoria/crearcategoria")}
               endIcon={<AddCircleIcon />}
             >
               Agregar

@@ -7,6 +7,13 @@ import DashboardMeseros from "./Meseros/DashboardMeseros";
 import EmpresaComponent from "./Desktop/Administrador/Empresa/Empresa";
 import EmpresaCreateEditComponent from "./Desktop/Administrador/Empresa/EmpresaCE";
 import GuardarPedidos from "./Meseros/GuardarPedidos";
+import ClientesComponent from "./Desktop/Administrador/Cliente/Cliente";
+import ClienteCEComponent from "./Desktop/Administrador/Cliente/ClienteCE";
+import UsuarioComponent from "./Desktop/Administrador/Usuario/Usuario";
+import EmpleadoComponent from "./Desktop/Administrador/Empleado/Empleado";
+import EmpleadoCEComponent from "./Desktop/Administrador/Empleado/EmpleadoCE";
+import Categoria from "./Desktop/Administrador/Categoria/Categoria";
+import CategoriaCreateEditComponent from "./Desktop/Administrador/Categoria/CategoriaCE";
 
 const App: React.FC = () => {
   return (
@@ -16,8 +23,23 @@ const App: React.FC = () => {
         <Route path="/login" element={<Login />} />
         <Route path="/dashboard/*" element={<Dashboard />}>
           <Route path="empresas" element={<EmpresaComponent />}>
-          <Route path="crear" element={<EmpresaCreateEditComponent />} />
-          <Route path="editar/:id" element={<EmpresaCreateEditComponent />} />
+            <Route path="crear" element={<EmpresaCreateEditComponent />} />
+            <Route path="editar/:id" element={<EmpresaCreateEditComponent />} />
+          </Route>
+          <Route path="inventario" element={<Inventario></Inventario>}>
+          <Route path="crearproduc" element={<CrearProducto />} />
+          </Route>
+          <Route path="clientes" element={<ClientesComponent />}>
+            <Route path="crear" element={<ClienteCEComponent />} />
+            <Route path="editar/:id" element={<ClienteCEComponent />} />
+          </Route>
+          <Route path="empleados" element={<EmpleadoComponent />}>
+            <Route path="crear" element={<EmpleadoCEComponent />} />
+            <Route path="editar/:id" element={<EmpleadoCEComponent />} />
+          </Route>
+          <Route path="usuario" element={<UsuarioComponent />}></Route>
+          <Route path="categoria" element={<Categoria />}>
+          <Route path="crearcategoria" element={<CategoriaCreateEditComponent />} />
           </Route>
         </Route>
         <Route path="/" element={<Login />} />

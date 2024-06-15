@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static Domain.ViewModels.RoleVM;
 
 namespace Domain.ViewModels
 {
@@ -20,8 +21,7 @@ namespace Domain.ViewModels
         {
             public string Email { get; set; }
             public string Password { get; set; }
-            public int FK_Rol_Id { get; set; }
-            public Role Role { get; set; }
+            public RoleView Role { get; set; }
         }
     }
 }
