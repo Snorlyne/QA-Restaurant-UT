@@ -16,8 +16,6 @@ import ListItem from '@mui/material/ListItem';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
-import InboxIcon from '@mui/icons-material/MoveToInbox';
-import MailIcon from '@mui/icons-material/Mail';
 import Grid from '@mui/material/Grid';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
@@ -27,10 +25,14 @@ import DialogTitle from '@mui/material/DialogTitle';
 import TextField from '@mui/material/TextField';
 import logo from '../img/LogoAzul.jpg';
 import TableChartIcon from '@mui/icons-material/TableChart';
-import AddIcon from '@mui/icons-material/Add';
-import RemoveIcon from '@mui/icons-material/Remove';
 import OrderItem from './OrdenItem';
-
+import { Card } from '@mui/material';
+import ExitToAppIcon from '@mui/icons-material/ExitToApp';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import Hidden from '@mui/material/Hidden';
+import { Link } from 'react-router-dom';
+import { useState } from 'react';
+import SearchIcon from '@mui/icons-material/Search';
 
 const handleSave = () => {
   console.log('Guardar');
@@ -127,12 +129,12 @@ const LogoContainer = styled(Box)(({ theme }) => ({
 const MenuItem = styled(ListItem)(({ theme }) => ({
   color: '#ffffff',
   '&:hover': {
-    backgroundColor: '#2e6abf',
+    backgroundColor: '#648be1',
   },
   '&.Mui-selected': {
     backgroundColor: '#A0C9D7',
     '&:hover': {
-      backgroundColor: '#648be1',
+      backgroundColor: '#A0C9D7',
     },
   },
 }));
@@ -159,6 +161,12 @@ const App: React.FC = () => {
   const [modalOpen, setModalOpen] = React.useState(false);
   const [currentItem, setCurrentItem] = React.useState<number | null>(null);
   const [additionText, setAdditionText] = React.useState('');
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const handleLogout = () => {
+    // Aquí puedes agregar la lógica para cerrar sesión, por ejemplo:
+    // Limpiar el almacenamiento local, redirigir a la página de inicio de sesión, etc.
+  };
 
   const handleDrawerOpen = () => {
     setOpen(true);
@@ -182,14 +190,19 @@ const App: React.FC = () => {
     setAdditionText(event.target.value);
   };
 
-  const handleAddAddition = () => {
-    console.log(`Added text: ${additionText} for item ID: ${currentItem}`);
-    handleModalClose();
+
+  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(event.target.value);
   };
+  
+  const filteredProducts = items.filter(item =>
+    item.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <>
-    <Box sx={{ display: 'flex' }}>
+    <Card sx={{display:'flex', flexDirection: 'column', height:'100vh', justifyContent:'space-between'}}>
+    <Box sx={{ display: 'fixed', backgroundColor:'white' }}>
       <CssBaseline />
       <AppBar position="fixed" open={open}>
       <Toolbar sx={{ backgroundColor: '#486F99' }}> 
@@ -205,9 +218,13 @@ const App: React.FC = () => {
           >
             <MenuIcon />
           </IconButton>
-          <Typography variant="h6" noWrap component="div">
-            QA Restaurant
-          </Typography>
+          <Hidden lgUp>
+             {/* ...PONER LA RUTA DE RUBEN */}
+          <Link to="/meseros" style={{ color: 'inherit', textDecoration: 'none' }}>
+  <ArrowBackIcon sx={{ marginRight: 3, backgroundColor: '#A0C9D7', borderRadius:'20px'}}/>
+  </Link>
+</Hidden>
+QA Restaurant
         </Toolbar>
       </AppBar>
       <Drawer variant="permanent" open={open}>
@@ -248,11 +265,34 @@ const App: React.FC = () => {
             </MenuItem>
           ))}
         </List>
+      
+  <ListItem key="Cerrar sesión" button onClick={handleLogout}
+  sx={{'&:hover': { color: 'red' }}}>
+  <ListItemIcon sx={{'&:hover': {color: '#648be1'}}}>
+  <ExitToAppIcon sx={{ color: 'white', '&:hover': { color: 'red' }, justifyContent: 'center'}} />
+  </ListItemIcon>
+  <ListItemText primary="Cerrar sesión" />
+</ListItem>
       </Drawer>
+
+{/* ..contenido... */}
 <Box component="main" sx={{ flexGrow: 1, p: 3, marginTop: '64px' }}>
+<Box sx={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 2 }}>
+<TextField
+  value={searchTerm}
+  onChange={handleSearchChange}
+  label="Buscar"
+  variant="outlined"    
+  InputProps={{
+    startAdornment: (
+      <SearchIcon />
+    ),
+  }}
+/>
+</Box>
   {/* ...otros componentes... */}
   <Grid container spacing={2}>
-    {items.map((item) => (
+  {filteredProducts.map((item) =>  (
       <Grid item xs={12} sm={6} md={6} lg={6}>
         <OrderItem
           key={item.id}
@@ -269,13 +309,36 @@ const App: React.FC = () => {
   </Grid>
 </Box>
 </Box>
+<Dialog open={modalOpen} onClose={handleModalClose}>
+  <DialogTitle>Agregar adiciones</DialogTitle>
+  <DialogContent>
+    <TextField
+      autoFocus
+      margin="dense"
+      id="name"
+      label="Adición"
+      type="text"
+      fullWidth
+      value={additionText}
+      onChange={handleAdditionTextChange}
+    />
+  </DialogContent>
+  <DialogActions>
+    <Button onClick={handleModalClose} color="primary">
+      Cancelar
+    </Button>
+    <Button onClick={handleSave} color="primary">
+      Guardar
+    </Button>
+  </DialogActions>
+</Dialog>
 <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end', gap: 2,  }}>
 <Grid container spacing={2} justifyContent="flex-end">
 <Grid item xs={12} sm={6} md={4} lg={3}>
         <Button variant="contained" onClick={handleSave}
             sx={{ 
               position: 'relative',
-              right: { xs: '-70%', md: '-15%', lg: '55%'},
+              right: { xs: '-20%', sm: '-70%', md: '-15%', lg: '55%'},
               fontSize: '16px', 
               padding: '10px 20px',
               borderRadius: '15px',
@@ -283,8 +346,8 @@ const App: React.FC = () => {
               alignContent: 'center',
               textTransform: 'none',
               backgroundColor: 'green',
-              marginTop: { xs: '70%', md: '85%', lg: '115%'},
-              width: { xs: '80%', md: '80%', lg: '100%'}
+              width: { xs: '70%', sm:'80%', md: '80%', lg: '100%'},
+              top: '-10px'
             }}
             >
           Guardar
@@ -294,7 +357,7 @@ const App: React.FC = () => {
         <Button variant="contained" onClick={handleCancel}
             sx={{ 
               position: 'relative',
-              left: { xs: '70%', md: '65%', lg: '55%'},
+              left: { xs: '20%', sm:'68%',md: '60%', lg: '45%'},
               fontSize: '16px', 
               padding: '3px 10px',
               borderRadius: '10px',
@@ -302,14 +365,17 @@ const App: React.FC = () => {
               alignContent: 'center',
               textTransform: 'none',
               backgroundColor: 'red',
-              marginTop: { xs: '73%', md: '85%', lg: '120%'},
+              width: { xs: '70%', sm:'30%', md: '30%', lg: '40%'},
+              top: { xs:'-10%', sm:'-10%'}
+              
             }}
             >
           Cancelar
         </Button>
         </Grid>
         </Grid>
-      </Box>
+        </Box>
+        </Card>
     </>
   );
 };
