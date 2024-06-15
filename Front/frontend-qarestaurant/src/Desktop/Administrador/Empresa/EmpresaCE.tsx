@@ -13,18 +13,19 @@ import axios from "axios";
 import Swal from "sweetalert2";
 import Loader from "../../../components/loader";
 import { useParams } from "react-router-dom";
+import { Cancel } from "@mui/icons-material";
 
 interface CompanyData {
   nombre: string;
 }
-const token =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1laWQiOiJyb290QHJvb3QuY29tIiwicm9sZSI6IlJvb3QiLCJuYmYiOjE3MTc2OTc2OTMsImV4cCI6MTcxNzc4NDA5MywiaWF0IjoxNzE3Njk3NjkzfQ.5iX7_S2cI0882NIwj7nVw29FqMxKWjH6DfGzoSOORJs";
 export default function EmpresaCreateEditComponent() {
   const { id } = useParams();
   const [nombre, setNombre] = useState<string>("");
+  const [title, setTitle] = useState<string>("Registrar empresa");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [disabledBtn, setdisabledBtn] = useState(true);
+  const token = localStorage.getItem("token");
 
   const handleInputNombre = (event: ChangeEvent<HTMLInputElement>) => {
     const inputValue = event.target.value;
@@ -75,6 +76,9 @@ export default function EmpresaCreateEditComponent() {
           confirmButtonColor: "#3085d6",
           cancelButtonColor: "#d33",
           confirmButtonText: "Ok",
+          customClass: {
+            container: 'custom-swal-container',
+          }
         }).then(() => {
           window.history.back();
         });
@@ -86,6 +90,9 @@ export default function EmpresaCreateEditComponent() {
           confirmButtonColor: "#3085d6",
           cancelButtonColor: "#d33",
           confirmButtonText: "Ok",
+          customClass: {
+            container: 'custom-swal-container',
+          }
         });
       }
     } catch (error: any) {
@@ -96,6 +103,9 @@ export default function EmpresaCreateEditComponent() {
         confirmButtonColor: "#3085d6",
         cancelButtonColor: "#d33",
         confirmButtonText: "Ok",
+        customClass: {
+          container: 'custom-swal-container',
+        }
       });
     } finally {
       setLoading(false);
@@ -125,8 +135,9 @@ export default function EmpresaCreateEditComponent() {
     if (id) {
       setdisabledBtn(false);
       fetchData();
+      setTitle("Editar empresa");
     }
-  }, [id]);
+  }, [id, token]);
   return (
     <>
       {loading && <Loader />}
@@ -134,7 +145,7 @@ export default function EmpresaCreateEditComponent() {
         <Grid container mb={3}>
           <Grid item xs={12} md={6}>
             <Typography variant="h4" color="#0C0C0C">
-              Registrar Empresa
+              {title}
             </Typography>
           </Grid>
           <Grid
@@ -147,6 +158,18 @@ export default function EmpresaCreateEditComponent() {
               alignItems: "center",
             }}
           >
+            <Button
+              variant="contained"
+              color="error"
+              onClick={() => window.history.back()}
+              endIcon={<Cancel />}
+              sx={{
+                marginLeft: 0,
+                marginRight: 3
+              }}
+            >
+              Cancelar
+            </Button>
             <Button
               variant="contained"
               color="success"

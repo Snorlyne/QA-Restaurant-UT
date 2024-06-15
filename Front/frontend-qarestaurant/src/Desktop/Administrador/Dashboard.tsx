@@ -17,9 +17,11 @@ import DashboardIcon from "@mui/icons-material/Dashboard";
 import SearchIcon from "@mui/icons-material/Search";
 import StorefrontIcon from "@mui/icons-material/Storefront";
 import InventoryIcon from '@mui/icons-material/Inventory';
+import HailIcon from "@mui/icons-material/Hail";
+import LogoutIcon from "@mui/icons-material/Logout";
 import CategoryIcon from '@mui/icons-material/Category';
 import logoSinBG from "./../../img/logoSinBG.png";
-import ClientesComponent from "./Clientes";
+import ClientesComponent from "./Cliente/Cliente";
 import { useEffect, useState } from "react";
 import InicioComponent from "./Inicio";
 import {
@@ -28,6 +30,7 @@ import {
   Grid,
   InputAdornment,
   TextField,
+  Button,
 } from "@mui/material";
 import deepOrange from "@mui/material/colors/deepOrange";
 import EmpresaComponent from "./Empresa/Empresa";
@@ -41,6 +44,12 @@ import {
 import EmpresaCreateEditComponent from "./Empresa/EmpresaCE";
 import Inventario from "./Inventario/Inventario";
 import CrearProducto from "./Inventario/CrearProducto";
+import ClienteCEComponent from "./Cliente/ClienteCE";
+import UsuarioComponent from "./Usuario/Usuario";
+import authService from "../../AuthService/authService";
+import Swal from "sweetalert2";
+import EmpleadoComponent from "./Empleado/Empleado";
+import EmpleadoCEComponent from "./Empleado/EmpleadoCE";
 import Categoria from "./Categoria/Categoria";
 import CategoriaCreateEditComponent from "./Categoria/CategoriaCE";
 
@@ -131,10 +140,10 @@ const menuItems = [
     icon: <DashboardIcon />,
     link: "/dashboard",
   },
-  // { text: 'Empleados', icon: <InboxIcon />, component: <EmpleadosComponent /> },
+  { text: "Empleados", icon: <HailIcon />, link: "/dashboard/empleados" },
   // { text: 'Inventario', icon: <MailIcon />, component: <InventarioComponent /> },
   // { text: 'Categoria', icon: <InboxIcon />, component: <CategoriaComponent /> },
-  // { text: "Clientes", icon: <HailIcon />, link: "/dashboard/clientes" },
+  { text: "Clientes", icon: <HailIcon />, link: "/dashboard/clientes" },
   {
     text: "Empresas",
     icon: <StorefrontIcon />,
@@ -160,22 +169,25 @@ const Dashboard: React.FC = () => {
   const theme = useTheme();
   const [open, setOpen] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [userNombre, setUserNombre] = useState<string | null>("");
   const [selectedItem, setSelectedItem] = useState<any>();
   const [selectedComponent, setSelectedComponent] = useState<any>();
 
   const location = useLocation();
   const navigate = useNavigate();
 
-useEffect(() => {
-  const currentPathname = location.pathname;
-  const segments = currentPathname.split('/');
-  const baseRoute = segments.length >= 3 ? `/${segments[2]}` : '';
-  const selectedItem = menuItems.find((item) => item.link === '/dashboard'+baseRoute);
-  if (selectedItem) {
-    setSelectedItem(selectedItem);
-    setSelectedComponent(selectedItem);
-  }
-}, [location.pathname]);
+  useEffect(() => {
+    const currentPathname = location.pathname;
+    const segments = currentPathname.split("/");
+    const baseRoute = segments.length >= 3 ? `/${segments[2]}` : "";
+    const selectedItem = menuItems.find(
+      (item) => item.link === "/dashboard" + baseRoute
+    );
+    if (selectedItem) {
+      setSelectedItem(selectedItem);
+      setSelectedComponent(selectedItem);
+    }
+  }, [location.pathname]);
 
   const handleAutocompleteChange = (event: any, value: any) => {
     setSearchTerm(value);
@@ -187,6 +199,30 @@ useEffect(() => {
   };
 
   const handleDrawerOpenClose = () => setOpen(!open);
+
+  const handleLogout = () => {
+    Swal.fire({
+      title: "¿Estás seguro?",
+      text: "Se cerrará la sesión",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Si, cerrar sesión",
+      customClass: {
+        container: "custom-swal-container",
+      },
+    }).then((result) => {
+      if (result.isConfirmed) {
+        if (result.isConfirmed) {
+          authService.logout();
+        }
+      }
+    });
+  };
+  useEffect(() => {
+    setUserNombre(localStorage.getItem("usuario"));
+  }, []);
 
   return (
     <Box sx={{ display: "flex" }}>
@@ -262,42 +298,53 @@ useEffect(() => {
               }),
             }}
           >
-            <Grid
-              item
-              xs={2}
+            <Button
               sx={{
-                ...(!open && {
-                  display: "flex",
-                  justifyContent: "center",
-                  position: "relative",
-                  top: "1.5rem",
-                  paddingRight: "0",
-                }),
+                padding: 0,
+                fontStyle: "normal",
+                textTransform: "none",
+                width: "100%",
               }}
             >
-              <Avatar sx={{ bgcolor: deepOrange[500] }}>U</Avatar>
-            </Grid>
-            <Grid
-              item
-              xs={8}
-              pl={2}
-              sx={{
-                display: "flex",
-                justifyContent: "flex-start",
-                alignItems: "center",
-                ...(!open && { display: "none", transition: "ease-in" }),
-              }}
-            >
-              <Typography
-                variant="h6"
-                component="div"
+              <Grid
+                item
+                xs={2}
                 sx={{
-                  color: "white",
+                  ...(!open && {
+                    display: "flex",
+                    justifyContent: "center",
+                    position: "relative",
+                    top: "1.5rem",
+                    paddingRight: "0",
+                  }),
                 }}
               >
-                User
-              </Typography>
-            </Grid>
+                <Avatar sx={{ bgcolor: deepOrange[500] }}>U</Avatar>
+              </Grid>
+              <Grid
+                item
+                xs={10}
+                pl={2}
+                sx={{
+                  display: "flex",
+                  justifyContent: "flex-start",
+                  alignItems: "center",
+                  ...(!open && { display: "none", transition: "ease-in" }),
+                }}
+              >
+                <Typography
+                  variant="body1"
+                  component="div"
+                  sx={{
+                    color: "white",
+                    width: "100%",
+                    textAlign: "start",
+                  }}
+                >
+                  {userNombre}
+                </Typography>
+              </Grid>
+            </Button>
           </Grid>
         </DrawerHeader>
         <Box
@@ -423,17 +470,68 @@ useEffect(() => {
             </List>
           </StyledList>
         </Box>
+        <Box
+          sx={{
+            position: "relative",
+            bottom: 0,
+            right: 0,
+            top: "70vh",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            width: "100%",
+            color: "white",
+          }}
+        >
+          <Button
+            variant="text"
+            color="inherit"
+            startIcon={<LogoutIcon />}
+            sx={{
+              padding: 1,
+              fontSize: "12px",
+              "& .MuiButton-startIcon": {
+                ...(!open && {margin: 0})
+              }
+            }}
+            onClick={handleLogout}
+          >
+            <div
+              style={{
+                ...(!open && { display: "none", transition: "ease-in" }),
+              }}
+            >
+              Cerrar Sesión
+            </div>
+          </Button>
+        </Box>
       </Drawer>
       <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
         <DrawerHeader />
         <Routes>
           <Route index element={<InicioComponent />} />
+          <Route path="usuario" element={<UsuarioComponent />} />
+          <Route path="empresas" element={<EmpresaComponent />} />
+          <Route
+            path="empresas/crear"
+            element={<EmpresaCreateEditComponent />}
+          />
+          <Route
+            path="empresas/editar/:id"
+            element={<EmpresaCreateEditComponent />}
+          />
           <Route path="clientes" element={<ClientesComponent />} />
           <Route path="empresas" element={<EmpresaComponent />} />
           <Route path="empresas/crear" element={<EmpresaCreateEditComponent />} />
           <Route path="empresas/editar/:id" element={<EmpresaCreateEditComponent />} />
           <Route path="inventario" element={<Inventario />} />
           <Route path="inventario/crearproduc" element={<CrearProducto />} />
+          <Route path="clientes/crear" element={<ClienteCEComponent />} />
+          <Route path="clientes/editar/:id" element={<ClienteCEComponent />} />
+
+          <Route path="empleados" element={<EmpleadoComponent />} />
+          <Route path="empleados/crear" element={<EmpleadoCEComponent />} />
+          <Route path="empleados/editar/:id" element={<EmpleadoCEComponent />} />
           <Route path="categoria" element={<Categoria />} />
           <Route path="categoria/crearcategoria" element={<CategoriaCreateEditComponent />} />
           

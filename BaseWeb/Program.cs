@@ -95,6 +95,7 @@ builder.Services.AddTransient<IClienteServicio, ClienteServicio>();
 builder.Services.AddScoped<IInventarioServicio, InventarioServicio>();
 builder.Services.AddTransient<ICategoriaServicio, CategoriaServicio>();
 
+builder.Services.AddTransient<IColaboradorServicio, ColaboradorServicio>();
 
 //Configuraci?n para permitir el host del front para hace uso del Web API //Configurar cuando se pase a produccion.
 builder.Services.AddCors(options => options.AddPolicy("AllowWebApp", builder => builder.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod()));
