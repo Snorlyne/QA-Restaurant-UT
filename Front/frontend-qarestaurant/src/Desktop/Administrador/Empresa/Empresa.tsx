@@ -19,7 +19,6 @@ import Swal from "sweetalert2";
 import Loader from "../../../components/loader";
 import authService from "../../../AuthService/authService";
 
-
 interface CompanyData {
   id: number;
   nombre: string;
@@ -27,9 +26,7 @@ interface CompanyData {
 
 const filterRows = (rows: CompanyData[], term: string) => {
   const searchTerm = term.toLowerCase();
-  return rows.filter(row =>
-    row.nombre.toLowerCase().includes(searchTerm)
-  );
+  return rows.filter((row) => row.nombre.toLowerCase().includes(searchTerm));
 };
 
 export default function EmpresaComponent() {
@@ -57,12 +54,14 @@ export default function EmpresaComponent() {
       align: "center",
       headerAlign: "center",
       renderCell: (params) => (
-        <Box display="flex" alignItems="center" justifyContent="center">
+        <>
           <Button
             variant="contained"
             color="primary"
-            onClick={() => navigate(`/dashboard/empresas/editar/${params.row.id}`)}
-            sx={{ marginRight: 1 }}
+            onClick={() =>
+              navigate(`/dashboard/empresas/editar/${params.row.id}`)
+            }
+            sx={{ marginRight: 2 }}
           >
             <EditIcon />
           </Button>
@@ -73,7 +72,7 @@ export default function EmpresaComponent() {
           >
             <DeleteIcon />
           </Button>
-        </Box>
+        </>
       ),
     },
   ];

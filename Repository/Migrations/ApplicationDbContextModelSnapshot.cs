@@ -139,9 +139,6 @@ namespace Repository.Migrations
                         .HasMaxLength(60)
                         .HasColumnType("nvarchar(60)");
 
-                    b.Property<int?>("CompanyId")
-                        .HasColumnType("int");
-
                     b.Property<int>("FK_Company_Id")
                         .HasColumnType("int");
 
@@ -161,12 +158,9 @@ namespace Repository.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CompanyId");
-
                     b.HasIndex("FK_Company_Id");
 
-                    b.HasIndex("FK_User_Id")
-                        .IsUnique();
+                    b.HasIndex("FK_User_Id");
 
                     b.ToTable("Person");
                 });
@@ -251,19 +245,15 @@ namespace Repository.Migrations
 
             modelBuilder.Entity("Domain.Entidades.Person", b =>
                 {
-                    b.HasOne("Domain.Entidades.Company", null)
-                        .WithMany("Persons")
-                        .HasForeignKey("CompanyId");
-
                     b.HasOne("Domain.Entidades.Company", "Company")
-                        .WithMany()
+                        .WithMany("Persons")
                         .HasForeignKey("FK_Company_Id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("Domain.Entidades.User", "User")
-                        .WithOne()
-                        .HasForeignKey("Domain.Entidades.Person", "FK_User_Id")
+                        .WithMany()
+                        .HasForeignKey("FK_User_Id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
