@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace Repository.Migrations
 {
-    public partial class Actualizacion14062024 : Migration
+    public partial class actualización : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -105,6 +105,8 @@ namespace Repository.Migrations
                     ImagenInventario = table.Column<byte[]>(type: "varbinary(max)", nullable: true),
                     Nombre = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Descripcion = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Precio = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    Preparado = table.Column<bool>(type: "bit", nullable: false),
                     FK_Categoria = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
@@ -150,26 +152,6 @@ namespace Repository.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
-            migrationBuilder.CreateTable(
-                name: "FotosInventarios",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    InventarioId = table.Column<int>(type: "int", nullable: false),
-                    Foto = table.Column<byte[]>(type: "varbinary(max)", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_FotosInventarios", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_FotosInventarios_Inventario_InventarioId",
-                        column: x => x.InventarioId,
-                        principalTable: "Inventario",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
             migrationBuilder.CreateIndex(
                 name: "IX_Categorias_FK_Company",
                 table: "Categorias",
@@ -179,11 +161,6 @@ namespace Repository.Migrations
                 name: "IX_ConfiguracionGeneral_FK_Company_Id",
                 table: "ConfiguracionGeneral",
                 column: "FK_Company_Id");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_FotosInventarios_InventarioId",
-                table: "FotosInventarios",
-                column: "InventarioId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Inventario_FK_Categoria",
@@ -212,25 +189,22 @@ namespace Repository.Migrations
                 name: "ConfiguracionGeneral");
 
             migrationBuilder.DropTable(
-                name: "FotosInventarios");
+                name: "Inventario");
 
             migrationBuilder.DropTable(
                 name: "Person");
 
             migrationBuilder.DropTable(
-                name: "Inventario");
+                name: "Categorias");
 
             migrationBuilder.DropTable(
                 name: "User");
 
             migrationBuilder.DropTable(
-                name: "Categorias");
+                name: "Company");
 
             migrationBuilder.DropTable(
                 name: "Role");
-
-            migrationBuilder.DropTable(
-                name: "Company");
         }
     }
 }

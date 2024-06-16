@@ -3,6 +3,7 @@ import Box from "@mui/material/Box";
 import axios from "axios";
 import { useCallback, useEffect, useState } from "react";
 import {
+  Avatar,
   Button,
   Grid,
   InputAdornment,
@@ -11,15 +12,18 @@ import {
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import AddCircleIcon from "@mui/icons-material/AddCircle";
+import InfoIcon from "@mui/icons-material/Info";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 // import IResponse from "../../../interfaces/IResponse.";
 import Loader from "../../../components/loader";
-import authService from "../../../AuthService/authService";
+import apiClient from "../../../AuthService/authInterceptor";
+import GeneralModal from "../../../components/GeneralModal";
 
 interface PersonData {
+  id: number;
   nombre: string;
   apellido_Paterno: string;
   apellido_Materno: string;
@@ -66,8 +70,9 @@ export default function EmpleadoComponent() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredRows, setFilteredRows] = useState<PersonData[]>([]);
   const [loading, setLoading] = useState(false);
-  const token = authService.getToken();
   const navigate = useNavigate();
+  const [openModal, setOpenModal] = useState(false);
+  const [modalData, setModalData] = useState<PersonData | null>(null);
 
   // Manejar el cambio del término de búsqueda
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -138,6 +143,17 @@ export default function EmpleadoComponent() {
         <>
           <Button
             variant="contained"
+            color="secondary"
+            onClick={() => handleOpenModal(params.row.id)}
+            sx={{
+              marginRight: 2,
+              marginLeft: 2,
+            }}
+          >
+            <InfoIcon />
+          </Button>
+          <Button
+            variant="contained"
             color="primary"
             onClick={() =>
               navigate(`/dashboard/empleados/editar/${params.row.id}`)
@@ -162,12 +178,7 @@ export default function EmpleadoComponent() {
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await axios.get(
-        "https://localhost:7047/APIColaborador/lista",
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+      const response = await apiClient.get("/APIColaborador/lista");
       const data = response.data.result;
       setRows(data);
       setFilteredRows(data);
@@ -175,7 +186,7 @@ export default function EmpleadoComponent() {
       console.error("Error:", error);
     }
     setLoading(false);
-  }, [token]);
+  }, []);
 
   // Función para eliminar un colaborador
   const fetchDelete = async (id: number) => {
@@ -192,21 +203,7 @@ export default function EmpleadoComponent() {
 
       if (result.isConfirmed) {
         setLoading(true);
-        const response = await axios.delete(
-          `https://localhost:7047/APIColaborador/Id?Id=${id}`,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
-
-        const dataResponse = response.data;
-
-        if (response.status === 200 && dataResponse.isSuccess) {
-          Swal.fire("Eliminado!", dataResponse.message, "success");
-        } else {
-          Swal.fire("Error!", dataResponse.message, "error");
-        }
-
+        await apiClient.delete(`/APIColaborador/Id?Id=${id}`);
         fetchData();
       }
     } catch (error: any) {
@@ -214,6 +211,26 @@ export default function EmpleadoComponent() {
     } finally {
       setLoading(false);
     }
+  };
+  const fetchById = (id: number): PersonData | undefined => {
+    return rows.find((row: PersonData) => row.id === id);
+  };
+
+  const handleOpenModal = async (id: number) => {
+    // Busca la fila por ID
+    const data = fetchById(id);
+    if (data) {
+      // Actualiza el estado del modal con la información de la fila
+      setModalData(data);
+      setOpenModal(true);
+    } else {
+      console.error("No se encontró la fila con el ID proporcionado");
+    }
+  };
+
+  const handleCloseModal = () => {
+    setOpenModal(false);
+    setModalData(null);
   };
 
   // Obtener datos al montar el componente
@@ -321,6 +338,75 @@ export default function EmpleadoComponent() {
               checkboxSelection={false}
             />
           </Box>
+          <GeneralModal
+            open={openModal}
+            onClose={handleCloseModal}
+            title="Detalles del Empleado"
+            content={
+              modalData ? (
+                <Grid container spacing={2}>
+                  <Grid item xs={12} md={4}>
+                    <Avatar
+                      src={
+                        modalData.foto
+                          ? URL.createObjectURL(
+                              dataURLToFile(modalData.foto, "foto")
+                            )
+                          : undefined
+                      }
+                      alt="Foto del Usuario"
+                      sx={{
+                        width: "100%",
+                        height: "auto",
+                        borderRadius: "8px",
+                      }}
+                      variant="square"
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={8}>
+                    <Typography variant="h6">
+                      <strong>Nombre Completo:</strong>
+                    </Typography>
+                    <Typography variant="body1">{`${modalData.nombre} ${modalData.apellido_Paterno} ${modalData.apellido_Materno}`}</Typography>
+
+                    <Typography variant="h6">
+                      <strong>CURP:</strong>
+                    </Typography>
+                    <Typography variant="body1">{modalData.curp}</Typography>
+
+                    <Typography variant="h6">
+                      <strong>Correo:</strong>
+                    </Typography>
+                    <Typography variant="body1">
+                      {modalData.email}
+                    </Typography>
+                    <Typography variant="h6">
+                      <strong>Puesto:</strong>
+                    </Typography>
+                    <Typography variant="body1">
+                      {modalData.puesto}
+                    </Typography>
+                  </Grid>
+                  <Grid
+                    item
+                    xs={12}
+                    md={12}
+                    display={"flex"}
+                    alignItems={"center"}
+                  >
+                    <Typography variant="h6">
+                      <strong>Fecha de Nacimiento:</strong>
+                    </Typography>
+                    <Typography variant="body1" marginLeft={1} marginTop={0.5}>
+                      {new Date(modalData.fechaNacimiento).toLocaleDateString()}
+                    </Typography>
+                  </Grid>
+                </Grid>
+              ) : (
+                <p>Cargando...</p>
+              )
+            }
+          />
         </Grid>
       </Grid>
     </>

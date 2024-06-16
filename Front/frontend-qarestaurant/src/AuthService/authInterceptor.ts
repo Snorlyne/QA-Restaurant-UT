@@ -1,6 +1,5 @@
 import axios from 'axios';
-import Swal from 'sweetalert2'; // Asegúrate de que esta ruta sea correcta
-import { useNavigate } from 'react-router-dom'; // Para redireccionar
+import Swal from 'sweetalert2';
 import authService from './authService';
 
 // Crear una instancia de Axios
@@ -53,7 +52,19 @@ apiClient.interceptors.response.use(
                 });
             } else if (error.response.status === 403) {
                 // Si es un error de autorización
-                
+                Swal.fire({
+                    title: 'Sin Autorización',
+                    text: 'No tienes los permisos requeridos para operar esta acción.',
+                    icon: 'error',
+                    confirmButtonText: 'Aceptar',
+                    customClass: {
+                        container: "custom-swal-container",
+                        popup: 'popup-class'
+                    },
+                    didClose: () => {
+                        authService.logout(); // Cerrar sesión y limpiar cookies
+                    }
+                });
             } else {
                 // Otros errores
                 Swal.fire({

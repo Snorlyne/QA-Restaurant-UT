@@ -12,8 +12,8 @@ using Repository.Context;
 namespace Repository.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20240615062303_Actualizacion14-06-2024_3")]
-    partial class Actualizacion14062024_3
+    [Migration("20240615084328_actualización")]
+    partial class actualización
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
