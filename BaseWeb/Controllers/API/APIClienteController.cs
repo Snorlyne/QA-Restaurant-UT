@@ -36,13 +36,13 @@ namespace BaseWeb.Controllers.API
             return Ok(response);
         }
         [HttpPut("Id")]
-        public async Task<IActionResult> CrearCliente([FromBody] ClienteCreate request, int Id)
+        public async Task<IActionResult> EditarCliente([FromBody] ClienteCreate request, int Id)
         {
             var response = await _personServicio.EditarCliente(request, Id);
             return Ok(response);
         }
-        [HttpDelete]
-        public async Task<IActionResult> CrearCliente(int Id)
+        [HttpDelete("Id")]
+        public async Task<IActionResult> EliminarCliente(int Id)
         {
             var response = await _personServicio.EliminarCliente(Id);
             return Ok(response);

@@ -1,26 +1,26 @@
 import React from "react";
-import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Route,
+  Routes,
+} from "react-router-dom";
 import Dashboard from "./Desktop/Administrador/Dashboard";
 import Login from "./AuthService/login";
-import Bienvenido from "../src/Mobil/bienvenido";
 import DashboardMeseros from "./Meseros/DashboardMeseros";
-import EmpresaComponent from "./Desktop/Administrador/Empresa/Empresa";
-import EmpresaCreateEditComponent from "./Desktop/Administrador/Empresa/EmpresaCE";
 import GuardarPedidos from "./Meseros/GuardarPedidos";
+import Unauthorized from "./AuthService/Unauthorized";
+import ProtectedRoute from "./AuthService/ProtectedRoute";
 
 const App: React.FC = () => {
   return (
     <Router>
       <Routes>
-        <Route path="/bienvenido" element={<Bienvenido />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/dashboard/*" element={<Dashboard />}>
-          <Route path="empresas" element={<EmpresaComponent />}>
-          <Route path="crear" element={<EmpresaCreateEditComponent />} />
-          <Route path="editar/:id" element={<EmpresaCreateEditComponent />} />
-          </Route>
-        </Route>
         <Route path="/" element={<Login />} />
+        <Route path="/unauthorized" element={<Unauthorized />} />
+        <Route
+          path="/dashboard/*"
+          element={<ProtectedRoute roles={["Root", "Admin"]} element={<Dashboard />} />}
+        />
         <Route path="/meseros" element={<DashboardMeseros />}></Route>
         <Route path="/GuardarPedidos" element={<GuardarPedidos />}></Route>
       </Routes>

@@ -25,6 +25,7 @@ namespace Domain.Entidades
         public string CURP { get; set; }
         [Required]
         public DateTime FechaNacimiento { get; set; }
+        public byte[] Foto { get; set; }
         [ForeignKey("User")]
         public int FK_User_Id { get; set; }
         [ForeignKey("Company")]

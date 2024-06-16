@@ -15,5 +15,6 @@ namespace Domain.Entidades
         [StringLength(maximumLength: 60)]
         public string Nombre { get; set; }
         public ICollection<Person> Persons { get; set; }
+        public ICollection<Categorias> Categorias { get; set; }
     }
 }

@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Repository.Context;
 
@@ -11,9 +12,10 @@ using Repository.Context;
 namespace Repository.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240615044637_Actualizacion14-06-2024")]
+    partial class Actualizacion14062024
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -84,6 +86,27 @@ namespace Repository.Migrations
                     b.ToTable("ConfiguracionGeneral");
                 });
 
+            modelBuilder.Entity("Domain.Entidades.FotosInventarios", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<byte[]>("Foto")
+                        .HasColumnType("varbinary(max)");
+
+                    b.Property<int>("InventarioId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("InventarioId");
+
+                    b.ToTable("FotosInventarios");
+                });
+
             modelBuilder.Entity("Domain.Entidades.Inventario", b =>
                 {
                     b.Property<int>("Id")
@@ -103,12 +126,6 @@ namespace Repository.Migrations
 
                     b.Property<string>("Nombre")
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<decimal>("Precio")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<bool>("Preparado")
-                        .HasColumnType("bit");
 
                     b.HasKey("Id");
 
@@ -139,9 +156,6 @@ namespace Repository.Migrations
                         .HasMaxLength(60)
                         .HasColumnType("nvarchar(60)");
 
-                    b.Property<int?>("CompanyId")
-                        .HasColumnType("int");
-
                     b.Property<int>("FK_Company_Id")
                         .HasColumnType("int");
 
@@ -161,12 +175,9 @@ namespace Repository.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CompanyId");
-
                     b.HasIndex("FK_Company_Id");
 
-                    b.HasIndex("FK_User_Id")
-                        .IsUnique();
+                    b.HasIndex("FK_User_Id");
 
                     b.ToTable("Person");
                 });
@@ -238,6 +249,17 @@ namespace Repository.Migrations
                     b.Navigation("Company");
                 });
 
+            modelBuilder.Entity("Domain.Entidades.FotosInventarios", b =>
+                {
+                    b.HasOne("Domain.Entidades.Inventario", "Inventario")
+                        .WithMany("FotosInventarios")
+                        .HasForeignKey("InventarioId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Inventario");
+                });
+
             modelBuilder.Entity("Domain.Entidades.Inventario", b =>
                 {
                     b.HasOne("Domain.Entidades.Categorias", "Categorias")
@@ -251,19 +273,15 @@ namespace Repository.Migrations
 
             modelBuilder.Entity("Domain.Entidades.Person", b =>
                 {
-                    b.HasOne("Domain.Entidades.Company", null)
-                        .WithMany("Persons")
-                        .HasForeignKey("CompanyId");
-
                     b.HasOne("Domain.Entidades.Company", "Company")
-                        .WithMany()
+                        .WithMany("Persons")
                         .HasForeignKey("FK_Company_Id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("Domain.Entidades.User", "User")
-                        .WithOne()
-                        .HasForeignKey("Domain.Entidades.Person", "FK_User_Id")
+                        .WithMany()
+                        .HasForeignKey("FK_User_Id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -293,6 +311,11 @@ namespace Repository.Migrations
                     b.Navigation("Categorias");
 
                     b.Navigation("Persons");
+                });
+
+            modelBuilder.Entity("Domain.Entidades.Inventario", b =>
+                {
+                    b.Navigation("FotosInventarios");
                 });
 
             modelBuilder.Entity("Domain.Entidades.Role", b =>
