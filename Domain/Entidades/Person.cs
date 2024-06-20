@@ -32,6 +32,8 @@ namespace Domain.Entidades
         public int FK_Company_Id { get; set; }
         public Company Company { get; set; }
         public User User { get; set; }
+        public ICollection<Order> Orders { get; set; }
+
 
     }
 }

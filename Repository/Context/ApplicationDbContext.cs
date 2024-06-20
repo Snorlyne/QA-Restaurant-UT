@@ -17,9 +17,38 @@ namespace Repository.Context
         public virtual DbSet<ConfiguracionGeneral> ConfiguracionGeneral { get; set; }
         public virtual DbSet<Inventario> Inventario { get; set; }
         public virtual DbSet<Categorias> Categorias { get; set; }
+        public DbSet<Status> Status { get; set; }
+        public DbSet<Order> Orders { get; set; }
+        public DbSet<OrdersInCommand> OrdersInCommands { get; set; }
+        public DbSet<Command> Commands { get; set; }
+
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
         {
 
         }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<Order>()
+                .HasOne(o => o.Person)
+                .WithMany(p => p.Orders)
+                .HasForeignKey(o => o.FK_person_id)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            modelBuilder.Entity<Order>()
+                .HasOne(o => o.Inventario)
+                .WithMany(i => i.Orders)
+                .HasForeignKey(o => o.FK_inventory_id)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            modelBuilder.Entity<Inventario>()
+                .HasOne(i => i.Categorias)
+                .WithMany()
+                .HasForeignKey(i => i.FK_Categoria)
+                .OnDelete(DeleteBehavior.SetNull);
+        }
+
     }
 }
