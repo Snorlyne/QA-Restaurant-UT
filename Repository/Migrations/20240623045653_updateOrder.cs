@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace Repository.Migrations
 {
-    public partial class EntidadesAgregadas : Migration
+    public partial class updateOrder : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -194,6 +194,8 @@ namespace Repository.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Mesa = table.Column<int>(type: "int", nullable: false),
+                    UltimoPedido = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Adicional = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     FK_person_id = table.Column<int>(type: "int", nullable: true),
                     FK_status_id = table.Column<int>(type: "int", nullable: false),
                     FK_inventory_id = table.Column<int>(type: "int", nullable: true)
