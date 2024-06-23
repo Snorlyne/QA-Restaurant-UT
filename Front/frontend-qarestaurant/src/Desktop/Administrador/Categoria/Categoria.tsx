@@ -17,26 +17,28 @@ import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 // import IResponse from "../../../interfaces/IResponse.";
 import Loader from "../../../components/loader";
+import authService from "../../../AuthService/authService";
+import apiClient from '../../../AuthService/authInterceptor';
+import IResponse from "../../../interfaces/IResponse.";
 
-
-interface CompanyData {
+interface CategoriaData {
   id: number;
-  nombre: string;
+  nombreCategoria: string;
 }
 
-const filterRows = (rows: CompanyData[], term: string) => {
+const filterRows = (rows: CategoriaData[], term: string) => {
   const searchTerm = term.toLowerCase();
-  return rows.filter(row =>
-    row.nombre.toLowerCase().includes(searchTerm)
-  );
+  return rows.filter((row) => row.nombreCategoria.toLowerCase().includes(searchTerm));
 };
 
-export default function Categoria() {
-  const [rows, setRows] = useState<CompanyData[]>([]);
+export default function EmpresaComponent() {
+  const [rows, setRows] = useState<CategoriaData[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [filteredRows, setFilteredRows] = useState<CompanyData[]>([]);
+  const [filteredRows, setFilteredRows] = useState<CategoriaData[]>([]);
   const [loading, setLoading] = useState(false);
-  const token = localStorage.getItem("token") || "";
+  const token = authService.getToken();
+  const [Categorias, setCategoria] = useState<CategoriaData[]>([]);
+
 
   const navigate = useNavigate();
 
@@ -45,7 +47,7 @@ export default function Categoria() {
   };
 
   const columns: GridColDef[] = [
-    { field: "nombre", headerName: "Nombre", flex: 1, minWidth: 150 },
+    { field: "nombreCategoria", headerName: "Nombre", flex: 1, minWidth: 150 },
     {
       field: "actions",
       headerName: "Acciones",
@@ -56,83 +58,104 @@ export default function Categoria() {
       align: "center",
       headerAlign: "center",
       renderCell: (params) => (
-        <Box display="flex" alignItems="center" justifyContent="center">
+        <>
           <Button
             variant="contained"
             color="primary"
-            onClick={() => navigate(`/dashboard/empresas/editar/${params.row.id}`)}
-            sx={{ marginRight: 1 }}
+            onClick={() =>
+              navigate(`/dashboard/categorias/editar/${params.row.id}`)
+            }
+            sx={{ marginRight: 2 }}
           >
             <EditIcon />
           </Button>
           <Button
             variant="contained"
             color="error"
-            onClick={() => handleDelete(params.row.id)}
+            onClick={() => fetchDelete(params.row.id)}
           >
             <DeleteIcon />
           </Button>
-        </Box>
+        </>
       ),
     },
   ];
 
+  //Traer categoria
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await axios.get(
-        "https://localhost:7047/APICategoria",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      const data = response.data.result;
-      setRows(data);
-      setFilteredRows(data);
+      const response = await apiClient.get('/APICategoria');
+      const data = response.data;
+      console.log('API Response:', data);
+      setRows(data.result);
+      setCategoria(data.result);
     } catch (error) {
-      console.error("Error fetching data:", error);
+      console.error('Error fetching data:', error);
+    }
+    setLoading(false);
+  }, []);
+
+  //Eliminar categoria
+
+  const fetchDelete = async (id: number) => {
+    let response: any;
+    try {
+      await Swal.fire({
+        title: "¿Está seguro de eliminar esta categoria?",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "Si",
+        cancelButtonText: "No",
+        customClass: {
+          container: "custom-swal-container",
+        },
+      }).then(async (result) => {
+        if (result.isConfirmed) {
+          setLoading(true);
+          response = await apiClient.delete(`/APICategoria/Id?Id=${id}`);
+          if (response.status !== 200) {
+            throw new Error("Network response was not ok");
+          }
+          const dataResponse: IResponse = response.data;
+
+          if (dataResponse.isSuccess) {
+            Swal.fire({
+              title: dataResponse.message,
+              icon: "success",
+              showCancelButton: false,
+              confirmButtonColor: "#3085d6",
+              cancelButtonColor: "#d33",
+              confirmButtonText: "Ok",
+              customClass: {
+                container: "custom-swal-container",
+              },
+            });
+          } else {
+            Swal.fire({
+              title: dataResponse.message,
+              icon: "error",
+              showCancelButton: false,
+              confirmButtonColor: "#3085d6",
+              cancelButtonColor: "#d33",
+              confirmButtonText: "Ok",
+              customClass: {
+                container: "custom-swal-container",
+              },
+            });
+          }
+        }
+        fetchData();
+      });
+    } catch (error: any) {
+      console.error("Error:", error);
     } finally {
       setLoading(false);
     }
-  }, [token]);
-
-  const handleDelete = async (id: number) => {
-    const confirmation = await Swal.fire({
-      title: "¿Está seguro de eliminar la empresa?",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#3085d6",
-      cancelButtonColor: "#d33",
-      confirmButtonText: "Si",
-      cancelButtonText: "No",
-    });
-
-    if (confirmation.isConfirmed) {
-      setLoading(true);
-      try {
-        const response = await axios.delete(
-          `https://localhost:7047/APICompany/Id?Id=${id}`,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
-
-        if (response.status === 200 && response.data.isSuccess) {
-          Swal.fire("Eliminado!", response.data.message, "success");
-          fetchData();
-        } else {
-          Swal.fire("Error!", response.data.message, "error");
-        }
-      } catch (error: any) {
-        Swal.fire("Error!", error.message, "error");
-      } finally {
-        setLoading(false);
-      }
-    }
   };
-
+  
   useEffect(() => {
     fetchData();
   }, [fetchData]);
@@ -163,13 +186,14 @@ export default function Categoria() {
             <Button
               variant="contained"
               color="success"
-              onClick={() => navigate("/dashboard/categoria/crearcategoria")}
+              onClick={() => navigate("/dashboard/categorias/crear")}
               endIcon={<AddCircleIcon />}
             >
               Agregar
             </Button>
           </Grid>
         </Grid>
+        
         <Grid
           item
           xs={12}

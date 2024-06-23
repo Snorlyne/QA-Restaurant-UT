@@ -74,7 +74,7 @@ namespace Services.Servicio
                 _context.Categorias.Add(categorias);
                 await _context.SaveChangesAsync();
 
-                return new Response<Categorias>(categorias);
+                return new Response<Categorias>(categorias, "Categoria creado correctamente");
             }
             catch (DbUpdateException ex)
             {
@@ -110,7 +110,7 @@ namespace Services.Servicio
                 _context.Categorias.Update(us);
                 await _context.SaveChangesAsync();
 
-                return new Response<Categorias>(newCategoria);
+                return new Response<Categorias>(newCategoria, "Categoria editado correctamente");
             }
             catch (DbUpdateException ex)
             {
@@ -135,10 +135,10 @@ namespace Services.Servicio
                 {
                     _context.Categorias.Remove(us);
                     await _context.SaveChangesAsync();
-                    return new Response<Categorias>("Modal eliminado: " + us.NombreCategoria);
+                    return new Response<Categorias>(null, "Categoria eliminado: " + us.NombreCategoria);
                 }
 
-                return new Response<Categorias>("Modal no encontrado: " + id);
+                return new Response<Categorias>("Categoria no encontrado: " + id);
             }
             catch (DbUpdateException ex)
             {
