@@ -18,6 +18,7 @@ import Swal from "sweetalert2";
 // import IResponse from "../../../interfaces/IResponse.";
 import Loader from "../../../components/loader";
 import authService from "../../../AuthService/authService";
+import apiClient from "../../../AuthService/authInterceptor";
 
 interface CompanyData {
   id: number;
@@ -34,7 +35,6 @@ export default function EmpresaComponent() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredRows, setFilteredRows] = useState<CompanyData[]>([]);
   const [loading, setLoading] = useState(false);
-  const token = authService.getToken();
 
   const navigate = useNavigate();
 
@@ -80,14 +80,7 @@ export default function EmpresaComponent() {
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await axios.get(
-        "https://localhost:7047/APICompany/lista",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const response = await apiClient.get("/APICompany/lista")
       const data = response.data.result;
       setRows(data);
       setFilteredRows(data);
@@ -96,7 +89,7 @@ export default function EmpresaComponent() {
     } finally {
       setLoading(false);
     }
-  }, [token]);
+  }, []);
 
   const handleDelete = async (id: number) => {
     const confirmation = await Swal.fire({
@@ -112,13 +105,7 @@ export default function EmpresaComponent() {
     if (confirmation.isConfirmed) {
       setLoading(true);
       try {
-        const response = await axios.delete(
-          `https://localhost:7047/APICompany/Id?Id=${id}`,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
-
+        const response = await apiClient.delete(`/APICompany/Id?Id=${id}`)
         if (response.status === 200 && response.data.isSuccess) {
           Swal.fire("Eliminado!", response.data.message, "success");
           fetchData();

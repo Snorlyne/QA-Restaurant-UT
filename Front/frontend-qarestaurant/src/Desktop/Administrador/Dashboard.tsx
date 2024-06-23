@@ -52,7 +52,7 @@ import ProductoCE from "./Inventario/ProductoCE";
 import InventoryIcon from "@mui/icons-material/Inventory";
 import Categoria from "./Categoria/Categoria";
 import CategoriaCE from "./Categoria/CategoriaCE";
-import CategoryIcon from '@mui/icons-material/Category';
+import CategoryIcon from "@mui/icons-material/Category";
 
 const drawerWidth = 240;
 
@@ -141,30 +141,24 @@ const menuItems = [
     icon: <DashboardIcon />,
     link: "/dashboard",
   },
-  // { text: 'Inventario', icon: <MailIcon />, component: <InventarioComponent /> },
-  // { text: 'Categoria', icon: <InboxIcon />, component: <CategoriaComponent /> },
-  { text: "Clientes", 
-    icon: <HailIcon />, 
-    link: "/dashboard/clientes" },
+  { text: "Clientes", icon: <HailIcon />, link: "/dashboard/clientes" },
   {
     text: "Empresas",
     icon: <StorefrontIcon />,
     link: "/dashboard/empresas",
   },
-  { text: "Empleados", 
-    icon: <HailIcon />, 
-    link: "/dashboard/empleados" },
+  { text: "Empleados", icon: <HailIcon />, link: "/dashboard/empleados" },
 
-   {
-     text: "Inventario",
-     icon: <InventoryIcon />,
-     link: "/dashboard/inventario",
-   },
-   {
+  {
+    text: "Inventario",
+    icon: <InventoryIcon />,
+    link: "/dashboard/inventario",
+  },
+  {
     text: "Categorias",
-    icon: <CategoryIcon/>,
+    icon: <CategoryIcon />,
     link: "/dashboard/categorias",
-   }
+  },
 
   // { text: 'Configuración General', icon: <InboxIcon />, component: <ConfiguracionGeneralComponent /> }
 ];
@@ -230,7 +224,12 @@ const Dashboard: React.FC = () => {
     const role = authService.getRole();
     if (role === "Root") {
       setSelectedMenuItems(
-        menuItems.filter((item) => item.text !== "Empleados")
+        menuItems.filter(
+          (item) =>
+            item.text !== "Empleados" &&
+            item.text !== "Inventario" &&
+            item.text !== "Categorias"
+        )
       );
     } else {
       setSelectedMenuItems(
@@ -580,19 +579,25 @@ const Dashboard: React.FC = () => {
               />
             }
           />
-          
-            <Route path="clientes/crear"  element={
+
+          <Route
+            path="clientes/crear"
+            element={
               <ProtectedRoute
                 roles={["Root"]}
                 element={<ClienteCEComponent />}
               />
-            } />
-            <Route path="cientes/editar/:id" element={
+            }
+          />
+          <Route
+            path="cientes/editar/:id"
+            element={
               <ProtectedRoute
                 roles={["Root"]}
                 element={<ClienteCEComponent />}
               />
-            } />
+            }
+          />
 
           <Route
             path="empleados"
@@ -602,33 +607,60 @@ const Dashboard: React.FC = () => {
                 element={<EmpleadoComponent />}
               />
             }
-          >
-            <Route path="crear" element={<EmpleadoCEComponent />} />
-            <Route path="editar/:id" element={<EmpleadoCEComponent />} />
-          </Route>
+          />
+          <Route
+            path="empleados/crear"
+            element={
+              <ProtectedRoute
+                roles={["Admin"]}
+                element={<EmpleadoCEComponent />}
+              />
+            }
+          />
+          <Route
+            path="empleados/editar/:id"
+            element={
+              <ProtectedRoute
+                roles={["Admin"]}
+                element={<EmpleadoCEComponent />}
+              />
+            }
+          />
           <Route
             path="inventario"
-            element={<ProtectedRoute roles={["Admin"]} element={<Inventario />} />}
+            element={
+              <ProtectedRoute roles={["Admin"]} element={<Inventario />} />
+            }
           />
-          <Route 
-          path="inventario/crear" 
-          element={<ProtectedRoute roles={["Admin"]} element={<ProductoCE />} />} 
+          <Route
+            path="inventario/crear"
+            element={
+              <ProtectedRoute roles={["Admin"]} element={<ProductoCE />} />
+            }
           />
-          <Route 
-          path="inventario/editar/:id"
-          element={<ProtectedRoute roles={["Admin"]} element={<ProductoCE />} />} 
+          <Route
+            path="inventario/editar/:id"
+            element={
+              <ProtectedRoute roles={["Admin"]} element={<ProductoCE />} />
+            }
           />
           <Route
             path="categorias"
-            element={<ProtectedRoute roles={["Admin"]} element={<Categoria />} />}
+            element={
+              <ProtectedRoute roles={["Admin"]} element={<Categoria />} />
+            }
           />
           <Route
             path="categorias/crear"
-            element={<ProtectedRoute roles={["Admin"]} element={<CategoriaCE />} />}
+            element={
+              <ProtectedRoute roles={["Admin"]} element={<CategoriaCE />} />
+            }
           />
           <Route
             path="categorias/editar/:id"
-            element={<ProtectedRoute roles={["Admin"]} element={<CategoriaCE />} />}
+            element={
+              <ProtectedRoute roles={["Admin"]} element={<CategoriaCE />} />
+            }
           />
         </Routes>
       </Box>

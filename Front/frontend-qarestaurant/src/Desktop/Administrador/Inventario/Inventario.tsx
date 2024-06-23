@@ -42,12 +42,7 @@ const filterRows = (rows: Product[], term: string) => {
   return rows.filter((row) => {
     const searchTerm = term.toLowerCase();
     return (
-      row.nombre.toLowerCase().includes(searchTerm) ||
-      row.imagenInventario?.toLowerCase().includes(searchTerm) ||
-      row.categoria.toLowerCase().includes(searchTerm) ||
-      row.descripcion.toLowerCase().includes(searchTerm) ||
-      row.precio.toString().toLowerCase().includes(searchTerm) ||
-      row.preparado.toString().toLowerCase().includes(searchTerm)
+      row.nombre.toLowerCase().includes(searchTerm)
     );
   });
 };
@@ -354,15 +349,7 @@ export default function Inventario() {
                     <Typography variant="h6">
                       <strong>Precio:</strong>
                     </Typography>
-                    <Typography variant="body1">{modalData.precio}</Typography>
-                  </Grid>
-                  <Grid item xs={12} md={12} display={"flex"} alignItems={"center"}>
-                    <Typography variant="h6">
-                      <strong>Disponibilidad:</strong>
-                    </Typography>
-                    <Typography variant="body1" marginLeft={1} marginTop={.5}>
-                      {modalData.preparado ? 'Si' : 'No'}
-                    </Typography>
+                    <Typography variant="body1">${modalData.precio}</Typography>
                   </Grid>
                 </Grid>
               ) : (

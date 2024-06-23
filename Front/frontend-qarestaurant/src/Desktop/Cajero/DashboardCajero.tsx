@@ -18,123 +18,23 @@ import {
   Tabs,
   TextField,
   Badge,
+  Drawer,
+  Avatar,
+  ListItemIcon,
 } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
+import HomeIcon from '@mui/icons-material/Home';
+import DashboardIcon from '@mui/icons-material/Dashboard';
+import ExitToAppIcon from '@mui/icons-material/ExitToApp';
 import { useState, useEffect, useCallback } from "react";
 import apiClient from "../../AuthService/authInterceptor";
 import Loader from "../../components/loader";
 import mesaIMG from "../../img/vinos.jpg";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import { ClickAwayListener } from "@mui/base/ClickAwayListener";
+import Swal from "sweetalert2";
+import authService from "../../AuthService/authService";
 
-const fakeData = [
-  {
-    id: 1,
-    nombre: "Mesa 1",
-    personas: 4,
-    precio: 750,
-    imagen: "https://via.placeholder.com/150",
-    estado: "activo",
-    pedidos: [
-      { nombre: "Pizza", precio: 200 },
-      { nombre: "Ensalada", precio: 150 },
-      { nombre: "Pizza", precio: 200 },
-      { nombre: "Ensalada", precio: 150 },
-      { nombre: "Pizza", precio: 200 },
-      { nombre: "Ensalada", precio: 150 },
-      { nombre: "Pizza", precio: 200 },
-      { nombre: "Ensalada", precio: 150 },
-      { nombre: "Pizza", precio: 200 },
-      { nombre: "Ensalada", precio: 150 },
-      { nombre: "Pizza", precio: 200 },
-      { nombre: "Ensalada", precio: 150 },
-    ],
-  },
-  {
-    id: 2,
-    nombre: "Mesa 2",
-    personas: 6,
-    precio: 1200,
-    imagen: "https://via.placeholder.com/150",
-    estado: "por cobrar",
-    pedidos: [
-      { nombre: "Hamburguesa", precio: 300 },
-      { nombre: "Refresco", precio: 100 },
-    ],
-  },
-  {
-    id: 3,
-    nombre: "Mesa 3",
-    personas: 2,
-    precio: 500,
-    imagen: "https://via.placeholder.com/150",
-    estado: "pagando",
-    pedidos: [
-      { nombre: "Sushi", precio: 250 },
-      { nombre: "Té Verde", precio: 50 },
-    ],
-  },
-  {
-    id: 4,
-    nombre: "Mesa 3",
-    personas: 2,
-    precio: 500,
-    imagen: "https://via.placeholder.com/150",
-    estado: "pagando",
-    pedidos: [
-      { nombre: "Sushi", precio: 250 },
-      { nombre: "Té Verde", precio: 50 },
-    ],
-  },
-  {
-    id: 5,
-    nombre: "Mesa 3",
-    personas: 2,
-    precio: 500,
-    imagen: "https://via.placeholder.com/150",
-    estado: "pagando",
-    pedidos: [
-      { nombre: "Sushi", precio: 250 },
-      { nombre: "Té Verde", precio: 50 },
-    ],
-  },
-  {
-    id: 6,
-    nombre: "Mesa 3",
-    personas: 2,
-    precio: 500,
-    imagen: "https://via.placeholder.com/150",
-    estado: "pagando",
-    pedidos: [
-      { nombre: "Sushi", precio: 250 },
-      { nombre: "Té Verde", precio: 50 },
-    ],
-  },
-  {
-    id: 7,
-    nombre: "Mesa 3",
-    personas: 2,
-    precio: 500,
-    imagen: "https://via.placeholder.com/150",
-    estado: "pagando",
-    pedidos: [
-      { nombre: "Sushi", precio: 250 },
-      { nombre: "Té Verde", precio: 50 },
-    ],
-  },
-  {
-    id: 8,
-    nombre: "Mesa 3",
-    personas: 2,
-    precio: 500,
-    imagen: "https://via.placeholder.com/150",
-    estado: "pagando",
-    pedidos: [
-      { nombre: "Sushi", precio: 250 },
-      { nombre: "Té Verde", precio: 50 },
-    ],
-  },
-];
 interface Comandas {
   id: number;
   meseroCargo: string;
@@ -171,6 +71,31 @@ export default function DashboardCajero() {
   const [tabIndex, setTabIndex] = useState(0);
   const [numeroMesa, setNumeroMesa] = useState("");
   const [loading, setLoading] = useState(false);
+  const [open, setOpen] = useState(false);
+
+  const toggleDrawer = (newOpen: boolean) => () => {
+    setOpen(newOpen);
+  };
+  const handleLogout = () => {
+    Swal.fire({
+      title: "¿Estás seguro?",
+      text: "Se cerrará la sesión",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Si, cerrar sesión",
+      customClass: {
+        container: "custom-swal-container",
+      },
+    }).then((result) => {
+      if (result.isConfirmed) {
+        if (result.isConfirmed) {
+          authService.logout();
+        }
+      }
+    });
+  };
 
   const handleChangeTab = (_: any, newValue: any) => {
     setTabIndex(newValue);
@@ -232,6 +157,27 @@ export default function DashboardCajero() {
   return (
     <>
       <Box sx={{ flexGrow: 1, height: "100%" }}>
+      <Drawer anchor="left" open={open} onClose={toggleDrawer(false)}>
+      <div
+        role="presentation"
+        style={{ width: 250 }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', padding: 16 }}>
+          <Avatar style={{ marginRight: 16 }}>C</Avatar>
+          <div>
+            <Typography variant="h6">Cajero</Typography>
+          </div>
+        </div>
+        <List>
+          <ListItem button style={{ color: 'red' }} onClick={handleLogout}>
+            <ListItemIcon>
+              <ExitToAppIcon style={{ color: 'red' }} />
+            </ListItemIcon>
+            <ListItemText primary="Cerrar sesión" />
+          </ListItem>
+        </List>
+      </div>
+    </Drawer>
         <AppBar
           position="sticky"
           sx={{
@@ -246,6 +192,7 @@ export default function DashboardCajero() {
               color="default"
               aria-label="menu"
               sx={{ mr: 2 }}
+              onClick={toggleDrawer(true)}
             >
               <MenuIcon />
             </IconButton>
