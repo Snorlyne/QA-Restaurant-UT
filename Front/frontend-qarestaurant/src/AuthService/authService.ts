@@ -43,7 +43,7 @@ const authService = {
                 setCookie('token', token, 1); // Expira en 1 día
                 setCookie('usuario', usuario, 1);
                 setCookie('role', rol, 1);
-                return rol;
+                resolve(rol);
             })
             .catch(function (error) {
                 console.error(error);

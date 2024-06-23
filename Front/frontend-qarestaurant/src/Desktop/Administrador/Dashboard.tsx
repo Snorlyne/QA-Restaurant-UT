@@ -177,7 +177,7 @@ const Dashboard: React.FC = () => {
       setSelectedItem(selectedItem);
       setSelectedComponent(selectedItem);
     }
-  }, [location.pathname]);
+  }, [location.pathname, selectedMenuItems]);
 
   const handleAutocompleteChange = (event: any, value: any) => {
     setSearchTerm(value);
@@ -215,7 +215,7 @@ const Dashboard: React.FC = () => {
     const role = authService.getRole();
     if (role === "Root") {
       setSelectedMenuItems(
-        menuItems.filter((item) => item.text !== "Empleados")
+        menuItems.filter((item) => item.text !== "")
       );
     } else {
       setSelectedMenuItems(
@@ -515,38 +515,83 @@ const Dashboard: React.FC = () => {
           <Route path="usuario" element={<UsuarioComponent />} />
 
           <Route
-            path="empresas/*"
+            path="empresas"
             element={
               <ProtectedRoute roles={["Root"]} element={<EmpresaComponent />} />
             }
-          >
-            <Route path="crear" element={<EmpresaCreateEditComponent />} />
-            <Route path="editar/:id" element={<EmpresaCreateEditComponent />} />
-          </Route>
+          />
           <Route
-            path="clientes/*"
+            path="empresas/crear"
+            element={
+              <ProtectedRoute
+                roles={["Root"]}
+                element={<EmpresaCreateEditComponent />}
+              />
+            }
+          />
+          <Route
+            path="empresas/editar/:id"
+            element={
+              <ProtectedRoute
+                roles={["Root"]}
+                element={<EmpresaCreateEditComponent />}
+              />
+            }
+          />
+          <Route
+            path="clientes"
             element={
               <ProtectedRoute
                 roles={["Root"]}
                 element={<ClientesComponent />}
               />
             }
-          >
-            <Route path="crear" element={<ClienteCEComponent />} />
-            <Route path="editar/:id" element={<ClienteCEComponent />} />
-          </Route>
+          />
           <Route
-            path="empleados/*"
+            path="clientes/crear"
+            element={
+              <ProtectedRoute
+                roles={["Root"]}
+                element={<ClienteCEComponent />}
+              />
+            }
+          />
+          <Route
+            path="clientes/editar/:id"
+            element={
+              <ProtectedRoute
+                roles={["Root"]}
+                element={<ClienteCEComponent />}
+              />
+            }
+          />
+          <Route
+            path="empleados"
             element={
               <ProtectedRoute
                 roles={["Admin"]}
                 element={<EmpleadoComponent />}
               />
             }
-          >
-            <Route path="crear" element={<EmpleadoCEComponent />} />
-            <Route path="editar/:id" element={<EmpleadoCEComponent />} />
-          </Route>
+          />
+          <Route
+            path="empleados/crear"
+            element={
+              <ProtectedRoute
+                roles={["Admin"]}
+                element={<EmpleadoCEComponent />}
+              />
+            }
+          />
+          <Route
+            path="empleados/editar/:id"
+            element={
+              <ProtectedRoute
+                roles={["Admin"]}
+                element={<EmpleadoCEComponent />}
+              />
+            }
+          />
         </Routes>
       </Box>
     </Box>

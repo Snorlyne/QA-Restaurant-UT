@@ -23,6 +23,7 @@ const Login: React.FC = () => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      debugger;
       const login = await authService.login(email, password);
       switch (login) {
         case "Root":

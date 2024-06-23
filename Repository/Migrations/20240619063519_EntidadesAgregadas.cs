@@ -5,10 +5,26 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace Repository.Migrations
 {
-    public partial class Actualizacion14062024 : Migration
+    public partial class EntidadesAgregadas : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.CreateTable(
+                name: "Commands",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Propietario = table.Column<int>(type: "int", nullable: false),
+                    Cobrador = table.Column<int>(type: "int", nullable: false),
+                    Total = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    Restaurante = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Commands", x => x.Id);
+                });
+
             migrationBuilder.CreateTable(
                 name: "Company",
                 columns: table => new
@@ -33,6 +49,19 @@ namespace Repository.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Role", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Status",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Nombre = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Status", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -105,17 +134,25 @@ namespace Repository.Migrations
                     ImagenInventario = table.Column<byte[]>(type: "varbinary(max)", nullable: true),
                     Nombre = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Descripcion = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    FK_Categoria = table.Column<int>(type: "int", nullable: false)
+                    Precio = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    Preparado = table.Column<bool>(type: "bit", nullable: false),
+                    FK_Categoria = table.Column<int>(type: "int", nullable: true),
+                    CategoriasId = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Inventario", x => x.Id);
                     table.ForeignKey(
+                        name: "FK_Inventario_Categorias_CategoriasId",
+                        column: x => x.CategoriasId,
+                        principalTable: "Categorias",
+                        principalColumn: "Id");
+                    table.ForeignKey(
                         name: "FK_Inventario_Categorias_FK_Categoria",
                         column: x => x.FK_Categoria,
                         principalTable: "Categorias",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.SetNull);
                 });
 
             migrationBuilder.CreateTable(
@@ -151,21 +188,61 @@ namespace Repository.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "FotosInventarios",
+                name: "Orders",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    InventarioId = table.Column<int>(type: "int", nullable: false),
-                    Foto = table.Column<byte[]>(type: "varbinary(max)", nullable: true)
+                    Mesa = table.Column<int>(type: "int", nullable: false),
+                    FK_person_id = table.Column<int>(type: "int", nullable: true),
+                    FK_status_id = table.Column<int>(type: "int", nullable: false),
+                    FK_inventory_id = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_FotosInventarios", x => x.Id);
+                    table.PrimaryKey("PK_Orders", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_FotosInventarios_Inventario_InventarioId",
-                        column: x => x.InventarioId,
+                        name: "FK_Orders_Inventario_FK_inventory_id",
+                        column: x => x.FK_inventory_id,
                         principalTable: "Inventario",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.SetNull);
+                    table.ForeignKey(
+                        name: "FK_Orders_Person_FK_person_id",
+                        column: x => x.FK_person_id,
+                        principalTable: "Person",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.SetNull);
+                    table.ForeignKey(
+                        name: "FK_Orders_Status_FK_status_id",
+                        column: x => x.FK_status_id,
+                        principalTable: "Status",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "OrdersInCommands",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    FK_command_id = table.Column<int>(type: "int", nullable: false),
+                    FK_order_id = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_OrdersInCommands", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_OrdersInCommands_Commands_FK_command_id",
+                        column: x => x.FK_command_id,
+                        principalTable: "Commands",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_OrdersInCommands_Orders_FK_order_id",
+                        column: x => x.FK_order_id,
+                        principalTable: "Orders",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -181,14 +258,39 @@ namespace Repository.Migrations
                 column: "FK_Company_Id");
 
             migrationBuilder.CreateIndex(
-                name: "IX_FotosInventarios_InventarioId",
-                table: "FotosInventarios",
-                column: "InventarioId");
+                name: "IX_Inventario_CategoriasId",
+                table: "Inventario",
+                column: "CategoriasId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Inventario_FK_Categoria",
                 table: "Inventario",
                 column: "FK_Categoria");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Orders_FK_inventory_id",
+                table: "Orders",
+                column: "FK_inventory_id");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Orders_FK_person_id",
+                table: "Orders",
+                column: "FK_person_id");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Orders_FK_status_id",
+                table: "Orders",
+                column: "FK_status_id");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_OrdersInCommands_FK_command_id",
+                table: "OrdersInCommands",
+                column: "FK_command_id");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_OrdersInCommands_FK_order_id",
+                table: "OrdersInCommands",
+                column: "FK_order_id");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Person_FK_Company_Id",
@@ -212,25 +314,34 @@ namespace Repository.Migrations
                 name: "ConfiguracionGeneral");
 
             migrationBuilder.DropTable(
-                name: "FotosInventarios");
+                name: "OrdersInCommands");
 
             migrationBuilder.DropTable(
-                name: "Person");
+                name: "Commands");
+
+            migrationBuilder.DropTable(
+                name: "Orders");
 
             migrationBuilder.DropTable(
                 name: "Inventario");
 
             migrationBuilder.DropTable(
-                name: "User");
+                name: "Person");
+
+            migrationBuilder.DropTable(
+                name: "Status");
 
             migrationBuilder.DropTable(
                 name: "Categorias");
 
             migrationBuilder.DropTable(
-                name: "Role");
+                name: "User");
 
             migrationBuilder.DropTable(
                 name: "Company");
+
+            migrationBuilder.DropTable(
+                name: "Role");
         }
     }
 }

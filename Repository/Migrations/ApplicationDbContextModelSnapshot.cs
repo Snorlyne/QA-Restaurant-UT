@@ -44,6 +44,31 @@ namespace Repository.Migrations
                     b.ToTable("Categorias");
                 });
 
+            modelBuilder.Entity("Domain.Entidades.Command", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<int>("Cobrador")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Propietario")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Restaurante")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("Total")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Commands");
+                });
+
             modelBuilder.Entity("Domain.Entidades.Company", b =>
                 {
                     b.Property<int>("Id")
@@ -92,10 +117,13 @@ namespace Repository.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
+                    b.Property<int?>("CategoriasId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Descripcion")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("FK_Categoria")
+                    b.Property<int?>("FK_Categoria")
                         .HasColumnType("int");
 
                     b.Property<byte[]>("ImagenInventario")
@@ -112,9 +140,65 @@ namespace Repository.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("CategoriasId");
+
                     b.HasIndex("FK_Categoria");
 
                     b.ToTable("Inventario");
+                });
+
+            modelBuilder.Entity("Domain.Entidades.Order", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<int?>("FK_inventory_id")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("FK_person_id")
+                        .HasColumnType("int");
+
+                    b.Property<int>("FK_status_id")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Mesa")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FK_inventory_id");
+
+                    b.HasIndex("FK_person_id");
+
+                    b.HasIndex("FK_status_id");
+
+                    b.ToTable("Orders");
+                });
+
+            modelBuilder.Entity("Domain.Entidades.OrdersInCommand", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<int>("FK_command_id")
+                        .HasColumnType("int");
+
+                    b.Property<int>("FK_order_id")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FK_command_id");
+
+                    b.HasIndex("FK_order_id");
+
+                    b.ToTable("OrdersInCommands");
                 });
 
             modelBuilder.Entity("Domain.Entidades.Person", b =>
@@ -139,9 +223,6 @@ namespace Repository.Migrations
                         .HasMaxLength(60)
                         .HasColumnType("nvarchar(60)");
 
-                    b.Property<int?>("CompanyId")
-                        .HasColumnType("int");
-
                     b.Property<int>("FK_Company_Id")
                         .HasColumnType("int");
 
@@ -161,12 +242,9 @@ namespace Repository.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CompanyId");
-
                     b.HasIndex("FK_Company_Id");
 
-                    b.HasIndex("FK_User_Id")
-                        .IsUnique();
+                    b.HasIndex("FK_User_Id");
 
                     b.ToTable("Person");
                 });
@@ -187,6 +265,22 @@ namespace Repository.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Role");
+                });
+
+            modelBuilder.Entity("Domain.Entidades.Status", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<string>("Nombre")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Status");
                 });
 
             modelBuilder.Entity("Domain.Entidades.User", b =>
@@ -240,30 +334,73 @@ namespace Repository.Migrations
 
             modelBuilder.Entity("Domain.Entidades.Inventario", b =>
                 {
-                    b.HasOne("Domain.Entidades.Categorias", "Categorias")
+                    b.HasOne("Domain.Entidades.Categorias", null)
                         .WithMany("Inventarios")
+                        .HasForeignKey("CategoriasId");
+
+                    b.HasOne("Domain.Entidades.Categorias", "Categorias")
+                        .WithMany()
                         .HasForeignKey("FK_Categoria")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("Categorias");
                 });
 
+            modelBuilder.Entity("Domain.Entidades.Order", b =>
+                {
+                    b.HasOne("Domain.Entidades.Inventario", "Inventario")
+                        .WithMany("Orders")
+                        .HasForeignKey("FK_inventory_id")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Domain.Entidades.Person", "Person")
+                        .WithMany("Orders")
+                        .HasForeignKey("FK_person_id")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Domain.Entidades.Status", "Status")
+                        .WithMany("Orders")
+                        .HasForeignKey("FK_status_id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Inventario");
+
+                    b.Navigation("Person");
+
+                    b.Navigation("Status");
+                });
+
+            modelBuilder.Entity("Domain.Entidades.OrdersInCommand", b =>
+                {
+                    b.HasOne("Domain.Entidades.Command", "Command")
+                        .WithMany("OrdersInCommands")
+                        .HasForeignKey("FK_command_id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Entidades.Order", "Order")
+                        .WithMany("OrdersInCommands")
+                        .HasForeignKey("FK_order_id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Command");
+
+                    b.Navigation("Order");
+                });
+
             modelBuilder.Entity("Domain.Entidades.Person", b =>
                 {
-                    b.HasOne("Domain.Entidades.Company", null)
-                        .WithMany("Persons")
-                        .HasForeignKey("CompanyId");
-
                     b.HasOne("Domain.Entidades.Company", "Company")
-                        .WithMany()
+                        .WithMany("Persons")
                         .HasForeignKey("FK_Company_Id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("Domain.Entidades.User", "User")
-                        .WithOne()
-                        .HasForeignKey("Domain.Entidades.Person", "FK_User_Id")
+                        .WithMany()
+                        .HasForeignKey("FK_User_Id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -288,6 +425,11 @@ namespace Repository.Migrations
                     b.Navigation("Inventarios");
                 });
 
+            modelBuilder.Entity("Domain.Entidades.Command", b =>
+                {
+                    b.Navigation("OrdersInCommands");
+                });
+
             modelBuilder.Entity("Domain.Entidades.Company", b =>
                 {
                     b.Navigation("Categorias");
@@ -295,9 +437,29 @@ namespace Repository.Migrations
                     b.Navigation("Persons");
                 });
 
+            modelBuilder.Entity("Domain.Entidades.Inventario", b =>
+                {
+                    b.Navigation("Orders");
+                });
+
+            modelBuilder.Entity("Domain.Entidades.Order", b =>
+                {
+                    b.Navigation("OrdersInCommands");
+                });
+
+            modelBuilder.Entity("Domain.Entidades.Person", b =>
+                {
+                    b.Navigation("Orders");
+                });
+
             modelBuilder.Entity("Domain.Entidades.Role", b =>
                 {
                     b.Navigation("Users");
+                });
+
+            modelBuilder.Entity("Domain.Entidades.Status", b =>
+                {
+                    b.Navigation("Orders");
                 });
 #pragma warning restore 612, 618
         }

@@ -51,6 +51,22 @@ namespace Repository.Context
                     _dbContext.Add(user);
                     await _dbContext.SaveChangesAsync();
 
+                    //Agregar estados para orden
+
+                    string[] statusNames = { "Anotado", "En preparación", "Pedido listo", "Por cobrar", "Pagando", "Pagado" };
+                    foreach (var statusName in statusNames)
+                    {
+                        Status status = new Status();
+
+                        var statusExist = await _dbContext.Status.FirstOrDefaultAsync(x => x.Nombre == statusName);
+                        if (statusExist == null) 
+                        {
+                            status.Nombre = statusName;
+                            _dbContext.Status.Add(status);
+                            await _dbContext.SaveChangesAsync();
+                        }
+                    }
+
                     _seeded = true;
                     return;
                 }

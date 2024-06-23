@@ -2,6 +2,7 @@ import { DataGrid, GridColDef } from "@mui/x-data-grid";
 import Box from "@mui/material/Box";
 import { useCallback, useEffect, useState } from "react";
 import {
+  Avatar,
   Button,
   Grid,
   InputAdornment,
@@ -17,8 +18,11 @@ import Swal from "sweetalert2";
 import IResponse from "../../../interfaces/IResponse.";
 import Loader from "../../../components/loader";
 import apiClient from "../../../AuthService/authInterceptor";
+import InfoIcon from "@mui/icons-material/Info";
+import GeneralModal from "../../../components/GeneralModal";
 
 interface PersonData {
+  id: number;
   nombre: string;
   apellido_Paterno: string;
   apellido_Materno: string;
@@ -52,6 +56,8 @@ export default function ClientesComponent() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredRows, setFilteredRows] = useState<PersonData[]>(rows);
   const [loading, setLoading] = useState(false);
+  const [openModal, setOpenModal] = useState(false);
+  const [modalData, setModalData] = useState<PersonData | null>(null);
 
   const navigate = useNavigate();
 
@@ -122,13 +128,23 @@ export default function ClientesComponent() {
         <>
           <Button
             variant="contained"
+            color="secondary"
+            onClick={() => handleOpenModal(params.row.id)}
+            sx={{
+              marginRight: 2,
+              marginLeft: 2,
+            }}
+          >
+            <InfoIcon />
+          </Button>
+          <Button
+            variant="contained"
             color="primary"
             onClick={() =>
               navigate(`/dashboard/clientes/editar/${params.row.id}`)
             }
             sx={{
-              marginRight: 3,
-              marginLeft: 2,
+              marginRight: 2,
             }}
           >
             <EditIcon />
@@ -224,6 +240,29 @@ export default function ClientesComponent() {
       setLoading(false);
     }
   };
+  const fetchById = (
+    id: number
+  ): PersonData | undefined => {
+    return rows.find((row: PersonData) => row.id === id);
+  };
+
+  const handleOpenModal = async (id: number) => {
+    // Busca la fila por ID
+    const data = fetchById(id);
+    if (data) {
+      // Actualiza el estado del modal con la información de la fila
+      setModalData(data);
+      setOpenModal(true);
+    } else {
+      console.error("No se encontró la fila con el ID proporcionado");
+    }
+  };
+
+  const handleCloseModal = () => {
+    setOpenModal(false);
+    setModalData(null);
+  };
+
   useEffect(() => {
     fetchData();
   }, [fetchData]);
@@ -255,8 +294,9 @@ export default function ClientesComponent() {
               variant="contained"
               color="success"
               onClick={() => navigate("/dashboard/clientes/crear")}
+              endIcon={<AddCircleIcon />}
             >
-              <AddCircleIcon />
+              Agregar
             </Button>
           </Grid>
         </Grid>
@@ -326,6 +366,65 @@ export default function ClientesComponent() {
               checkboxSelection={false}
             />
           </Box>
+          <GeneralModal
+            open={openModal}
+            onClose={handleCloseModal}
+            title="Detalles del Cliente"
+            content={
+              modalData ? (
+                <Grid container spacing={2}>
+                  <Grid item xs={12} md={4}>
+                    <Avatar
+                      src={
+                        modalData.foto
+                          ? URL.createObjectURL(
+                              dataURLToFile(modalData.foto, "foto")
+                            )
+                          : undefined
+                      }
+                      alt="Foto del Usuario"
+                      sx={{
+                        width: "100%",
+                        height: "auto",
+                        borderRadius: "8px",
+                      }}
+                      variant="square"
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={8}>
+                    <Typography variant="h6">
+                      <strong>Nombre Completo:</strong>
+                    </Typography>
+                    <Typography variant="body1">{`${modalData.nombre} ${modalData.apellido_Paterno} ${modalData.apellido_Materno}`}</Typography>
+
+                    <Typography variant="h6">
+                      <strong>CURP:</strong>
+                    </Typography>
+                    <Typography variant="body1">{modalData.curp}</Typography>
+
+                    <Typography variant="h6">
+                      <strong>Correo:</strong>
+                    </Typography>
+                    <Typography variant="body1">{modalData.user.email}</Typography>
+                    <Typography variant="h6">
+                      <strong>Negocio:</strong>
+                    </Typography>
+                    <Typography variant="body1">{modalData.company.nombre}</Typography>
+                  </Grid>
+                  <Grid item xs={12} md={12} display={"flex"} alignItems={"center"}>
+                    <Typography variant="h6">
+                      <strong>Fecha de Nacimiento:</strong>
+                    </Typography>
+                    <Typography variant="body1" marginLeft={1} marginTop={.5}>
+                      {new Date(modalData.fechaNacimiento).toLocaleDateString()}
+                    </Typography>
+                  </Grid>
+                </Grid>
+              ) : (
+                <p>Cargando...</p>
+              )
+            }
+          />
         </Grid>
       </Grid>
     </>
