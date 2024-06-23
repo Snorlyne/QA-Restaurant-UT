@@ -87,7 +87,7 @@ export default function ClientesComponent() {
               alignItems: "center",
               justifyContent: "center",
             }}
-          ></div>
+          >No image</div>
         ),
     },
     {

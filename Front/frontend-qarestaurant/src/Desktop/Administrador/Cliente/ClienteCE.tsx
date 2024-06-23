@@ -298,8 +298,7 @@ export default function ClienteCEComponent() {
       setDisabledBtn(false);
       fetchData();
       setTitle("Editar cliente");
-      
-    }else {
+    } else {
       fetchCompanies(null);
     }
   }, [fetchCompanies, id, token]);
@@ -428,7 +427,12 @@ export default function ClienteCEComponent() {
                         border: "2px dashed #ccc",
                         padding: "15px 0",
                         textAlign: "center",
-                        width: "100%",
+                        maxWidth: "100%",
+                        minHeight: "200px",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        flexWrap: "wrap",
                       }}
                     >
                       {file && File !== null && (
@@ -443,7 +447,12 @@ export default function ClienteCEComponent() {
                         />
                       )}
                       <input {...getInputProps()} />
-                      <Typography variant="body1">
+                      <Typography
+                        variant="body1"
+                        sx={{
+                          width: "100%",
+                        }}
+                      >
                         Arrastra y suelta aquí una imagen o haz clic para
                         seleccionarla.
                       </Typography>
@@ -471,6 +480,25 @@ export default function ClienteCEComponent() {
                   justifyContent="center"
                   alignItems="center"
                 >
+                  <Grid item xs={12} md={12} lg={12}>
+                    <FormControl fullWidth>
+                      <Autocomplete
+                        options={companies}
+                        value={selectedCompany}
+                        getOptionLabel={(option) => option.nombre}
+                        onChange={handleCompanyChange}
+                        renderInput={(params) => (
+                          <TextField
+                            {...params}
+                            label="Selecciona una empresa"
+                            error={!!errors.fkCompanyId}
+                            helperText={errors.fkCompanyId}
+                            sx={{ backgroundColor: "#F8F3F3" }}
+                          />
+                        )}
+                      />
+                    </FormControl>
+                  </Grid>
                   <Grid item xs={12} md={12} lg={12}>
                     <FormControl fullWidth>
                       <TextField
@@ -529,11 +557,7 @@ export default function ClienteCEComponent() {
                   spacing={3}
                   justifyContent="center"
                   alignItems="center"
-                  sx={{
-                    ...(file == null && {
-                      marginTop: { xs: 0, md: 20 },
-                    }),
-                  }}
+                  mt={10}
                 >
                   <Grid item xs={12} md={6} lg={6}>
                     <FormControl fullWidth>
@@ -569,25 +593,6 @@ export default function ClienteCEComponent() {
                         InputLabelProps={{
                           shrink: true,
                         }}
-                      />
-                    </FormControl>
-                  </Grid>
-                  <Grid item xs={12} md={6} lg={6}>
-                    <FormControl fullWidth>
-                      <Autocomplete
-                        options={companies}
-                        value={selectedCompany}
-                        getOptionLabel={(option) => option.nombre}
-                        onChange={handleCompanyChange}
-                        renderInput={(params) => (
-                          <TextField
-                            {...params}
-                            label="Selecciona una empresa"
-                            error={!!errors.fkCompanyId}
-                            helperText={errors.fkCompanyId}
-                            sx={{ backgroundColor: "#F8F3F3" }}
-                          />
-                        )}
                       />
                     </FormControl>
                   </Grid>

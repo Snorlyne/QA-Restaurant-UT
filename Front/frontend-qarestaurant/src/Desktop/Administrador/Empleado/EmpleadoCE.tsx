@@ -29,7 +29,7 @@ interface PersonData {
   curp: string;
   fechaNacimiento: Date | string;
   foto: string | null;
-  role: number | null; 
+  role: number | null;
 }
 const initialPersonData: PersonData = {
   nombre: "",
@@ -115,7 +115,7 @@ export default function EmpleadoCEComponent() {
     const hasErrors = Object.values(errors).some((error) => error !== "");
 
     const hasEmptyFields = fields
-      .filter((field) => field !== "foto")
+      .filter((field) => field !== "foto" && field !== "apellido_Materno")
       .some((field) => {
         return !personData[field as keyof PersonData];
       });
@@ -127,7 +127,7 @@ export default function EmpleadoCEComponent() {
     name: string,
     value: string | number | null | Date
   ): string => {
-    if (!value && name !== "foto") {
+    if (!value && name !== "foto" && name !== "apellido_Materno") {
       return "Este campo es obligatorio.";
     }
     switch (name) {
@@ -148,11 +148,10 @@ export default function EmpleadoCEComponent() {
         }
         break;
       case "apellido_Materno":
-        if (
-          typeof value === "string" &&
-          (value.length < 3 || value.length > 30)
-        ) {
-          return "El apellido materno debe tener entre 3 y 30 caracteres.";
+        if (typeof value === "string" && value.length > 0) {
+          if (value.length < 3 || value.length > 30) {
+            return "El apellido materno debe tener entre 3 y 30 caracteres.";
+          }
         }
         break;
       case "curp":
@@ -450,7 +449,12 @@ export default function EmpleadoCEComponent() {
                         border: "2px dashed #ccc",
                         padding: "15px 0",
                         textAlign: "center",
-                        width: "100%",
+                        maxWidth: "100%",
+                        minHeight: "200px",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        flexWrap: "wrap",
                       }}
                     >
                       {file && File !== null && (
@@ -465,7 +469,12 @@ export default function EmpleadoCEComponent() {
                         />
                       )}
                       <input {...getInputProps()} />
-                      <Typography variant="body1">
+                      <Typography
+                        variant="body1"
+                        sx={{
+                          width: "100%",
+                        }}
+                      >
                         Arrastra y suelta aquí una imagen o haz clic para
                         seleccionarla.
                       </Typography>
@@ -493,6 +502,25 @@ export default function EmpleadoCEComponent() {
                   justifyContent="center"
                   alignItems="center"
                 >
+                  <Grid item xs={12} md={12} lg={12}>
+                    <FormControl fullWidth>
+                      <Autocomplete
+                        options={roles}
+                        value={selectedRole}
+                        getOptionLabel={(option) => option.nombre}
+                        onChange={handleRoleChange}
+                        renderInput={(params) => (
+                          <TextField
+                            {...params}
+                            label="Selecciona un rol"
+                            error={!!errors.role}
+                            helperText={errors.role}
+                            sx={{ backgroundColor: "#F8F3F3" }}
+                          />
+                        )}
+                      />
+                    </FormControl>
+                  </Grid>
                   <Grid item xs={12} md={12} lg={12}>
                     <FormControl fullWidth>
                       <TextField
@@ -551,11 +579,7 @@ export default function EmpleadoCEComponent() {
                   spacing={3}
                   justifyContent="center"
                   alignItems="center"
-                  sx={{
-                    ...(file == null && {
-                      marginTop: { xs: 0, md: 20 },
-                    }),
-                  }}
+                  mt={10}
                 >
                   <Grid item xs={12} md={6} lg={6}>
                     <FormControl fullWidth>
@@ -591,25 +615,6 @@ export default function EmpleadoCEComponent() {
                         InputLabelProps={{
                           shrink: true,
                         }}
-                      />
-                    </FormControl>
-                  </Grid>
-                  <Grid item xs={12} md={6} lg={6}>
-                    <FormControl fullWidth>
-                      <Autocomplete
-                        options={roles}
-                        value={selectedRole}
-                        getOptionLabel={(option) => option.nombre}
-                        onChange={handleRoleChange}
-                        renderInput={(params) => (
-                          <TextField
-                            {...params}
-                            label="Selecciona un rol"
-                            error={!!errors.role}
-                            helperText={errors.role}
-                            sx={{ backgroundColor: "#F8F3F3" }}
-                          />
-                        )}
                       />
                     </FormControl>
                   </Grid>

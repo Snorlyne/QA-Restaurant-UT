@@ -12,8 +12,8 @@ using Repository.Context;
 namespace Repository.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20240619063519_EntidadesAgregadas")]
-    partial class EntidadesAgregadas
+    [Migration("20240623042700_actualizacion")]
+    partial class actualizacion
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -119,9 +119,6 @@ namespace Repository.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
-                    b.Property<int?>("CategoriasId")
-                        .HasColumnType("int");
-
                     b.Property<string>("Descripcion")
                         .HasColumnType("nvarchar(max)");
 
@@ -141,8 +138,6 @@ namespace Repository.Migrations
                         .HasColumnType("bit");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("CategoriasId");
 
                     b.HasIndex("FK_Categoria");
 
@@ -336,12 +331,8 @@ namespace Repository.Migrations
 
             modelBuilder.Entity("Domain.Entidades.Inventario", b =>
                 {
-                    b.HasOne("Domain.Entidades.Categorias", null)
-                        .WithMany("Inventarios")
-                        .HasForeignKey("CategoriasId");
-
                     b.HasOne("Domain.Entidades.Categorias", "Categorias")
-                        .WithMany()
+                        .WithMany("Inventarios")
                         .HasForeignKey("FK_Categoria")
                         .OnDelete(DeleteBehavior.SetNull);
 
