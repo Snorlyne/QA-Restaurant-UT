@@ -155,6 +155,9 @@ namespace Repository.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
+                    b.Property<string>("Adicional")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int?>("FK_inventory_id")
                         .HasColumnType("int");
 
@@ -166,6 +169,9 @@ namespace Repository.Migrations
 
                     b.Property<int>("Mesa")
                         .HasColumnType("int");
+
+                    b.Property<DateTime>("UltimoPedido")
+                        .HasColumnType("datetime2");
 
                     b.HasKey("Id");
 
