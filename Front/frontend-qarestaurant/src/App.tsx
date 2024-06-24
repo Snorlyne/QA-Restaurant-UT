@@ -10,6 +10,7 @@ import DashboardMeseros from "./Meseros/DashboardMeseros";
 import GuardarPedidos from "./Meseros/GuardarPedidos";
 import Unauthorized from "./AuthService/Unauthorized";
 import ProtectedRoute from "./AuthService/ProtectedRoute";
+import DashboardCajero from "./Desktop/Cajero/DashboardCajero";
 
 const App: React.FC = () => {
   return (
@@ -20,6 +21,10 @@ const App: React.FC = () => {
         <Route
           path="/dashboard/*"
           element={<ProtectedRoute roles={["Root", "Admin"]} element={<Dashboard />} />}
+        />
+        <Route
+          path="/cajeros/*"
+          element={<ProtectedRoute roles={["Cashier"]} element={<DashboardCajero />} />}
         />
         <Route path="/meseros" element={<DashboardMeseros />}></Route>
         <Route path="/GuardarPedidos" element={<GuardarPedidos />}></Route>

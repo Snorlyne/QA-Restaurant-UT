@@ -104,7 +104,7 @@ namespace Services.Servicio
                 _context.Inventario.Add(producto);
                 await _context.SaveChangesAsync();
 
-                return new Response<Inventario>(producto);
+                return new Response<Inventario>(producto, "Producto registrado con exito");
             }
             catch (Exception ex)
             {
@@ -133,7 +133,7 @@ namespace Services.Servicio
                     _context.Inventario.Update(producto);
                     await _context.SaveChangesAsync();
 
-                    return new Response<Inventario>(producto);
+                    return new Response<Inventario>(producto, "Producto editado correctamente");
                 }
 
                 throw new Exception($"No se encontró el producto con Id {id}");

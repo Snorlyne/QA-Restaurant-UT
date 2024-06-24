@@ -17,84 +17,90 @@ import { useParams } from "react-router-dom";
 import { useDropzone } from "react-dropzone";
 import { Cancel } from "@mui/icons-material";
 import authService from "../../../AuthService/authService";
+import Categoria from "../Categoria/Categoria";
+import Select from '@mui/material/Select';
+import MenuItem from '@mui/material/MenuItem';
+import apiClient from "../../../AuthService/authInterceptor";
 
-interface RoleData {
+interface CategoriaData{
+  id:number;
+  nombreCategoria:string;
+}
+interface ProductData {
   id: number;
   nombre: string;
+  descripcion: string;
+  precio: number;
+  preparado: boolean;
+  imagenInventario: string | null;
+  categoria: number;
 }
-interface PersonData {
-  nombre: string;
-  apellido_Paterno: string;
-  apellido_Materno: string;
-  curp: string;
-  fechaNacimiento: Date | string;
-  foto: string | null;
-  role: number | null;
-}
-const initialPersonData: PersonData = {
+const initialProductoData: ProductData = {
+  id: 0,
   nombre: "",
-  apellido_Paterno: "",
-  apellido_Materno: "",
-  curp: "",
-  fechaNacimiento: "",
-  foto: null,
-  role: null,
+  descripcion: "",
+  precio: 0,
+  preparado: true,
+  imagenInventario: null,
+  categoria: 0,
 };
 const initialErrors = {
   nombre: "",
-  apellido_Paterno: "",
-  apellido_Materno: "",
-  curp: "",
-  fechaNacimiento: "",
-  foto: "",
-  role: "",
+  descripcion: "",
+  precio: "",
+  preparado: "",
+  imagenInventario: "",
+  categoria: "",
 };
 
 const MAX_FILE_SIZE_MB = 2; // Tamaño máximo de archivo en MB
 
 export default function EmpleadoCEComponent() {
   const { id } = useParams();
-  const [title, setTitle] = useState<string>("Registrar empleado");
-  const [personData, setPersonData] = useState<PersonData>(initialPersonData);
+  const [title, setTitle] = useState<string>("Registrar Producto");
+  const [productData, setProductData] = useState<ProductData>(initialProductoData);
   const [file, setFile] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState(initialErrors);
   const [disabledBtn, setDisabledBtn] = useState(true);
   const token = authService.getToken();
-  const [selectedRole, setSelectedRole] = useState<RoleData | null>(null);
-  const roles: RoleData[] = [
-    { id: 3, nombre: "Chef" },
-    { id: 4, nombre: "Mesero" },
-    { id: 5, nombre: "Cajero" },
-  ];
+  const [categoria, setCategoria] = useState<CategoriaData[]>([]);
+  const [selectedCategoria, setSelectedCategoria] = useState<CategoriaData | null>(null);
+
+
+
   // Manejador genérico para cambios en los inputs
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
-    setPersonData({
-      ...personData,
-      [name]: value,
+    let parsedValue: string | number = value;
+      if (name === "precio") {
+      parsedValue = parseFloat(value);
+    }
+    setProductData({
+      ...productData,
+      [name]: parsedValue,
     });
-
+    
     // Validar el campo en tiempo real y actualizar el estado de errores
-    const error = validateField(name, value);
+    const error = validateField(name, parsedValue);
     setErrors((prevErrors) => ({
       ...prevErrors,
       [name]: error,
     }));
     setDisabledBtn(hasErrorsOrEmptyFields());
   };
-  // Manejo del cambio de selección del rol
-  const handleRoleChange = (event: any, value: RoleData | null) => {
-    setPersonData((prevData) => ({
+    // Manejo del cambio de selección de la categoría
+  const handleCategoriaChange = (event: any, value: CategoriaData | null) => {
+    setProductData((prevData) => ({
       ...prevData,
-      role: value ? value.id : 0,
+      categoria: value ? value.id : 0,
     }));
-    setSelectedRole(value);
+    setSelectedCategoria(value);
 
-    const error = validateField("role", value ? value.id : 0);
+    const error = validateField("categoria", value ? value.id : 0);
     setErrors((prevErrors) => ({
       ...prevErrors,
-      role: error,
+      categoria: error,
     }));
 
     // Actualizar el estado del botón
@@ -105,29 +111,28 @@ export default function EmpleadoCEComponent() {
   const hasErrorsOrEmptyFields = useCallback((): boolean => {
     const fields = [
       "nombre",
-      "apellido_Paterno",
-      "apellido_Materno",
-      "curp",
-      "fechaNacimiento",
-      "foto",
-      "role",
+      "descripcion",
+      "precio",
+      "preparado",
+      "imagenInventario",
+      "categoria",
     ];
     const hasErrors = Object.values(errors).some((error) => error !== "");
 
     const hasEmptyFields = fields
-      .filter((field) => field !== "foto" && field !== "apellido_Materno")
+      .filter((field) => field !== "imagenInventario")
       .some((field) => {
-        return !personData[field as keyof PersonData];
+        return !productData[field as keyof ProductData];
       });
 
     return hasErrors || hasEmptyFields;
-  }, [errors, personData]);
+  }, [errors, productData]);
 
   const validateField = (
     name: string,
-    value: string | number | null | Date
+    value: string | number | null | Date | boolean | File | undefined
   ): string => {
-    if (!value && name !== "foto" && name !== "apellido_Materno") {
+    if (!value && name !== "imagenInventario") {
       return "Este campo es obligatorio.";
     }
     switch (name) {
@@ -139,88 +144,44 @@ export default function EmpleadoCEComponent() {
           return "El nombre debe tener entre 3 y 30 caracteres.";
         }
         break;
-      case "apellido_Paterno":
+        case "descripcion":
         if (
           typeof value === "string" &&
-          (value.length < 3 || value.length > 30)
+          (value.length < 3 || value.length > 1000)
         ) {
-          return "El apellido paterno debe tener entre 3 y 30 caracteres.";
+          return "La descripción debe tener entre 3 y 1000 caracteres.";
         }
         break;
-      case "apellido_Materno":
-        if (typeof value === "string" && value.length > 0) {
-          if (value.length < 3 || value.length > 30) {
-            return "El apellido materno debe tener entre 3 y 30 caracteres.";
-          }
-        }
-        break;
-      case "curp":
-        if (typeof value === "string" && value.length !== 18) {
-          return "El CURP debe tener 18 caracteres.";
-        }
-        break;
-      case "fechaNacimiento":
-        if (value && new Date(value).toString() === "Invalid Date") {
-          return "La fecha de nacimiento no es válida.";
-        } else {
-          const currentDate = new Date();
-          const birthDate = new Date(value!);
-          let age = currentDate.getFullYear() - birthDate.getFullYear();
-          const monthDifference = currentDate.getMonth() - birthDate.getMonth();
-          const dayDifference = currentDate.getDate() - birthDate.getDate();
-
-          // Ajustar la edad si no ha llegado el cumpleaños este año
-          if (
-            monthDifference < 0 ||
-            (monthDifference === 0 && dayDifference < 0)
-          ) {
-            age--;
-          }
-
-          // Verificar si la persona tiene menos de 18 años
-          if (age < 18) {
-            return "Debe ser mayor de 18 años.";
-          }
-        }
-        break;
-      case "role":
+      case "categoria":
         if (value === 0) {
-          return "Debes seleccionar un rol.";
+          return "Debes seleccionar una categoria.";
         }
+        break;
+      case "precio":
+        if (typeof value !== "number" || value <= 0) {
+          return "Debes agregar un precio válido.";
+        }
+        break;
+      case "preparado":
+        if (typeof value !== "boolean") {
+          return "Debes seleccionar si esta disponible o no.";
+        } 
         break;
       default:
         return "";
     }
     return "";
   };
+
   const setDatos = async () => {
     try {
       setLoading(true);
       let response: any;
-      const data = personData;
+      const data = productData;
       if (!id) {
-        response = await axios.post(
-          "https://localhost:7047/APIColaborador",
-          data,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+        response = await apiClient.post("/APIInventario", data);
       } else {
-        response = await axios.put(
-          `https://localhost:7047/APIColaborador/Id?Id=${id}`,
-          data,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-      }
-      if (response.status !== 200) {
-        throw new Error("Network response was not ok");
+        response = await apiClient.put(`/APIInventario/Id?Id=${id}`, data);
       }
       const dataResponse: IResponse = response.data;
 
@@ -252,17 +213,7 @@ export default function EmpleadoCEComponent() {
         });
       }
     } catch (error: any) {
-      Swal.fire({
-        title: error.message,
-        icon: "error",
-        showCancelButton: false,
-        confirmButtonColor: "#3085d6",
-        cancelButtonColor: "#d33",
-        confirmButtonText: "Ok",
-        customClass: {
-          container: "custom-swal-container",
-        },
-      });
+      console.error(error.response.data);
     } finally {
       setLoading(false);
     }
@@ -270,39 +221,34 @@ export default function EmpleadoCEComponent() {
 
   const handleRemove = () => {
     setFile(null);
-    if (personData.foto != null) {
-      setPersonData({
-        ...personData,
-        foto: null,
+    if (productData.imagenInventario != null) {
+      setProductData({
+        ...productData,
+        imagenInventario: null,
       });
     }
   };
+  
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const response = await axios.get(
-          `https://localhost:7047/APIColaborador/Id?Id=${id}`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+        const response = await apiClient.get(`/APIInventario/id?Id=${id}`);
         const data = response.data.result;
-        setPersonData({
+        setProductData({
+          id: data.id,
           nombre: data.nombre,
-          apellido_Paterno: data.apellido_Paterno,
-          apellido_Materno: data.apellido_Materno,
-          curp: data.curp,
-          fechaNacimiento: data.fechaNacimiento,
-          foto: data.foto,
-          role: data.role.id,
+          descripcion: data.descripcion,
+          precio: data.precio,
+          preparado: data.preparado,
+          imagenInventario: data.imagenInventario,
+          categoria: data.categoria.id,
         });
-        setSelectedRole(data.role);
-        setFile(data.foto ? dataURLToFile(data.foto, "foto.png") : null);
+
+        fetchCategoria(data.categoria.id);
+        setFile(data.imagenInventario ? dataURLToFile(data.imagenInventario, "foto.png") : null);
       } catch (error) {
-        console.error("Error fetching cliente data:", error);
+        console.error("Error fetching producto data:", error);
       } finally {
         setLoading(false);
       }
@@ -321,14 +267,17 @@ export default function EmpleadoCEComponent() {
     if (id) {
       setDisabledBtn(false);
       fetchData();
-      setTitle("Editar empleado");
+      setTitle("Editar procuto");
+      
+    }else {
+      fetchCategoria(null);
     }
-  }, [id, token]);
+  }, [ id, token]);
 
   useEffect(() => {
     // Verificar errores y campos vacíos iniciales y actualizar el estado del botón
     setDisabledBtn(hasErrorsOrEmptyFields());
-  }, [personData, errors, hasErrorsOrEmptyFields]);
+  }, [productData, errors, hasErrorsOrEmptyFields]);
 
   const { getRootProps, getInputProps } = useDropzone({
     accept: {
@@ -373,11 +322,26 @@ export default function EmpleadoCEComponent() {
 
       const reader = new FileReader();
       reader.onload = () => {
-        setPersonData({ ...personData, foto: reader.result!.toString() });
+        setProductData({ ...productData, imagenInventario: reader.result!.toString() });
       };
       reader.readAsDataURL(file);
     },
   });
+  const fetchCategoria = useCallback(async (selectedId: number | null) => {
+    try {
+      const response = await apiClient.get("/APICategoria");
+      const categoriaData = response.data.result;
+      setCategoria(categoriaData);
+      if (selectedId) {
+        const selectedCategoria = categoriaData.find(
+          (categoriaData: CategoriaData) => categoriaData.id === selectedId
+        );
+        setSelectedCategoria(selectedCategoria || null);
+      } 
+    } catch (error) {
+      console.error("Error fetching categoria", error);
+    }
+  }, []);
   return (
     <>
       {loading && <Loader />}
@@ -449,12 +413,7 @@ export default function EmpleadoCEComponent() {
                         border: "2px dashed #ccc",
                         padding: "15px 0",
                         textAlign: "center",
-                        maxWidth: "100%",
-                        minHeight: "200px",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        flexWrap: "wrap",
+                        width: "100%",
                       }}
                     >
                       {file && File !== null && (
@@ -469,12 +428,7 @@ export default function EmpleadoCEComponent() {
                         />
                       )}
                       <input {...getInputProps()} />
-                      <Typography
-                        variant="body1"
-                        sx={{
-                          width: "100%",
-                        }}
-                      >
+                      <Typography variant="body1">
                         Arrastra y suelta aquí una imagen o haz clic para
                         seleccionarla.
                       </Typography>
@@ -504,30 +458,11 @@ export default function EmpleadoCEComponent() {
                 >
                   <Grid item xs={12} md={12} lg={12}>
                     <FormControl fullWidth>
-                      <Autocomplete
-                        options={roles}
-                        value={selectedRole}
-                        getOptionLabel={(option) => option.nombre}
-                        onChange={handleRoleChange}
-                        renderInput={(params) => (
-                          <TextField
-                            {...params}
-                            label="Selecciona un rol"
-                            error={!!errors.role}
-                            helperText={errors.role}
-                            sx={{ backgroundColor: "#F8F3F3" }}
-                          />
-                        )}
-                      />
-                    </FormControl>
-                  </Grid>
-                  <Grid item xs={12} md={12} lg={12}>
-                    <FormControl fullWidth>
                       <TextField
                         type="text"
                         name="nombre"
                         label="Nombre"
-                        value={personData.nombre}
+                        value={productData.nombre}
                         onChange={handleInputChange}
                         error={!!errors.nombre}
                         helperText={errors.nombre}
@@ -535,34 +470,70 @@ export default function EmpleadoCEComponent() {
                       />
                     </FormControl>
                   </Grid>
-                  <Grid item xs={12} md={6}>
+                  <Grid item xs={12} md={12} lg={12}>
                     <FormControl fullWidth>
                       <TextField
-                        type="text"
-                        name="apellido_Paterno"
-                        label="Apellido Paterno"
-                        value={personData.apellido_Paterno}
+                        type="number"
+                        name="precio"
+                        label="Precio"
+                        value={productData.precio}
                         onChange={handleInputChange}
-                        error={!!errors.apellido_Paterno}
-                        helperText={errors.apellido_Paterno}
+                        error={!!errors.precio}
+                        helperText={errors.precio}
                         sx={{ backgroundColor: "#F8F3F3" }}
                       />
                     </FormControl>
                   </Grid>
                   <Grid item xs={12} md={6} lg={6}>
                     <FormControl fullWidth>
-                      <TextField
-                        type="text"
-                        name="apellido_Materno"
-                        label="Apellido Materno"
-                        value={personData.apellido_Materno}
-                        onChange={handleInputChange}
-                        error={!!errors.apellido_Materno}
-                        helperText={errors.apellido_Materno}
-                        sx={{ backgroundColor: "#F8F3F3" }}
+                      <Autocomplete
+                        options={categoria}
+                        value={selectedCategoria}
+                        getOptionLabel={(option) => option.nombreCategoria}
+                        isOptionEqualToValue={(option, value) => option.id === value.id}
+                        onChange={handleCategoriaChange}
+                        renderInput={(params) => (
+                          <TextField
+                            {...params}
+                            label="Selecciona una categoría"
+                            error={!!errors.categoria}
+                            helperText={errors.categoria}
+                            sx={{ backgroundColor: "#F8F3F3" }}
+                          />
+                        )}
                       />
                     </FormControl>
                   </Grid>
+                  <Grid item xs={12} md={6} lg={6}>
+                    <FormControl fullWidth>
+                      <Autocomplete
+                        options={[{ title: 'Sí', value: true }, { title: 'No', value: false }]}
+                        getOptionLabel={(option) => option.title}
+                        value={{ title: productData.preparado ? 'Sí' : 'No', value: productData.preparado }}
+                        isOptionEqualToValue={(option, value) => option.value === value.value}
+                        onChange={(event, newValue) => {
+                          setProductData({
+                            ...productData,
+                            preparado: newValue ? newValue.value : false,
+                          });
+                        }}
+                        renderInput={(params) => (
+                          <TextField
+                            {...params}
+                            name="preparado"
+                            label="Preparacion"
+                            error={!!errors.preparado}
+                            helperText={errors.preparado}
+                            sx={{ backgroundColor: "#F8F3F3" }}
+                            InputLabelProps={{
+                              shrink: true,
+                            }}
+                          />
+                        )}
+                      />
+                    </FormControl>
+                  </Grid>
+                  
                 </Grid>
               </Grid>
               <Grid
@@ -579,45 +550,29 @@ export default function EmpleadoCEComponent() {
                   spacing={3}
                   justifyContent="center"
                   alignItems="center"
-                  mt={10}
+                  sx={{
+                    ...(file == null && {
+                      marginTop: { xs: 0, md: 15 },
+                    }),
+                  }}
                 >
-                  <Grid item xs={12} md={6} lg={6}>
+                  <Grid item xs={12} md={12} lg={12}>
                     <FormControl fullWidth>
                       <TextField
                         type="text"
-                        name="curp"
-                        label="CURP"
-                        value={personData.curp}
+                        name="descripcion"
+                        label="Descripción"
+                        value={productData.descripcion}
                         onChange={handleInputChange}
-                        error={!!errors.curp}
-                        helperText={errors.curp}
+                        error={!!errors.descripcion}
+                        helperText={errors.descripcion}
                         sx={{ backgroundColor: "#F8F3F3" }}
+                        multiline
+                        rows={5}
                       />
                     </FormControl>
                   </Grid>
-                  <Grid item xs={12} md={6} lg={6}>
-                    <FormControl fullWidth>
-                      <TextField
-                        type="date"
-                        name="fechaNacimiento"
-                        label="Fecha de Nacimiento"
-                        value={
-                          personData.fechaNacimiento
-                            ? new Date(personData.fechaNacimiento)
-                                .toISOString()
-                                .split("T")[0]
-                            : ""
-                        }
-                        onChange={handleInputChange}
-                        error={!!errors.fechaNacimiento}
-                        helperText={errors.fechaNacimiento}
-                        sx={{ backgroundColor: "#F8F3F3" }}
-                        InputLabelProps={{
-                          shrink: true,
-                        }}
-                      />
-                    </FormControl>
-                  </Grid>
+
                 </Grid>
               </Grid>
             </Grid>

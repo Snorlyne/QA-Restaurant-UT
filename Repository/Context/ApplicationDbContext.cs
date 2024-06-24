@@ -45,7 +45,7 @@ namespace Repository.Context
 
             modelBuilder.Entity<Inventario>()
                 .HasOne(i => i.Categorias)
-                .WithMany()
+                .WithMany(i => i.Inventarios)
                 .HasForeignKey(i => i.FK_Categoria)
                 .OnDelete(DeleteBehavior.SetNull);
         }

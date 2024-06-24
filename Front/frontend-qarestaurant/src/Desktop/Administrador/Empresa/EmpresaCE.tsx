@@ -15,6 +15,7 @@ import Loader from "../../../components/loader";
 import { useParams } from "react-router-dom";
 import { Cancel } from "@mui/icons-material";
 import authService from "../../../AuthService/authService";
+import apiClient from "../../../AuthService/authInterceptor";
 
 interface CompanyData {
   nombre: string;
@@ -48,21 +49,9 @@ export default function EmpresaCreateEditComponent() {
         nombre: nombre,
       };
       if (!id) {
-        response = await axios.post("https://localhost:7047/APICompany", data, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        response = await apiClient.post("/APICompany", data);
       } else {
-        response = await axios.put(
-          `https://localhost:7047/APICompany/Id?Id=${id}`,
-          data,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+        response = await apiClient.put(`/APICompany/Id?Id=${id}`, data);
       }
       if (response.status !== 200) {
         throw new Error("Network response was not ok");
@@ -78,8 +67,8 @@ export default function EmpresaCreateEditComponent() {
           cancelButtonColor: "#d33",
           confirmButtonText: "Ok",
           customClass: {
-            container: 'custom-swal-container',
-          }
+            container: "custom-swal-container",
+          },
         }).then(() => {
           window.history.back();
         });
@@ -92,8 +81,8 @@ export default function EmpresaCreateEditComponent() {
           cancelButtonColor: "#d33",
           confirmButtonText: "Ok",
           customClass: {
-            container: 'custom-swal-container',
-          }
+            container: "custom-swal-container",
+          },
         });
       }
     } catch (error: any) {
@@ -105,8 +94,8 @@ export default function EmpresaCreateEditComponent() {
         cancelButtonColor: "#d33",
         confirmButtonText: "Ok",
         customClass: {
-          container: 'custom-swal-container',
-        }
+          container: "custom-swal-container",
+        },
       });
     } finally {
       setLoading(false);
@@ -116,14 +105,7 @@ export default function EmpresaCreateEditComponent() {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const response = await axios.get(
-          `https://localhost:7047/APICompany/Id?Id=${id}`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+        const response = await apiClient.get(`/APICompany/Id?Id=${id}`);
         const data = response.data;
         setNombre(data.result.nombre);
       } catch (error) {
@@ -166,7 +148,7 @@ export default function EmpresaCreateEditComponent() {
               endIcon={<Cancel />}
               sx={{
                 marginLeft: 0,
-                marginRight: 3
+                marginRight: 3,
               }}
             >
               Cancelar

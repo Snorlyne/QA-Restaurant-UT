@@ -20,7 +20,6 @@ namespace Domain.Entidades
 
 
         [ForeignKey("Categorias")]
-
         public int? FK_Categoria { get; set; }
         public Categorias Categorias { get; set; }
         public ICollection<Order> Orders { get; set; }

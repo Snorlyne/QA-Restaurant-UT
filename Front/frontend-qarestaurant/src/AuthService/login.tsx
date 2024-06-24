@@ -39,7 +39,7 @@ const Login: React.FC = () => {
           navigate("/dashboard");
           break;
         case "Cashier":
-          navigate("/dashboard");
+          navigate("/cajeros");
           break;
         default:
           setError("Error: Correo o contraseña incorrecta");
