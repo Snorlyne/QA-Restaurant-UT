@@ -13,7 +13,7 @@ namespace Domain.Entidades
         [Key]
         public int Id { get; set; }
         public int Mesa { get; set; }
-        public DateTime UltimoPedido { get; set; }
+        public DateTime Fecha { get; set; }
         public string Adicional { get; set; }
         [ForeignKey("Person")]
         public int? FK_person_id { get; set; }

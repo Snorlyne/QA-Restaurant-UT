@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace Repository.Migrations
 {
-    public partial class updateOrder : Migration
+    public partial class NuevasEntidades : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -16,8 +16,9 @@ namespace Repository.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Propietario = table.Column<int>(type: "int", nullable: false),
-                    Cobrador = table.Column<int>(type: "int", nullable: false),
+                    Cobrador = table.Column<int>(type: "int", nullable: true),
                     Total = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    Fecha = table.Column<DateTime>(type: "datetime2", nullable: false),
                     Restaurante = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
@@ -194,7 +195,7 @@ namespace Repository.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Mesa = table.Column<int>(type: "int", nullable: false),
-                    UltimoPedido = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Fecha = table.Column<DateTime>(type: "datetime2", nullable: false),
                     Adicional = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     FK_person_id = table.Column<int>(type: "int", nullable: true),
                     FK_status_id = table.Column<int>(type: "int", nullable: false),
