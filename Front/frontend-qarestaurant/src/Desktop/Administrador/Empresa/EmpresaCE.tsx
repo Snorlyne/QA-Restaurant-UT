@@ -27,7 +27,6 @@ export default function EmpresaCreateEditComponent() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [disabledBtn, setdisabledBtn] = useState(true);
-  const token = authService.getToken();
 
   const handleInputNombre = (event: ChangeEvent<HTMLInputElement>) => {
     const inputValue = event.target.value;
@@ -120,7 +119,7 @@ export default function EmpresaCreateEditComponent() {
       fetchData();
       setTitle("Editar empresa");
     }
-  }, [id, token]);
+  }, [id]);
   return (
     <>
       {loading && <Loader />}

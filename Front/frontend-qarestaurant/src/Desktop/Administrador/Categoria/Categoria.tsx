@@ -1,6 +1,5 @@
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
 import Box from "@mui/material/Box";
-import axios from "axios";
 import { useCallback, useEffect, useState } from "react";
 import {
   Button,
@@ -15,20 +14,19 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
-// import IResponse from "../../../interfaces/IResponse.";
 import Loader from "../../../components/loader";
-import authService from "../../../AuthService/authService";
-import apiClient from '../../../AuthService/authInterceptor';
+import apiClient from "../../../AuthService/authInterceptor";
 import IResponse from "../../../interfaces/IResponse.";
+import ICategoria from "../../../interfaces/ICategoria";
+import CategoriaService from "../../../services/CategoriasServices";
 
-interface CategoriaData {
-  id: number;
-  nombreCategoria: string;
-}
+interface CategoriaData extends ICategoria {}
 
 const filterRows = (rows: CategoriaData[], term: string) => {
   const searchTerm = term.toLowerCase();
-  return rows.filter((row) => row.nombreCategoria.toLowerCase().includes(searchTerm));
+  return rows.filter((row) =>
+    row.nombreCategoria.toLowerCase().includes(searchTerm)
+  );
 };
 
 export default function EmpresaComponent() {
@@ -36,9 +34,6 @@ export default function EmpresaComponent() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredRows, setFilteredRows] = useState<CategoriaData[]>([]);
   const [loading, setLoading] = useState(false);
-  const token = authService.getToken();
-  const [Categorias, setCategoria] = useState<CategoriaData[]>([]);
-
 
   const navigate = useNavigate();
 
@@ -85,13 +80,11 @@ export default function EmpresaComponent() {
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await apiClient.get('/APICategoria');
-      const data = response.data;
-      console.log('API Response:', data);
-      setRows(data.result);
-      setCategoria(data.result);
+      const data = await CategoriaService.getCategorias();
+      console.log("API Response:", data);
+      setRows(data);
     } catch (error) {
-      console.error('Error fetching data:', error);
+      console.error("Error fetching data:", error);
     }
     setLoading(false);
   }, []);
@@ -99,7 +92,6 @@ export default function EmpresaComponent() {
   //Eliminar categoria
 
   const fetchDelete = async (id: number) => {
-    let response: any;
     try {
       await Swal.fire({
         title: "¿Está seguro de eliminar esta categoria?",
@@ -115,15 +107,10 @@ export default function EmpresaComponent() {
       }).then(async (result) => {
         if (result.isConfirmed) {
           setLoading(true);
-          response = await apiClient.delete(`/APICategoria/Id?Id=${id}`);
-          if (response.status !== 200) {
-            throw new Error("Network response was not ok");
-          }
-          const dataResponse: IResponse = response.data;
-
-          if (dataResponse.isSuccess) {
+          const response: IResponse = await CategoriaService.delete(id);
+          if (response.isSuccess) {
             Swal.fire({
-              title: dataResponse.message,
+              title: response.message,
               icon: "success",
               showCancelButton: false,
               confirmButtonColor: "#3085d6",
@@ -135,8 +122,9 @@ export default function EmpresaComponent() {
             });
           } else {
             Swal.fire({
-              title: dataResponse.message,
+              title: "Error al Eliminar",
               icon: "error",
+              text: response.message,
               showCancelButton: false,
               confirmButtonColor: "#3085d6",
               cancelButtonColor: "#d33",
@@ -150,12 +138,22 @@ export default function EmpresaComponent() {
         fetchData();
       });
     } catch (error: any) {
-      console.error("Error:", error);
+      Swal.fire({
+        title: "Error al Eliminar",
+        icon: "error",
+        showCancelButton: false,
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "Ok",
+        customClass: {
+          container: "custom-swal-container",
+        },
+      });
     } finally {
       setLoading(false);
     }
   };
-  
+
   useEffect(() => {
     fetchData();
   }, [fetchData]);
@@ -193,7 +191,7 @@ export default function EmpresaComponent() {
             </Button>
           </Grid>
         </Grid>
-        
+
         <Grid
           item
           xs={12}

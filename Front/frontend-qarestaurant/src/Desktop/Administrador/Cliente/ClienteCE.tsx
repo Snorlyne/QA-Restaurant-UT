@@ -17,20 +17,14 @@ import { useDropzone } from "react-dropzone";
 import { Cancel } from "@mui/icons-material";
 import authService from "../../../AuthService/authService";
 import apiClient from "../../../AuthService/authInterceptor";
+import IClienteDto from "../../../interfaces/Cliente/IClienteDto";
+import ClienteServices from "../../../services/ClientesServices";
+
 interface Company {
   id: number;
   nombre: string;
 }
-interface PersonData {
-  nombre: string;
-  apellido_Paterno: string;
-  apellido_Materno: string;
-  curp: string;
-  fechaNacimiento: Date | string;
-  foto: string | null;
-  fk_company_id: number | null;
-}
-const initialPersonData: PersonData = {
+const initialPersonData: IClienteDto = {
   nombre: "",
   apellido_Paterno: "",
   apellido_Materno: "",
@@ -51,10 +45,27 @@ const initialErrors = {
 
 const MAX_FILE_SIZE_MB = 2; // Tamaño máximo de archivo en MB
 
+// Función para convertir dataURL a File
+const dataURLToFile = (dataurl: string, filename: string): File => {
+  const [header, data] = dataurl.split(",");
+  const mimeMatch = header.match(/:(.*?);/);
+  if (!mimeMatch) throw new Error("Invalid data URL format");
+  const mime = mimeMatch[1];
+  const bstr = atob(data);
+  const u8arr = new Uint8Array(bstr.length);
+
+  for (let i = 0; i < bstr.length; i++) {
+    u8arr[i] = bstr.charCodeAt(i);
+  }
+
+  return new File([u8arr], filename, { type: mime });
+};
+
+
 export default function ClienteCEComponent() {
   const { id } = useParams();
   const [title, setTitle] = useState<string>("Registrar cliente");
-  const [personData, setPersonData] = useState<PersonData>(initialPersonData);
+  const [clienteData, setClienteData] = useState<IClienteDto>(initialPersonData);
   const [file, setFile] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState(initialErrors);
@@ -65,8 +76,8 @@ export default function ClienteCEComponent() {
   // Manejador genérico para cambios en los inputs
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
-    setPersonData({
-      ...personData,
+    setClienteData({
+      ...clienteData,
       [name]: value,
     });
 
@@ -80,7 +91,7 @@ export default function ClienteCEComponent() {
   };
   // Manejo del cambio de selección de empresa
   const handleCompanyChange = (event: any, value: Company | null) => {
-    setPersonData((prevData) => ({
+    setClienteData((prevData) => ({
       ...prevData,
       fk_company_id: value ? value.id : 0,
     }));
@@ -112,11 +123,11 @@ export default function ClienteCEComponent() {
     const hasEmptyFields = fields
       .filter((field) => field !== "foto")
       .some((field) => {
-        return !personData[field as keyof PersonData];
+        return !clienteData[field as keyof IClienteDto];
       });
 
     return hasErrors || hasEmptyFields;
-  }, [errors, personData]);
+  }, [errors, clienteData]);
 
   const validateField = (
     name: string,
@@ -192,18 +203,17 @@ export default function ClienteCEComponent() {
   const setDatos = async () => {
     try {
       setLoading(true);
-      let response: any;
-      const data = personData;
+      let response: IResponse;
+      const data = clienteData;
       if (!id) {
-        response = await apiClient.post("/APICliente", data);
+        response = await ClienteServices.post(data);
       } else {
-        response = await apiClient.put(`/APICliente/Id?Id=${id}`, data);
+        response = await ClienteServices.put(id, data);
       }
-      const dataResponse: IResponse = response.data;
 
-      if (dataResponse.isSuccess) {
+      if (response.isSuccess) {
         Swal.fire({
-          title: dataResponse.message,
+          title: response.message,
           icon: "success",
           showCancelButton: false,
           confirmButtonColor: "#3085d6",
@@ -217,7 +227,7 @@ export default function ClienteCEComponent() {
         });
       } else {
         Swal.fire({
-          title: dataResponse.message,
+          title: response.message,
           icon: "error",
           showCancelButton: false,
           confirmButtonColor: "#3085d6",
@@ -229,7 +239,17 @@ export default function ClienteCEComponent() {
         });
       }
     } catch (error: any) {
-      console.error("Error", error);
+      Swal.fire({
+        title: "Se ha producido un error",
+        icon: "error",
+        showCancelButton: false,
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "Ok",
+        customClass: {
+          container: "custom-swal-container",
+        },
+      });
     } finally {
       setLoading(false);
     }
@@ -237,9 +257,9 @@ export default function ClienteCEComponent() {
 
   const handleRemove = () => {
     setFile(null);
-    if (personData.foto != null) {
-      setPersonData({
-        ...personData,
+    if (clienteData.foto != null) {
+      setClienteData({
+        ...clienteData,
         foto: null,
       });
     }
@@ -262,51 +282,41 @@ export default function ClienteCEComponent() {
 
   useEffect(() => {
     const fetchData = async () => {
+      if (!id) {
+        fetchCompanies(null);
+        setDisabledBtn(false);
+        return;
+      }
       try {
+        setTitle("Editar cliente");
         setLoading(true);
-        const response = await apiClient.get(`/APICliente/Id?Id=${id}`);
-        const data = response.data.result;
-        setPersonData({
-          nombre: data.nombre,
-          apellido_Paterno: data.apellido_Paterno,
-          apellido_Materno: data.apellido_Materno,
-          curp: data.curp,
-          fechaNacimiento: data.fechaNacimiento,
-          foto: data.foto,
-          fk_company_id: data.company.id,
+        const response = await ClienteServices.getCliente(id);
+        setClienteData({
+          nombre: response.nombre,
+          apellido_Paterno: response.apellido_Paterno,
+          apellido_Materno: response.apellido_Materno,
+          curp: response.curp,
+          fechaNacimiento: response.fechaNacimiento,
+          foto: response.foto,
+          fk_company_id: response.company.id,
         });
-        fetchCompanies(data.company.id);
-        setFile(data.foto ? dataURLToFile(data.foto, "foto.png") : null);
+        fetchCompanies(response.company.id);
+        setFile(
+          response.foto ? dataURLToFile(response.foto, "foto.png") : null
+        );
       } catch (error) {
         console.error("Error fetching cliente data:", error);
       } finally {
         setLoading(false);
       }
     };
-    const dataURLToFile = (dataurl: any, filename: any) => {
-      const arr = dataurl.split(",");
-      const mime = arr[0].match(/:(.*?);/)[1];
-      const bstr = atob(arr[1]);
-      let n = bstr.length;
-      const u8arr = new Uint8Array(n);
-      while (n--) {
-        u8arr[n] = bstr.charCodeAt(n);
-      }
-      return new File([u8arr], filename, { type: mime });
-    };
-    if (id) {
-      setDisabledBtn(false);
-      fetchData();
-      setTitle("Editar cliente");
-    } else {
-      fetchCompanies(null);
-    }
+    fetchData();
   }, [fetchCompanies, id, token]);
 
   useEffect(() => {
     // Verificar errores y campos vacíos iniciales y actualizar el estado del botón
     setDisabledBtn(hasErrorsOrEmptyFields());
-  }, [personData, errors, hasErrorsOrEmptyFields]);
+  }, [clienteData, errors, hasErrorsOrEmptyFields]);
 
   const { getRootProps, getInputProps } = useDropzone({
     accept: {
@@ -351,7 +361,7 @@ export default function ClienteCEComponent() {
 
       const reader = new FileReader();
       reader.onload = () => {
-        setPersonData({ ...personData, foto: reader.result!.toString() });
+        setClienteData({ ...clienteData, foto: reader.result!.toString() });
       };
       reader.readAsDataURL(file);
     },
@@ -505,7 +515,7 @@ export default function ClienteCEComponent() {
                         type="text"
                         name="nombre"
                         label="Nombre"
-                        value={personData.nombre}
+                        value={clienteData.nombre}
                         onChange={handleInputChange}
                         error={!!errors.nombre}
                         helperText={errors.nombre}
@@ -519,7 +529,7 @@ export default function ClienteCEComponent() {
                         type="text"
                         name="apellido_Paterno"
                         label="Apellido Paterno"
-                        value={personData.apellido_Paterno}
+                        value={clienteData.apellido_Paterno}
                         onChange={handleInputChange}
                         error={!!errors.apellido_Paterno}
                         helperText={errors.apellido_Paterno}
@@ -533,7 +543,7 @@ export default function ClienteCEComponent() {
                         type="text"
                         name="apellido_Materno"
                         label="Apellido Materno"
-                        value={personData.apellido_Materno}
+                        value={clienteData.apellido_Materno}
                         onChange={handleInputChange}
                         error={!!errors.apellido_Materno}
                         helperText={errors.apellido_Materno}
@@ -565,7 +575,7 @@ export default function ClienteCEComponent() {
                         type="text"
                         name="curp"
                         label="CURP"
-                        value={personData.curp}
+                        value={clienteData.curp}
                         onChange={handleInputChange}
                         error={!!errors.curp}
                         helperText={errors.curp}
@@ -580,8 +590,8 @@ export default function ClienteCEComponent() {
                         name="fechaNacimiento"
                         label="Fecha de Nacimiento"
                         value={
-                          personData.fechaNacimiento
-                            ? new Date(personData.fechaNacimiento)
+                          clienteData.fechaNacimiento
+                            ? new Date(clienteData.fechaNacimiento)
                                 .toISOString()
                                 .split("T")[0]
                             : ""

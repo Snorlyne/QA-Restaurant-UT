@@ -13,6 +13,7 @@ namespace Domain.ViewModels
         {
             public int Id {  get; set; }
             public string MeseroCargo {get;set;}
+            public string Cobrador { get;set;}
             public decimal Total { get;set;}
             public int Mesa { get;set;}
             public string Estado { get; set; }

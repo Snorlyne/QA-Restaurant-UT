@@ -46,6 +46,7 @@ namespace Services.Servicio
                 {
                     Email = request.Email,
                     Rol = au.Role.Nombre,
+                    Empresa = person != null ? person.FK_Company_Id : null,
                     Nombre = person != null ? $"{person.Nombre} {person.Apellido_Paterno}": "RALL",
                     JWTtoken = accessToken
                 };
@@ -60,6 +61,7 @@ namespace Services.Servicio
         public Task<string> GenerarToken(User user, Person? person)
         {
             string? company = person != null ? person.Company.Id.ToString() : "root";
+            string? personId = person != null ? person.Id.ToString() : "root";
             var key = _configuration.GetSection("settings").GetSection("secretKey").ToString();
             var keyBytes = Encoding.ASCII.GetBytes(key);
 
@@ -67,7 +69,7 @@ namespace Services.Servicio
             claims.AddClaim(new Claim(ClaimTypes.Email, user.Email));
             claims.AddClaim(new Claim(ClaimTypes.Role, user.Role.Nombre));
             claims.AddClaim(new Claim("companyId", company));
-            claims.AddClaim(new Claim("userId", user.Id.ToString()));
+            claims.AddClaim(new Claim("personId", personId));
 
             var credencialesToken = new SigningCredentials(
                 new SymmetricSecurityKey(keyBytes),

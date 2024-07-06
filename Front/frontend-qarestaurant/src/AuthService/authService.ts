@@ -39,10 +39,12 @@ const authService = {
                 const token = response.data.result.jwTtoken;
                 const usuario = response.data.result.nombre;
                 const rol = response.data.result.rol;
+                const empresa = response.data.result.empresa;
 
                 setCookie('token', token, 1); // Expira en 1 día
                 setCookie('usuario', usuario, 1);
                 setCookie('role', rol, 1);
+                setCookie('empresa', empresa, 1);
                 resolve(rol);
             })
             .catch(function (error) {
@@ -56,6 +58,7 @@ const authService = {
         deleteCookie('token');
         deleteCookie('usuario');
         deleteCookie('role');
+        deleteCookie('empresa');
 
         // Redirigir al usuario a la página de inicio de sesión o la página de inicio
         window.location.href = '/'; // Ajusta la ruta según tu aplicación
@@ -68,6 +71,13 @@ const authService = {
     },
     getRole: (): string | null => {
         return getCookie('role');
+    },
+    getCompany: (): number | null => {
+        const empresaCookie = getCookie('empresa');
+        if (empresaCookie !== null) {
+            return parseInt(empresaCookie);
+        }
+        return null;
     }
 };
 

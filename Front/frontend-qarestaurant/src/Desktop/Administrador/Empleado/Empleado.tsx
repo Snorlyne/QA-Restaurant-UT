@@ -21,21 +21,11 @@ import Swal from "sweetalert2";
 import Loader from "../../../components/loader";
 import apiClient from "../../../AuthService/authInterceptor";
 import GeneralModal from "../../../components/GeneralModal";
-
-interface PersonData {
-  id: number;
-  nombre: string;
-  apellido_Paterno: string;
-  apellido_Materno: string;
-  curp: string;
-  fechaNacimiento: Date | string;
-  foto: string | null;
-  email: string;
-  puesto: string;
-}
+import IEmpleado from "../../../interfaces/Empleado/IEmpleado";
+import EmpleadoServices from "../../../services/EmpleadoServices";
 
 // Función para filtrar filas
-const filterRows = (rows: PersonData[], term: string) => {
+const filterRows = (rows: IEmpleado[], term: string) => {
   const searchTerm = term.toLowerCase();
   return rows.filter((row) =>
     [
@@ -66,13 +56,13 @@ const dataURLToFile = (dataurl: string, filename: string): File => {
 };
 
 export default function EmpleadoComponent() {
-  const [rows, setRows] = useState<PersonData[]>([]);
+  const [rows, setRows] = useState<IEmpleado[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [filteredRows, setFilteredRows] = useState<PersonData[]>([]);
+  const [filteredRows, setFilteredRows] = useState<IEmpleado[]>([]);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const [openModal, setOpenModal] = useState(false);
-  const [modalData, setModalData] = useState<PersonData | null>(null);
+  const [modalData, setModalData] = useState<IEmpleado | null>(null);
 
   // Manejar el cambio del término de búsqueda
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -178,8 +168,7 @@ export default function EmpleadoComponent() {
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await apiClient.get("/APIColaborador/lista");
-      const data = response.data.result;
+      const data = await EmpleadoServices.getEmpleados();
       setRows(data);
       setFilteredRows(data);
     } catch (error) {
@@ -203,17 +192,27 @@ export default function EmpleadoComponent() {
 
       if (result.isConfirmed) {
         setLoading(true);
-        await apiClient.delete(`/APIColaborador/Id?Id=${id}`);
+        await EmpleadoServices.delete(id);
         fetchData();
       }
     } catch (error: any) {
-      Swal.fire("Error!", error.message, "error");
+      Swal.fire({
+        title: "Error al Eliminar",
+        icon: "error",
+        showCancelButton: false,
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "Ok",
+        customClass: {
+          container: "custom-swal-container",
+        },
+      });
     } finally {
       setLoading(false);
     }
   };
-  const fetchById = (id: number): PersonData | undefined => {
-    return rows.find((row: PersonData) => row.id === id);
+  const fetchById = (id: number): IEmpleado | undefined => {
+    return rows.find((row: IEmpleado) => row.id === id);
   };
 
   const handleOpenModal = async (id: number) => {
@@ -377,15 +376,11 @@ export default function EmpleadoComponent() {
                     <Typography variant="h6">
                       <strong>Correo:</strong>
                     </Typography>
-                    <Typography variant="body1">
-                      {modalData.email}
-                    </Typography>
+                    <Typography variant="body1">{modalData.email}</Typography>
                     <Typography variant="h6">
                       <strong>Puesto:</strong>
                     </Typography>
-                    <Typography variant="body1">
-                      {modalData.puesto}
-                    </Typography>
+                    <Typography variant="body1">{modalData.puesto}</Typography>
                   </Grid>
                   <Grid
                     item

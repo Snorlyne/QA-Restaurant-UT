@@ -9,21 +9,24 @@ import {
   Typography,
   FormControlLabel,
   Checkbox,
+  CircularProgress,
 } from "@mui/material";
 import styled from "styled-components";
 import Logo from "../img/Logo.png";
 import agua from "../img/agua.jpg";
+import LoadingButton from "@mui/lab/LoadingButton";
 const Login: React.FC = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      debugger;
+      setLoading(true);
       const login = await authService.login(email, password);
       switch (login) {
         case "Root":
@@ -47,6 +50,8 @@ const Login: React.FC = () => {
       }
     } catch (err) {
       setError("Error: Correo o contraseña incorrecta");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -96,14 +101,23 @@ const Login: React.FC = () => {
                   />
                 </Grid>
                 <Grid item xs={12}>
-                  <Button
+                  <LoadingButton
                     fullWidth
                     variant="contained"
                     type="submit"
                     style={{ backgroundColor: "#486F99", borderRadius: "10px" }}
+                    loading={loading}
+                    loadingIndicator={
+                      <CircularProgress
+                        size={18}
+                        sx={{
+                          color: "white",
+                        }}
+                      />
+                    }
                   >
                     Iniciar sesión
-                  </Button>
+                  </LoadingButton>
                 </Grid>
               </Grid>
             </form>

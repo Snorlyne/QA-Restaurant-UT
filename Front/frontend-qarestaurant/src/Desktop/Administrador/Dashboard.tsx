@@ -335,7 +335,7 @@ const Dashboard: React.FC = () => {
                   }),
                 }}
               >
-                <Avatar sx={{ bgcolor: deepOrange[500] }}>U</Avatar>
+                <Avatar sx={{ bgcolor: deepOrange[500] }}>{userNombre?.charAt(0)}</Avatar>
               </Grid>
               <Grid
                 item
@@ -413,7 +413,7 @@ const Dashboard: React.FC = () => {
                     </InputAdornment>
                   ),
                 }}
-                placeholder="Search"
+                placeholder="Buscar"
               />
             )}
           />

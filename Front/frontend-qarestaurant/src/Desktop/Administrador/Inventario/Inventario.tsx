@@ -117,6 +117,9 @@ export default function Inventario() {
         cancelButtonColor: "#d33",
         confirmButtonText: "Si",
         cancelButtonText: "No",
+        customClass: {
+          container: "custom-swal-container",
+        },
       }).then(async (result) => {
         if (result.isConfirmed) {
           setLoading(true);
