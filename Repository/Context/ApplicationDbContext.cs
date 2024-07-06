@@ -48,6 +48,16 @@ namespace Repository.Context
                 .WithMany(i => i.Inventarios)
                 .HasForeignKey(i => i.FK_Categoria)
                 .OnDelete(DeleteBehavior.SetNull);
+
+            modelBuilder.Entity<OrdersInCommand>()
+               .HasOne(oic => oic.Order)
+               .WithMany(o => o.OrdersInCommands)
+               .HasForeignKey(oic => oic.FK_order_id);
+
+            modelBuilder.Entity<OrdersInCommand>()
+                .HasOne(oic => oic.Command)
+                .WithMany(c => c.OrdersInCommands)
+                .HasForeignKey(oic => oic.FK_command_id);
         }
 
     }

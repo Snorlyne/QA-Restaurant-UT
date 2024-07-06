@@ -8,6 +8,7 @@ using Repository.Context;
 using Services.IServicio;
 using Services.Servicio;
 using System.Text;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 IConfiguration configuration = builder.Configuration;
@@ -16,6 +17,11 @@ IConfiguration configuration = builder.Configuration;
 builder.Configuration.AddJsonFile("appsettings.json");
 var secretKey = builder.Configuration.GetSection("settings").GetSection("secretKey").ToString();
 var keyBytes = Encoding.UTF8.GetBytes(secretKey);
+
+builder.Services.AddControllers().AddJsonOptions(options =>
+{
+    options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+});
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -98,7 +104,11 @@ builder.Services.AddScoped<IInventarioServicio, InventarioServicio>();
 builder.Services.AddTransient<ICategoriaServicio, CategoriaServicio>();
 
 builder.Services.AddTransient<IColaboradorServicio, ColaboradorServicio>();
-builder.Services.AddTransient<ICajeroServicio, CajeroServicio>();
+//builder.Services.AddTransient<ICajeroServicio, CajeroServicio>();
+builder.Services.AddTransient<IStatusServicio, StatusServicio>();
+builder.Services.AddTransient<IOrderServicio, OrderServicio>();
+builder.Services.AddTransient<ICommandServicio, CommandServicio>();
+builder.Services.AddTransient<IOrderInCommandServicio, OrderInCommandServicio>();
 
 //Configuraci?n para permitir el host del front para hace uso del Web API //Configurar cuando se pase a produccion.
 builder.Services.AddCors(options =>
