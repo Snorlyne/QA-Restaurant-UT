@@ -4,7 +4,7 @@ import authService from './authService';
 
 // Crear una instancia de Axios
 const apiClient = axios.create({
-    baseURL: 'https://localhost:44314', // Base URL para todas las solicitudes
+    baseURL: process.env.REACT_APP_API_URL, // Base URL para todas las solicitudes
     headers: {
         'Content-Type': 'application/json',
     },

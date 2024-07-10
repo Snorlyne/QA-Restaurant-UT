@@ -1,4 +1,5 @@
 import axios from 'axios';
+import apiClient from './authInterceptor';
 
 
 // Función para establecer una cookie segura
@@ -30,7 +31,7 @@ const authService = {
 
     login: (email: string, password: string): Promise<string> => {
         return new Promise((resolve, reject) => {
-            axios.post('https://localhost:44314/APIAuth/Login', {
+            apiClient.post('APIAuth/Login', {
                 email: email,
                 password: password
             })

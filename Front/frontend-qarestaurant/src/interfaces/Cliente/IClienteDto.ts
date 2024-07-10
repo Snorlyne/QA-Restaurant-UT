@@ -5,5 +5,5 @@ export default interface IClienteDto {
     curp: string;
     fechaNacimiento: Date | string;
     foto: string | null;
-    fk_company_id: number | null;
+    fK_Company_Id: number | null;
 }

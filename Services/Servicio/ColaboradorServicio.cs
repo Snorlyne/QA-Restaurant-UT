@@ -53,7 +53,7 @@ namespace Services.Servicio
                 return new Response<List<ColaboradorView>>(ex.Message);
             }
         }
-        public async Task<Response<ColaboradorViewById>> ObtenerColaborador(int Id, int IdEmpresa)
+        public async Task<Response<ColaboradorCreate>> ObtenerColaborador(int Id, int IdEmpresa)
         {
             try
             {
@@ -69,7 +69,7 @@ namespace Services.Servicio
                 string? base64String = person.Foto != null
                     ? Convert.ToBase64String(person.Foto)
                     : null;
-                ColaboradorViewById view = new()
+                ColaboradorCreate view = new()
                 {
                     Nombre = person.Nombre,
                     Apellido_Materno = person.Apellido_Materno,
@@ -77,20 +77,15 @@ namespace Services.Servicio
                     CURP = person.CURP,
                     FechaNacimiento = person.FechaNacimiento,
                     Foto = person.Foto != null ? "data:image/png;base64," + base64String : null,
-                    Role = new()
-                    {
-                       Nombre = TranslateRoleToSpanish(person.User.Role.Nombre),
-                       Id = person.User.Role.Id,
-                    },
-                    Email = person.User.Email,
+                    Role = person.User.FK_Rol_Id,
                 };
 
-                return new Response<ColaboradorViewById>(view);
+                return new Response<ColaboradorCreate>(view);
 
             }
             catch (Exception ex)
             {
-                return new Response<ColaboradorViewById>(ex.Message);
+                return new Response<ColaboradorCreate>(ex.Message);
             }
         }
         public async Task<Response<ColaboradorCreate>> CrearColaborador(ColaboradorCreate request, int IdEmpresa)
@@ -152,6 +147,7 @@ namespace Services.Servicio
         }
         public async Task<Response<ColaboradorCreate>> EditarColaborador(ColaboradorCreate request, int Id, int IdEmpresa)
         {
+            using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
                 if (request.Role == 1 || request.Role == 2)
@@ -163,6 +159,11 @@ namespace Services.Servicio
                 if (empleado == null)
                 {
                     throw new Exception("Colaborador no encontrado");
+                }
+                User user = await _context.User.FirstOrDefaultAsync(x => x.Id == empleado.FK_User_Id);
+                if (user == null)
+                {
+                    throw new Exception("Usuario no encontrado");
                 }
                 string? cleanBase64 = !string.IsNullOrEmpty(request.Foto) && request.Foto.Split(',').Length > 1
                     ? request.Foto.Split(',')[1]
@@ -180,11 +181,23 @@ namespace Services.Servicio
                 _context.Update(empleado);
                 await _context.SaveChangesAsync();
 
+                if (user.FK_Rol_Id != request.Role) 
+                { 
+                   user.FK_Rol_Id = request.Role;
+                   _context.User.Update(user);
+                   await _context.SaveChangesAsync();
+                }
+
+
+                // Commit la transacción si todo es exitoso
+                await transaction.CommitAsync();
                 return new Response<ColaboradorCreate>(request, "Colaborador editado con éxito.");
 
             }
             catch (Exception ex)
             {
+                // Rollback la transacción si ocurre un error
+                await transaction.RollbackAsync();
                 return new Response<ColaboradorCreate>(ex.Message);
             }
         }

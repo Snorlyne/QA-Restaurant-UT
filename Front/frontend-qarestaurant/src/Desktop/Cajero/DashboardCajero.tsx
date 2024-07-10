@@ -26,55 +26,45 @@ import {
 import MenuIcon from "@mui/icons-material/Menu";
 import DeleteIcon from "@mui/icons-material/Delete";
 import ExitToAppIcon from "@mui/icons-material/ExitToApp";
-import { useState, useEffect, useCallback, useMemo } from "react";
-import apiClient from "../../AuthService/authInterceptor";
-import mesaIMG from "../../img/vinos.jpg";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import mesaIMG from "../../assets/img/vinos.jpg";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import Swal from "sweetalert2";
 import authService from "../../AuthService/authService";
 import LazyLoad from "react-lazyload";
 import deepOrange from "@mui/material/colors/deepOrange";
-import { HttpTransportType, HubConnectionBuilder } from "@microsoft/signalr";
+import { dataURLToFile } from "../../assets/utils/DataURLToFile";
+import cajeroServices from "../../services/CajeroServices";
+import commandHub from "../../services/CommandHubService";
+import IComanda from "../../interfaces/Cajero/IComanda";
+import { useSnackbar } from "notistack";
+import ReactAudioPlayer from "react-audio-player";
 
-interface Comandas {
-  id: number;
-  meseroCargo: string;
-  cobrador: string;
-  total: number;
-  mesa: number;
-  estado: string;
-  imagen: string;
-  ordenes: Ordenes[];
-}
-interface Ordenes {
-  id: number;
-  estado: string;
-  producto: Producto;
-}
-interface Producto {
-  nombre: string;
-  precio: number;
-}
-const dataURLToFile = (dataurl: any, filename: any) => {
-  const arr = dataurl.split(",");
-  const mime = arr[0].match(/:(.*?);/)[1];
-  const bstr = atob(arr[1]);
-  let n = bstr.length;
-  const u8arr = new Uint8Array(n);
-  while (n--) {
-    u8arr[n] = bstr.charCodeAt(n);
-  }
-  return new File([u8arr], filename, { type: mime });
+const statusMap: { [key: number]: string } = {
+  1: "Activo",
+  2: "Activo",
+  3: "Activo",
+  4: "Por cobrar",
+  5: "Pagando",
+  6: "Pagado",
 };
+const audioUrl = "/audio/new-notification.mp3"; // Ruta del archivo de audio en la carpeta `public`
 export default function DashboardCajero() {
-  const [comandas, setComandas] = useState<Comandas[] | null>(null);
-  const [selectedMesa, setSelectedMesa] = useState<Comandas | null>(null);
+  const [comandas, setComandas] = useState<IComanda[] | null>(null);
+  const [selectedMesa, setSelectedMesa] = useState<IComanda | null>(null);
   const [tabIndex, setTabIndex] = useState(0);
   const [numeroMesa, setNumeroMesa] = useState("");
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
   const [openCommanda, setOpenCommanda] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+  const [showBadgePorCobrar, setShowBadgePorCobrar] = useState(false);
+  const [showBadgePagado, setShowBadgePagado] = useState(false);
+  const [appearedIds, setAppearedIds] = useState<number[]>([]);  
+  const [notifiedMesas, setNotifiedMesas] = useState<{id:number,estado:string}[]>([]);
+  const { enqueueSnackbar } = useSnackbar();
   const name = authService.getUser();
+  const audioPlayerRef = useRef<ReactAudioPlayer>(null);
 
   const toggleDrawer = (newOpen: boolean) => () => {
     setOpen(newOpen);
@@ -101,44 +91,43 @@ export default function DashboardCajero() {
   const handleChangeTab = (_: React.SyntheticEvent, newValue: number) => {
     setTabIndex(newValue);
   };
+  const getEstadoByTabIndex = (tabIndex: number) => {
+    switch (tabIndex) {
+      case 1:
+        return "Activo";
+      case 2:
+        return "Por cobrar";
+      case 3:
+        return "Pagando";
+      default:
+        return "Pagado";
+    }
+  };
 
   const filteredMesas = useMemo(() => {
-    if (comandas) {
+    if (!comandas) return { comandas: [], exist: false };
+    const estado = getEstadoByTabIndex(tabIndex);
+    const filtered = comandas.filter((mesa) => {
+      const mesaMatches = mesa.mesa.toString().includes(numeroMesa);
+      const estadoMatches = mesa.estado === estado;
       if (tabIndex === 0) {
-        return comandas.filter(
-          (mesa) =>
-            mesa.mesa.toString().includes(numeroMesa) &&
-            mesa.estado !== "Pagado"
-        );
+        return mesaMatches && mesa.estado !== "Pagado";
       }
-      const estado =
-        tabIndex === 1
-          ? "Activo"
-          : tabIndex === 2
-          ? "Por cobrar"
-          : tabIndex === 3
-          ? "Pagando"
-          : "Pagado";
-      return comandas.filter(
-        (mesa) =>
-          mesa.estado === estado && mesa.mesa.toString().includes(numeroMesa)
-      );
-    }
-    return [];
+      return mesaMatches && estadoMatches;
+    });
+    return {
+      comandas: filtered,
+      exist: filtered.length > 0,
+    };
   }, [comandas, tabIndex, numeroMesa]);
 
-  const handleSelectMesa = (comanda: Comandas) => {
+  const handleSelectMesa = (comanda: IComanda) => {
     setTimeout(() => {
       setOpenCommanda(true);
       setSelectedMesa(comanda);
     }, 250);
     setOpenCommanda(false);
   };
-
-  const handleClose = () => {
-    setOpenCommanda(false);
-  };
-
   const handleEliminar = async (id: number) => {
     try {
       Swal.fire({
@@ -154,24 +143,22 @@ export default function DashboardCajero() {
         },
       }).then(async (resul) => {
         if (resul.isConfirmed) {
-          const response = await apiClient.delete(
-            `/APICajero/Comanda/id?id=${id}`
-          );
-          if (!response.data.isSuccess) {
+          const response = await cajeroServices.deleteCommand(id);
+          if (!response.isSuccess) {
             Swal.fire({
               title: "Error al eliminar la comanda",
-              text: response.data.message,
+              text: response.message,
               icon: "error",
               confirmButtonText: "Aceptar",
               customClass: {
                 container: "custom-swal-container",
               },
             });
-            return
+            return;
           }
           Swal.fire({
             title: "Comanda eliminada",
-            text: response.data.message,
+            text: response.message,
             icon: "success",
             confirmButtonText: "Aceptar",
             customClass: {
@@ -214,19 +201,12 @@ export default function DashboardCajero() {
         },
       }).then(async (result) => {
         if (result.isConfirmed) {
-          const response = await apiClient.delete(
-            `/APICajero/Orden/id?id=${id}`
-          );
-          if (!response.data.isSuccess) {
-            throw new Error("No se pudo eliminar la orden");
-          }
-          if (selectedMesa?.ordenes.length === 1) {
-            setOpenCommanda(false);
-            setSelectedMesa(null);
+          const response = await cajeroServices.deleteOrder(id);
+          if (!response.isSuccess) {
             Swal.fire({
-              title: title,
-              text: response.data.message,
-              icon: "success",
+              title: "Error al eliminar",
+              text: response.message,
+              icon: "error",
               confirmButtonText: "Aceptar",
               customClass: {
                 container: "custom-swal-container",
@@ -234,16 +214,9 @@ export default function DashboardCajero() {
             });
             return;
           }
-          const newOrdenes = selectedMesa!.ordenes.filter(
-            (orden: Ordenes) => orden.id !== id
-          );
-          setSelectedMesa({
-            ...selectedMesa!,
-            ordenes: newOrdenes,
-          });
           Swal.fire({
             title: title,
-            text: response.data.message,
+            text: response.message,
             icon: "success",
             confirmButtonText: "Aceptar",
             customClass: {
@@ -266,100 +239,108 @@ export default function DashboardCajero() {
     }
   };
 
-  const handleGenerarTicket = (comanda: Comandas) => {
+  const handleGenerarTicket = (comanda: IComanda) => {
     const newWindow = window.open("", "", "width=800,height=600");
     if (newWindow) {
       newWindow.document.write(`
-<html>
-      <head>
-        <title>Ticket</title>
-        <style>
-          body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f5f5f5;
-          }
-          .ticket-container {
-            width: 300px;
-            padding: 20px;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            background-color: #ffffff;
-            margin: 20px auto;
-            text-align: left;
-          }
-          .ticket-header {
-            font-size: 20px;
-            font-weight: bold;
-            margin-bottom: 10px;
-            text-align: center;
-            color: #333;
-          }
-          .ticket-item {
-            margin-bottom: 10px;
-            color: #555;
-          }
-          .ticket-footer {
-            margin-top: 20px;
-            font-size: 16px;
-            font-weight: bold;
-            text-align: center;
-            color: #333;
-          }
-          .logo {
-            text-align: center;
-            margin-bottom: 20px;
-          }
-          .logo img {
-            max-width: 100px;
-            border-radius: 50%;
-          }
-          .item-title {
-            font-weight: bold;
-          }
-          .item-price {
-            float: right;
-            font-weight: bold;
-          }
-        </style>
-      </head>
-      <body>
-        <div class="ticket-container">
-          <div class="ticket-header">Ticket de Venta</div>
-          <div class="ticket-item"><span class="item-title">ID:</span> ${
-            comanda.id
-          }</div>
-          <div class="ticket-item"><span class="item-title">Mesa:</span> ${
-            comanda.mesa
-          }</div>
-          <div class="ticket-item"><span class="item-title">Mesero:</span> ${
-            comanda.meseroCargo
-          }</div>
-          <div class="ticket-item"><span class="item-title">Cobrador:</span> ${
-            comanda.cobrador
-          }</div>
-          <div class="ticket-item"><strong>Ordenes:</strong></div>
-          ${comanda.ordenes
-            .map(
-              (orden) => `
-            <div class="ticket-item">
-              <span class="item-title">${
-                orden.producto.nombre
-              }</span><span class="item-price">$${orden.producto.precio.toFixed(
-                2
-              )}</span>
+  <html>
+        <head>
+          <title>Ticket</title>
+          <style>
+            body {
+              font-family: Arial, sans-serif;
+              margin: 0;
+              padding: 0;
+              background-color: #f5f5f5;
+            }
+           .ticket-container {
+              max-width: 800px;
+              margin: 20px auto;
+              padding: 20px;
+              border: 1px solid #ccc;
+              border-radius: 8px;
+              background-color: #ffffff;
+              text-align: left;
+            }
+           .ticket-header {
+              font-size: 20px;
+              font-weight: bold;
+              margin-bottom: 10px;
+              text-align: center;
+              color: #333;
+            }
+           .ticket-item {
+              margin-bottom: 10px;
+              color: #555;
+            }
+           .ticket-footer {
+              margin-top: 20px;
+              font-size: 16px;
+              font-weight: bold;
+              text-align: center;
+              color: #333;
+            }
+           .orders-table {
+              width: 100%;
+              border-collapse: collapse;
+            }
+           .orders-table th,.orders-table td {
+              border: 1px solid #ccc;
+              padding: 5px;
+              text-align: left;
+            }
+           .orders-table th {
+              background-color: #f0f0f0;
+            }
+            @media only screen and (max-width: 600px) {
+             .ticket-container {
+                width: 90%;
+              }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="ticket-container">
+            <div class="ticket-header">Comanda</div>
+            <div class="ticket-item"><span class="item-title">ID:</span> ${
+              comanda.id
+            }</div>
+            <div class="ticket-item"><span class="item-title">Mesa:</span> ${
+              comanda.mesa
+            }</div>
+            <div class="ticket-item"><span class="item-title">Mesero:</span> ${
+              comanda.meseroCargo
+            }</div>
+            <div class="ticket-item"><span class="item-title">Cobrador:</span> ${
+              comanda.cobrador
+            }</div>
+            <table class="orders-table">
+              <thead>
+                <tr>
+                  <th>Producto</th>
+                  <th>Precio</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${comanda.ordenes
+                  .map(
+                    (orden) => `
+                  <tr>
+                    <td>${orden.producto.nombre}</td>
+                    <td>$${orden.producto.precio.toFixed(2)}</td>
+                  </tr>
+                `
+                  )
+                  .join("")}
+              </tbody>
+            </table>
+            <div class="ticket-footer">
+              Total: $${comanda.total.toFixed(2)}
             </div>
-          `
-            )
-            .join("")}
-          <div class="ticket-footer">
-            Total: $${comanda.total.toFixed(2)}
           </div>
-        </div>
-      </body>
-      </html>
-      `);
+        </body>
+        </html>
+        `);
       newWindow.document.close();
       newWindow.focus();
     }
@@ -367,21 +348,21 @@ export default function DashboardCajero() {
 
   const handleFacturar = async (id: number) => {
     try {
-      const response = await apiClient.post(`/APICajero/Ticket/:id?id=${id}`);
-      if (response.data.isSuccess === true) {
+      const response = await cajeroServices.facturar(id);
+      if (response.isSuccess === true) {
         Swal.fire({
           title: "Generado",
-          text: response.data.message,
+          text: response.message,
           icon: "success",
           confirmButtonText: "Aceptar",
           customClass: {
             container: "custom-swal-container",
           },
         }).then(() => {
-          handleGenerarTicket(response.data.result);
+          // handleGenerarTicket(response.result);
         });
       } else {
-        throw new Error(response.data.message);
+        throw new Error(response.message);
       }
     } catch (e: any) {
       console.error("Error:", e);
@@ -400,41 +381,35 @@ export default function DashboardCajero() {
   };
 
   const fetchData = useCallback(async () => {
+    if (isMounted) return;
     setLoading(true);
     try {
-      const response = await apiClient.get("/APICajero/Comandas");
-      const data = response.data.result;
+      const data = await cajeroServices.getComandas();
       setComandas(data);
       if (selectedMesa !== null) {
         setSelectedMesa(
-          data.filter((m: Comandas) => m.id === selectedMesa.id).length > 0
-            ? data.filter((m: Comandas) => m.id === selectedMesa.id)[0]
+          data.filter((m: IComanda) => m.id === selectedMesa.id).length > 0
+            ? data.filter((m: IComanda) => m.id === selectedMesa.id)[0]
             : null
         );
       }
+      setIsMounted(true); // Marcar que los datos se han cargado
+      data.forEach((element) => {
+        setAppearedIds((prevIds) => [...prevIds, element.id]);
+      });
     } catch (error) {
       console.error("Error:", error);
     }
     setLoading(false);
-  }, [selectedMesa]);
+  }, [selectedMesa, isMounted]);
 
   useEffect(() => {
-    if (selectedMesa == null) {
-      fetchData();
-    }
-  }, [fetchData, selectedMesa]);
+    fetchData();
+  }, [fetchData]);
 
   useEffect(() => {
-    const idEmpresa = authService.getCompany();
     let conectado: boolean = false;
-    const connection = new HubConnectionBuilder()
-      .withUrl(`https://localhost:7047/commandHub?idEmpresa=${idEmpresa}`, {
-        skipNegotiation: true,
-        transport: HttpTransportType.WebSockets,
-      })
-      .withAutomaticReconnect()
-      .build();
-
+    const connection = commandHub();
     const startConnection = async () => {
       try {
         await connection.start();
@@ -446,31 +421,51 @@ export default function DashboardCajero() {
     };
 
     startConnection();
-
     connection.on("OnCommandCreated", (command) => {
-      if (comandas != null) {
-        setComandas((prevCommands) => [...prevCommands!, command]);
-      } else {
-        setComandas([command]);
+      setComandas((prevCommands) => (prevCommands || []).concat([command]));
+      setAppearedIds((prevIds) => [...prevIds, command.id]);
+    });
+
+    connection.on("OnCommandUpdated", (data) => {
+      console.log("Actualizando");
+      setComandas((prevCommands) =>
+        prevCommands!.map((c) => {
+          if (c.id === data.commandId) {
+            return { ...c, estado: statusMap[data.status] };
+          }
+          return c;
+        })
+      );
+      if (selectedMesa !== null && selectedMesa.id === data.commandId) {
+        setSelectedMesa((prevMesa) => ({
+          ...prevMesa!,
+          estado: statusMap[data.status],
+        }));
       }
     });
 
-    connection.on("OnCommandUpdated", (command) => {
-      if (comandas != null) {
-        setComandas((prevCommands) =>
-          prevCommands!.map((c) =>
-            c.id === command.id ? { ...c, ...command } : c
-          )
-        );
-      }
-    });
     connection.on("OnCommandDeleted", (deletedCommandId) => {
       console.log("Eliminando");
+      setComandas((prevCommands) =>
+        prevCommands!.filter((c) => c.id !== deletedCommandId)
+      );
+      setSelectedMesa(null);
+    });
+
+    connection.on("OnOrderDeleted", (data) => {
+      console.log("Eliminando");
       if (comandas != null) {
-        setComandas((prevCommands) =>
-          prevCommands!.filter((c) => c.id !== deletedCommandId)
-        );
-        setSelectedMesa(null);
+        const comandaIndex = comandas.findIndex((c) => c.id === data.commandId);
+        if (comandaIndex !== -1) {
+          const ordenIndex = comandas[comandaIndex].ordenes.findIndex(
+            (o) => o.id === data.orderId
+          );
+          if (ordenIndex !== -1) {
+            comandas[comandaIndex].ordenes.splice(ordenIndex, 1);
+          }
+        }
+        setSelectedMesa(comandas[comandaIndex]);
+        setComandas([...comandas]);
       }
     });
 
@@ -480,11 +475,94 @@ export default function DashboardCajero() {
         console.log("Conexión detenida.");
       }
     };
-  }, [comandas]);
+  }, [comandas, selectedMesa]);
+
+  useEffect(() => {
+    if (comandas) {
+      const tienePorCobrar = comandas.find((c) => c.estado === "Por cobrar");
+      if (tienePorCobrar && !notifiedMesas.some((mesa) => mesa.id === tienePorCobrar.id && mesa.estado === "Por cobrar")) {
+        // Mostrar la notificación solo si la mesa no ha sido notificada previamente
+        setShowBadgePorCobrar(true);
+        enqueueSnackbar(`Mesa ${tienePorCobrar.id} en espera de cobro`, {
+          variant: "warning",
+          autoHideDuration: 6000,
+          anchorOrigin: {
+            vertical: "top",
+            horizontal: "right",
+          },
+        });
+        // Agregar la mesa a las mesas notificadas
+        setNotifiedMesas((prevNotified) => [...prevNotified, { id: tienePorCobrar.id, estado: "Por cobrar" }]); 
+        // Reproducir sonido si necesario
+        if (audioPlayerRef.current && audioPlayerRef.current.audioEl.current) {
+          const audioElement = audioPlayerRef.current.audioEl.current;
+          audioElement.addEventListener("canplaythrough", () => {
+            audioElement.play().catch((error) => console.error("Error al reproducir el audio:", error));
+          });
+          audioElement.load(); 
+        }
+      } else {
+        setShowBadgePorCobrar(false);
+      }
+    }
+  }, [comandas, enqueueSnackbar, notifiedMesas]);
+  
+  // Efecto para manejar las mesas "Pagado"
+  useEffect(() => {
+    if (comandas) {
+      const tienePagado = comandas.find((c) => c.estado === "Pagado");
+      if (tienePagado && !notifiedMesas.some((mesa) => mesa.id === tienePagado.id && mesa.estado === "Pagado")) {
+        // Mostrar la notificación solo si la mesa no ha sido notificada previamente
+        setShowBadgePagado(true);
+        enqueueSnackbar(`Mesa ${tienePagado.id} ha sido pagada`, {
+          variant: "success",
+          autoHideDuration: 6000,
+          anchorOrigin: {
+            vertical: "top",
+            horizontal: "right",
+          },
+        });
+        // Agregar la mesa a las mesas notificadas
+        setNotifiedMesas((prevNotified) => [...prevNotified, { id: tienePagado.id, estado: "Pagado" }]);
+        // Reproducir sonido si necesario
+        if (audioPlayerRef.current && audioPlayerRef.current.audioEl.current) {
+          const audioElement = audioPlayerRef.current.audioEl.current;
+          audioElement.addEventListener("canplaythrough", () => {
+            audioElement.play().catch((error) => console.error("Error al reproducir el audio:", error));
+          });
+          audioElement.load();
+        }
+      } else {
+        setShowBadgePagado(false);
+      }
+    }
+  }, [comandas, enqueueSnackbar, notifiedMesas]);
+
+  useEffect(() => {
+    if (showBadgePorCobrar && tabIndex !== 2) {
+      setShowBadgePorCobrar(true);
+    } else {
+      setShowBadgePorCobrar(false);
+    }
+  }, [showBadgePorCobrar, tabIndex]);
+
+  useEffect(() => {
+    if (showBadgePagado && tabIndex !== 4) {
+      setShowBadgePagado(true);
+    } else {
+      setShowBadgePagado(false);
+    }
+  }, [showBadgePagado, tabIndex]);
 
   return (
     <>
       <Box sx={{ flexGrow: 1, height: "100%" }}>
+        <ReactAudioPlayer
+          src={audioUrl}
+          ref={audioPlayerRef}
+          autoPlay={false} // No reproducir automáticamente al cargar la página
+          style={{ display: "none" }} // Ocultar el reproductor
+        />
         <Drawer anchor="left" open={open} onClose={toggleDrawer(false)}>
           <div role="presentation" style={{ width: 250 }}>
             <div style={{ display: "flex", alignItems: "center", padding: 16 }}>
@@ -534,7 +612,6 @@ export default function DashboardCajero() {
             >
               Dashboard
             </Typography>
-            <Button onClick={fetchData}>fecth</Button>
           </Toolbar>
         </AppBar>
       </Box>
@@ -582,30 +659,26 @@ export default function DashboardCajero() {
                 >
                   <Tabs value={tabIndex} onChange={handleChangeTab} centered>
                     <Tab label={`Todos`} />
+                    <Tab label={`Activo`} />
                     <Tab
                       label={
-                        <Badge color="error" variant="dot">
-                          Activo
-                        </Badge>
-                      }
-                    />
-                    <Tab
-                      label={
-                        <Badge color="error" variant="dot">
+                        <Badge
+                          color="error"
+                          variant="dot"
+                          invisible={!showBadgePorCobrar}
+                        >
                           Por Cobrar
                         </Badge>
                       }
                     />
+                    <Tab label={`Pagando`} />
                     <Tab
                       label={
-                        <Badge color="error" variant="dot">
-                          Pagando
-                        </Badge>
-                      }
-                    />
-                    <Tab
-                      label={
-                        <Badge color="error" variant="dot">
+                        <Badge
+                          color="error"
+                          variant="dot"
+                          invisible={!showBadgePagado}
+                        >
                           Pagado
                         </Badge>
                       }
@@ -650,10 +723,9 @@ export default function DashboardCajero() {
                       item
                       xs={12}
                       sx={{
-                        ...(comandas !== null &&
-                          comandas!.length > 0 && {
-                            display: "none",
-                          }),
+                        ...(filteredMesas?.exist && {
+                          display: "none",
+                        }),
                       }}
                     >
                       <Box
@@ -666,103 +738,106 @@ export default function DashboardCajero() {
                         </Typography>
                       </Box>
                     </Grid>
-                    {filteredMesas.map((mesa: Comandas) => (
-                      <Grid item xs={6} key={mesa.id}>
-                        <LazyLoad
-                          style={{
-                            display: "grid",
-                          }}
-                        >
-                          <div
+                    {filteredMesas?.comandas !== undefined &&
+                      filteredMesas.comandas.map((mesa: IComanda) => (
+                        <Grid item xs={6} key={mesa.id}>
+                          <LazyLoad
                             style={{
-                              width: "12px",
-                              height: "12px",
-                              backgroundColor:
-                                mesa.estado === "Activo"
-                                  ? "green"
-                                  : mesa.estado === "Por cobrar"
-                                  ? "orange"
-                                  : mesa.estado === "Pagando"
-                                  ? "red"
-                                  : "gray",
-                              position: "absolute",
-                              borderRadius: "5px",
-                              alignSelf: "flex-start",
-                              justifySelf: "flex-end",
-                            }}
-                          ></div>
-                          <Card
-                            sx={{
-                              display: "flex",
-                              borderRadius: 2,
-                              boxShadow: 3,
-                              padding: 0,
-                              bgcolor: "#f9f9f9",
-                              marginBottom: 2,
+                              display: "grid",
+                              opacity: appearedIds.includes(mesa.id) ? 1 : 0, // Aplicar opacidad
+                              transition: "opacity 0.5s ease-out", // Animación de transición
                             }}
                           >
-                            <Box
+                            <div
+                              style={{
+                                width: "12px",
+                                height: "12px",
+                                backgroundColor:
+                                  mesa.estado === "Activo"
+                                    ? "green"
+                                    : mesa.estado === "Por cobrar"
+                                    ? "orange"
+                                    : mesa.estado === "Pagando"
+                                    ? "red"
+                                    : "gray",
+                                position: "absolute",
+                                borderRadius: "5px",
+                                alignSelf: "flex-start",
+                                justifySelf: "flex-end",
+                              }}
+                            ></div>
+                            <Card
                               sx={{
                                 display: "flex",
-                                flexDirection: "column",
-                                justifyContent: "space-between",
-                                width: "40%",
+                                borderRadius: 2,
+                                boxShadow: 3,
+                                padding: 0,
+                                bgcolor: "#f9f9f9",
+                                marginBottom: 2,
                               }}
                             >
-                              <CardContent sx={{ flex: "1 0 auto" }}>
-                                <Typography
-                                  variant="h6"
-                                  component="div"
-                                  sx={{ fontWeight: "bold", mb: 1 }}
-                                >
-                                  Mesa {mesa.mesa}
-                                </Typography>
-                                <Typography
-                                  variant="h5"
-                                  component="div"
-                                  sx={{ fontWeight: "bold", mb: 2 }}
-                                >
-                                  ${mesa.total}
-                                </Typography>
-                                <Button
-                                  variant="contained"
-                                  color="primary"
-                                  onClick={() => handleSelectMesa(mesa)}
-                                >
-                                  <InfoOutlinedIcon />
-                                </Button>
-                              </CardContent>
-                            </Box>
-                            <CardMedia
-                              component="img"
-                              image={
-                                mesa.imagen != null
-                                  ? URL.createObjectURL(
-                                      dataURLToFile(mesa.imagen, "photo.png")
-                                    )
-                                  : mesaIMG
-                              }
-                              alt={"mesa " + mesa.mesa}
-                              sx={{
-                                width: 120,
-                                height: 120,
-                                borderRadius: "50%",
-                                objectFit: "cover",
-                                alignSelf: "center",
-                                margin: "auto",
-                              }}
-                            />
-                            <Typography
-                              variant="body2"
-                              sx={{ mb: 0.1, mr: 1 }}
-                              alignSelf={"flex-end"}
-                            >
-                              ID: {mesa.id}
-                            </Typography>
-                          </Card>
-                        </LazyLoad>
-                      </Grid>
-                    ))}
+                              <Box
+                                sx={{
+                                  display: "flex",
+                                  flexDirection: "column",
+                                  justifyContent: "space-between",
+                                  width: "40%",
+                                }}
+                              >
+                                <CardContent sx={{ flex: "1 0 auto" }}>
+                                  <Typography
+                                    variant="h6"
+                                    component="div"
+                                    sx={{ fontWeight: "bold", mb: 1 }}
+                                  >
+                                    Mesa {mesa.mesa}
+                                  </Typography>
+                                  <Typography
+                                    variant="h5"
+                                    component="div"
+                                    sx={{ fontWeight: "bold", mb: 2 }}
+                                  >
+                                    ${mesa.total}
+                                  </Typography>
+                                  <Button
+                                    variant="contained"
+                                    color="primary"
+                                    onClick={() => handleSelectMesa(mesa)}
+                                  >
+                                    <InfoOutlinedIcon />
+                                  </Button>
+                                </CardContent>
+                              </Box>
+                              <CardMedia
+                                component="img"
+                                image={
+                                  mesa.imagen != null
+                                    ? URL.createObjectURL(
+                                        dataURLToFile(mesa.imagen, "photo.png")
+                                      )
+                                    : mesaIMG
+                                }
+                                alt={"mesa " + mesa.mesa}
+                                sx={{
+                                  width: 120,
+                                  height: 120,
+                                  borderRadius: "50%",
+                                  objectFit: "cover",
+                                  alignSelf: "center",
+                                  margin: "auto",
+                                }}
+                              />
+                              <Typography
+                                variant="body2"
+                                sx={{ mb: 0.1, mr: 1 }}
+                                alignSelf={"flex-end"}
+                              >
+                                ID: {mesa.id}
+                              </Typography>
+                            </Card>
+                          </LazyLoad>
+                        </Grid>
+                      ))}
                   </Grid>
                 </Grid>
               </Grid>
@@ -874,14 +949,16 @@ export default function DashboardCajero() {
                               primary={orden.producto.nombre}
                               secondary={`$${orden.producto.precio}`}
                             />
-                            <IconButton
-                              edge="end"
-                              aria-label="delete"
-                              color="error"
-                              onClick={() => handleEliminarOrden(orden.id)}
-                            >
-                              <DeleteIcon />
-                            </IconButton>
+                            {selectedMesa.estado !== "Pagado" ? (
+                              <IconButton
+                                edge="end"
+                                aria-label="delete"
+                                color="error"
+                                onClick={() => handleEliminarOrden(orden.id)}
+                              >
+                                <DeleteIcon />
+                              </IconButton>
+                            ) : null}
                           </ListItem>
                         ))}
                       </List>

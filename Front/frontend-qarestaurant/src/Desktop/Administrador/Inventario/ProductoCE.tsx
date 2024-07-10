@@ -10,33 +10,24 @@ import {
 import CheckIcon from "@mui/icons-material/Check";
 import { useCallback, useEffect, useState } from "react";
 import IResponse from "../../../interfaces/IResponse.";
-import axios from "axios";
 import Swal from "sweetalert2";
 import Loader from "../../../components/loader";
 import { useParams } from "react-router-dom";
 import { useDropzone } from "react-dropzone";
 import { Cancel } from "@mui/icons-material";
 import authService from "../../../AuthService/authService";
-import Categoria from "../Categoria/Categoria";
-import Select from '@mui/material/Select';
-import MenuItem from '@mui/material/MenuItem';
 import apiClient from "../../../AuthService/authInterceptor";
+import IProductoDto from "../../../interfaces/Inventario/IProductoDto";
+import inventarioServices from "../../../services/InventarioServices";
+import categoriaServices from "../../../services/CategoriasServices";
+import ICategoria from "../../../interfaces/Categoria/ICategoria";
+import { dataURLToFile } from "../../../assets/utils/DataURLToFile";
 
 interface CategoriaData{
   id:number;
   nombreCategoria:string;
 }
-interface ProductData {
-  id: number;
-  nombre: string;
-  descripcion: string;
-  precio: number;
-  preparado: boolean;
-  imagenInventario: string | null;
-  categoria: number;
-}
-const initialProductoData: ProductData = {
-  id: 0,
+const initialProductoData: IProductoDto = {
   nombre: "",
   descripcion: "",
   precio: 0,
@@ -58,13 +49,12 @@ const MAX_FILE_SIZE_MB = 2; // Tamaño máximo de archivo en MB
 export default function EmpleadoCEComponent() {
   const { id } = useParams();
   const [title, setTitle] = useState<string>("Registrar Producto");
-  const [productData, setProductData] = useState<ProductData>(initialProductoData);
+  const [productData, setProductData] = useState<IProductoDto>(initialProductoData);
   const [file, setFile] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState(initialErrors);
   const [disabledBtn, setDisabledBtn] = useState(true);
-  const token = authService.getToken();
-  const [categoria, setCategoria] = useState<CategoriaData[]>([]);
+  const [categorias, setCategorias] = useState<CategoriaData[]>([]);
   const [selectedCategoria, setSelectedCategoria] = useState<CategoriaData | null>(null);
 
 
@@ -122,7 +112,7 @@ export default function EmpleadoCEComponent() {
     const hasEmptyFields = fields
       .filter((field) => field !== "imagenInventario")
       .some((field) => {
-        return !productData[field as keyof ProductData];
+        return !productData[field as keyof IProductoDto];
       });
 
     return hasErrors || hasEmptyFields;
@@ -176,18 +166,16 @@ export default function EmpleadoCEComponent() {
   const setDatos = async () => {
     try {
       setLoading(true);
-      let response: any;
+      let response: IResponse;
       const data = productData;
       if (!id) {
-        response = await apiClient.post("/APIInventario", data);
+        response = await inventarioServices.post(data);
       } else {
-        response = await apiClient.put(`/APIInventario/Id?Id=${id}`, data);
+        response = await inventarioServices.put(id, data);
       }
-      const dataResponse: IResponse = response.data;
-
-      if (dataResponse.isSuccess) {
+      if (response.isSuccess) {
         Swal.fire({
-          title: dataResponse.message,
+          title: response.message,
           icon: "success",
           showCancelButton: false,
           confirmButtonColor: "#3085d6",
@@ -201,7 +189,7 @@ export default function EmpleadoCEComponent() {
         });
       } else {
         Swal.fire({
-          title: dataResponse.message,
+          title: response.message,
           icon: "error",
           showCancelButton: false,
           confirmButtonColor: "#3085d6",
@@ -213,12 +201,21 @@ export default function EmpleadoCEComponent() {
         });
       }
     } catch (error: any) {
-      console.error(error.response.data);
+      Swal.fire({
+        title: "Se ha producido un error",
+        icon: "error",
+        showCancelButton: false,
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "Ok",
+        customClass: {
+          container: "custom-swal-container",
+        },
+      });
     } finally {
       setLoading(false);
     }
   };
-
   const handleRemove = () => {
     setFile(null);
     if (productData.imagenInventario != null) {
@@ -228,51 +225,46 @@ export default function EmpleadoCEComponent() {
       });
     }
   };
+  const fetchCategoria = useCallback(async (selectedId: number | null) => {
+    try {
+      const response = await categoriaServices.getCategorias();
+      setCategorias(response);
+      if (selectedId) {
+        const categoria = response.find(
+          (categoria: ICategoria) => categoria.id === selectedId
+        );
+        setSelectedCategoria(categoria || null);
+      }
+    } catch (error) {
+      console.error("Error fetching companies", error);
+    }
+  }, []);
   
   useEffect(() => {
     const fetchData = async () => {
+      if (!id) {
+        setDisabledBtn(false);
+        fetchCategoria(null);
+        return;
+      }
       try {
+        setTitle("Editar producto");
         setLoading(true);
-        const response = await apiClient.get(`/APIInventario/id?Id=${id}`);
-        const data = response.data.result;
-        setProductData({
-          id: data.id,
-          nombre: data.nombre,
-          descripcion: data.descripcion,
-          precio: data.precio,
-          preparado: data.preparado,
-          imagenInventario: data.imagenInventario,
-          categoria: data.categoria.id,
-        });
-
-        fetchCategoria(data.categoria.id);
-        setFile(data.imagenInventario ? dataURLToFile(data.imagenInventario, "foto.png") : null);
+        const response = await inventarioServices.getProducto(id);
+        setProductData(response);
+        fetchCategoria(response.categoria);
+        console.log(response.categoria);
+        setFile(
+          response.imagenInventario ? dataURLToFile(response.imagenInventario, "foto.png") : null
+        );
       } catch (error) {
         console.error("Error fetching producto data:", error);
       } finally {
         setLoading(false);
       }
     };
-    const dataURLToFile = (dataurl: any, filename: any) => {
-      const arr = dataurl.split(",");
-      const mime = arr[0].match(/:(.*?);/)[1];
-      const bstr = atob(arr[1]);
-      let n = bstr.length;
-      const u8arr = new Uint8Array(n);
-      while (n--) {
-        u8arr[n] = bstr.charCodeAt(n);
-      }
-      return new File([u8arr], filename, { type: mime });
-    };
-    if (id) {
-      setDisabledBtn(false);
-      fetchData();
-      setTitle("Editar procuto");
-      
-    }else {
-      fetchCategoria(null);
-    }
-  }, [ id, token]);
+    fetchData();
+  }, [fetchCategoria, id]);
 
   useEffect(() => {
     // Verificar errores y campos vacíos iniciales y actualizar el estado del botón
@@ -327,21 +319,6 @@ export default function EmpleadoCEComponent() {
       reader.readAsDataURL(file);
     },
   });
-  const fetchCategoria = useCallback(async (selectedId: number | null) => {
-    try {
-      const response = await apiClient.get("/APICategoria");
-      const categoriaData = response.data.result;
-      setCategoria(categoriaData);
-      if (selectedId) {
-        const selectedCategoria = categoriaData.find(
-          (categoriaData: CategoriaData) => categoriaData.id === selectedId
-        );
-        setSelectedCategoria(selectedCategoria || null);
-      } 
-    } catch (error) {
-      console.error("Error fetching categoria", error);
-    }
-  }, []);
   return (
     <>
       {loading && <Loader />}
@@ -487,7 +464,7 @@ export default function EmpleadoCEComponent() {
                   <Grid item xs={12} md={6} lg={6}>
                     <FormControl fullWidth>
                       <Autocomplete
-                        options={categoria}
+                        options={categorias}
                         value={selectedCategoria}
                         getOptionLabel={(option) => option.nombreCategoria}
                         isOptionEqualToValue={(option, value) => option.id === value.id}

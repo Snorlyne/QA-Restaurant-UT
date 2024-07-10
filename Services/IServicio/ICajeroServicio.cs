@@ -11,7 +11,7 @@ namespace Services.IServicio
     public interface ICajeroServicio
     {
        Task<Response<List<ViewComandasVM>>> ObtenerComandas(int companyId);
-       Task<Response<ViewComandasVM>> GenerarTicketDeCobro(int idCommand, int idPerson, int companyId);
+       Task<Response<object>> GenerarTicketDeCobro(int idCommand, int idPerson, int companyId);
        Task<Response<object>> EliminarComanda(int idCommand, int companyId);
        Task<Response<object>> EliminarOrden(int idOrden, int companyId);
     }

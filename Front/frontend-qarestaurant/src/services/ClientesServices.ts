@@ -3,7 +3,7 @@ import ICliente from "../interfaces/Cliente/ICliente";
 import IClienteDto from "../interfaces/Cliente/IClienteDto";
 import IResponse from "../interfaces/IResponse.";
 
-const ClienteServices = {
+const clienteServices = {
     async getClientes(): Promise<ICliente[]> {
         try {
             const response = await apiClient.get("/APICliente/lista");
@@ -12,10 +12,10 @@ const ClienteServices = {
             throw err;
         }
     },
-    async getCliente(id:string): Promise<ICliente> {
+    async getCliente(id:string): Promise<IClienteDto> {
         try {
-            const response = await apiClient.get(`/APICliente/Id?Id=${id}`);
-            return response.data.result as ICliente;
+            const response = await apiClient.get(`/APICliente/${id}`);
+            return response.data.result as IClienteDto;
         }catch (err) {
             throw err;
         }
@@ -30,7 +30,7 @@ const ClienteServices = {
     },
     async put(id: string, req: IClienteDto): Promise<IResponse> {
         try {
-            const response = await apiClient.put(`/APICliente/Id?Id=${id}`, req);
+            const response = await apiClient.put(`/APICliente/${id}`, req);
             return response.data as IResponse;
         } catch (error) {
             throw error;
@@ -38,7 +38,7 @@ const ClienteServices = {
     },
     async delete(id:number): Promise<IResponse> {
         try {
-            const response = await apiClient.delete(`/APICliente/Id?Id=${id}`);
+            const response = await apiClient.delete(`/APICliente/${id}`);
             return response.data as IResponse;
         } catch (error) {
             throw error;
@@ -46,4 +46,4 @@ const ClienteServices = {
     }
 }
 
-export default ClienteServices;
+export default clienteServices;

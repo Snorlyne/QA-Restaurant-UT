@@ -17,8 +17,8 @@ import Swal from "sweetalert2";
 import Loader from "../../../components/loader";
 import apiClient from "../../../AuthService/authInterceptor";
 import IResponse from "../../../interfaces/IResponse.";
-import ICategoria from "../../../interfaces/ICategoria";
-import CategoriaService from "../../../services/CategoriasServices";
+import ICategoria from "../../../interfaces/Categoria/ICategoria";
+import categoriaServices from "../../../services/CategoriasServices";
 
 interface CategoriaData extends ICategoria {}
 
@@ -67,7 +67,7 @@ export default function EmpresaComponent() {
           <Button
             variant="contained"
             color="error"
-            onClick={() => fetchDelete(params.row.id)}
+            onClick={() => handleDelete(params.row.id)}
           >
             <DeleteIcon />
           </Button>
@@ -80,7 +80,7 @@ export default function EmpresaComponent() {
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await CategoriaService.getCategorias();
+      const data = await categoriaServices.getCategorias();
       console.log("API Response:", data);
       setRows(data);
     } catch (error) {
@@ -91,7 +91,7 @@ export default function EmpresaComponent() {
 
   //Eliminar categoria
 
-  const fetchDelete = async (id: number) => {
+  const handleDelete = async (id: number) => {
     try {
       await Swal.fire({
         title: "¿Está seguro de eliminar esta categoria?",
@@ -107,7 +107,7 @@ export default function EmpresaComponent() {
       }).then(async (result) => {
         if (result.isConfirmed) {
           setLoading(true);
-          const response: IResponse = await CategoriaService.delete(id);
+          const response: IResponse = await categoriaServices.delete(id);
           if (response.isSuccess) {
             Swal.fire({
               title: response.message,
@@ -134,8 +134,8 @@ export default function EmpresaComponent() {
               },
             });
           }
+          fetchData();
         }
-        fetchData();
       });
     } catch (error: any) {
       Swal.fire({

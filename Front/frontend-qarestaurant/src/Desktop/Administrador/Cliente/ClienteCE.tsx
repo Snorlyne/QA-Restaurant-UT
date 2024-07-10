@@ -16,14 +16,13 @@ import { useParams } from "react-router-dom";
 import { useDropzone } from "react-dropzone";
 import { Cancel } from "@mui/icons-material";
 import authService from "../../../AuthService/authService";
-import apiClient from "../../../AuthService/authInterceptor";
 import IClienteDto from "../../../interfaces/Cliente/IClienteDto";
-import ClienteServices from "../../../services/ClientesServices";
+import clienteServices from "../../../services/ClientesServices";
+import empresaServices from "../../../services/EmpresaServices";
+import IEmpresa from "../../../interfaces/Empresa/IEmpresa";
+import { dataURLToFile } from "../../../assets/utils/DataURLToFile";
 
-interface Company {
-  id: number;
-  nombre: string;
-}
+
 const initialPersonData: IClienteDto = {
   nombre: "",
   apellido_Paterno: "",
@@ -31,7 +30,7 @@ const initialPersonData: IClienteDto = {
   curp: "",
   fechaNacimiento: "",
   foto: null,
-  fk_company_id: null,
+  fK_Company_Id: null,
 };
 const initialErrors = {
   nombre: "",
@@ -45,23 +44,6 @@ const initialErrors = {
 
 const MAX_FILE_SIZE_MB = 2; // Tamaño máximo de archivo en MB
 
-// Función para convertir dataURL a File
-const dataURLToFile = (dataurl: string, filename: string): File => {
-  const [header, data] = dataurl.split(",");
-  const mimeMatch = header.match(/:(.*?);/);
-  if (!mimeMatch) throw new Error("Invalid data URL format");
-  const mime = mimeMatch[1];
-  const bstr = atob(data);
-  const u8arr = new Uint8Array(bstr.length);
-
-  for (let i = 0; i < bstr.length; i++) {
-    u8arr[i] = bstr.charCodeAt(i);
-  }
-
-  return new File([u8arr], filename, { type: mime });
-};
-
-
 export default function ClienteCEComponent() {
   const { id } = useParams();
   const [title, setTitle] = useState<string>("Registrar cliente");
@@ -70,9 +52,8 @@ export default function ClienteCEComponent() {
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState(initialErrors);
   const [disabledBtn, setDisabledBtn] = useState(true);
-  const [companies, setCompanies] = useState<Company[]>([]);
-  const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
-  const token = authService.getToken();
+  const [companies, setCompanies] = useState<IEmpresa[]>([]);
+  const [selectedCompany, setSelectedCompany] = useState<IEmpresa | null>(null);
   // Manejador genérico para cambios en los inputs
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
@@ -90,10 +71,10 @@ export default function ClienteCEComponent() {
     setDisabledBtn(hasErrorsOrEmptyFields());
   };
   // Manejo del cambio de selección de empresa
-  const handleCompanyChange = (event: any, value: Company | null) => {
+  const handleCompanyChange = (event: any, value: IEmpresa | null) => {
     setClienteData((prevData) => ({
       ...prevData,
-      fk_company_id: value ? value.id : 0,
+      fK_Company_Id: value ? value.id : 0,
     }));
     setSelectedCompany(value);
 
@@ -116,7 +97,7 @@ export default function ClienteCEComponent() {
       "curp",
       "fechaNacimiento",
       "foto",
-      "fk_company_id",
+      "fK_Company_Id",
     ];
     const hasErrors = Object.values(errors).some((error) => error !== "");
 
@@ -206,9 +187,9 @@ export default function ClienteCEComponent() {
       let response: IResponse;
       const data = clienteData;
       if (!id) {
-        response = await ClienteServices.post(data);
+        response = await clienteServices.post(data);
       } else {
-        response = await ClienteServices.put(id, data);
+        response = await clienteServices.put(id, data);
       }
 
       if (response.isSuccess) {
@@ -266,14 +247,14 @@ export default function ClienteCEComponent() {
   };
   const fetchCompanies = useCallback(async (selectedId: number | null) => {
     try {
-      const response = await apiClient.get("/APICompany/lista");
-      const companiesData = response.data.result;
-      setCompanies(companiesData);
+      const response = await empresaServices.getEmpresas();
+      setCompanies(response);
       if (selectedId) {
-        const selectedCompany = companiesData.find(
-          (company: Company) => company.id === selectedId
+        const company = response.find(
+          (company: IEmpresa) => company.id === selectedId
         );
-        setSelectedCompany(selectedCompany || null);
+        console.log(company);
+        setSelectedCompany(company || null);
       }
     } catch (error) {
       console.error("Error fetching companies", error);
@@ -290,17 +271,9 @@ export default function ClienteCEComponent() {
       try {
         setTitle("Editar cliente");
         setLoading(true);
-        const response = await ClienteServices.getCliente(id);
-        setClienteData({
-          nombre: response.nombre,
-          apellido_Paterno: response.apellido_Paterno,
-          apellido_Materno: response.apellido_Materno,
-          curp: response.curp,
-          fechaNacimiento: response.fechaNacimiento,
-          foto: response.foto,
-          fk_company_id: response.company.id,
-        });
-        fetchCompanies(response.company.id);
+        const response = await clienteServices.getCliente(id);
+        setClienteData(response)
+        fetchCompanies(response.fK_Company_Id);
         setFile(
           response.foto ? dataURLToFile(response.foto, "foto.png") : null
         );
@@ -311,7 +284,7 @@ export default function ClienteCEComponent() {
       }
     };
     fetchData();
-  }, [fetchCompanies, id, token]);
+  }, [fetchCompanies, id]);
 
   useEffect(() => {
     // Verificar errores y campos vacíos iniciales y actualizar el estado del botón

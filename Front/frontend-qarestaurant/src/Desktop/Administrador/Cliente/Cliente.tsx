@@ -17,11 +17,11 @@ import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import IResponse from "../../../interfaces/IResponse.";
 import Loader from "../../../components/loader";
-import apiClient from "../../../AuthService/authInterceptor";
 import InfoIcon from "@mui/icons-material/Info";
 import GeneralModal from "../../../components/GeneralModal";
 import ICliente from "../../../interfaces/Cliente/ICliente";
-import ClienteServices from "../../../services/ClientesServices";
+import clienteServices from "../../../services/ClientesServices";
+import { dataURLToFile } from "../../../assets/utils/DataURLToFile";
 
 const filterRows = (rows: ICliente[], term: string) => {
   return rows.filter((row) => {
@@ -138,7 +138,7 @@ export default function ClientesComponent() {
           <Button
             variant="contained"
             color="error"
-            onClick={() => fetchDelete(params.row.id)}
+            onClick={() => handleDelete(params.row.id)}
           >
             <DeleteIcon />
           </Button>
@@ -149,7 +149,7 @@ export default function ClientesComponent() {
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await ClienteServices.getClientes();
+      const response = await clienteServices.getClientes();
       setRows(response);
       setFilteredRows(response);
     } catch (error) {
@@ -157,20 +157,7 @@ export default function ClientesComponent() {
     }
     setLoading(false);
   }, []);
-
-  const dataURLToFile = (dataurl: any, filename: any) => {
-    console.log(dataurl, filename);
-    const arr = dataurl.split(",");
-    const mime = arr[0].match(/:(.*?);/)[1];
-    const bstr = atob(arr[1]);
-    let n = bstr.length;
-    const u8arr = new Uint8Array(n);
-    while (n--) {
-      u8arr[n] = bstr.charCodeAt(n);
-    }
-    return new File([u8arr], filename, { type: mime });
-  };
-  const fetchDelete = async (id: number) => {
+  const handleDelete = async (id: number) => {
     try {
       await Swal.fire({
         title: "¿Está seguro de eliminar al cliente?",
@@ -180,10 +167,13 @@ export default function ClientesComponent() {
         cancelButtonColor: "#d33",
         confirmButtonText: "Si",
         cancelButtonText: "No",
+        customClass: {
+          container: "custom-swal-container",
+        },
       }).then(async (result) => {
         if (result.isConfirmed) {
           setLoading(true);
-          const response: IResponse = await ClienteServices.delete(id);
+          const response: IResponse = await clienteServices.delete(id);
           if (response.isSuccess) {
             Swal.fire({
               title: response.message,
@@ -209,8 +199,8 @@ export default function ClientesComponent() {
               },
             });
           }
+          fetchData();
         }
-        fetchData();
       });
     } catch (error: any) {
       Swal.fire({

@@ -25,12 +25,12 @@ namespace BaseWeb.Controllers.API
             var response = await _personServicio.ObtenerListaColaborador(companyId);
             return Ok(response);
         }
-        [HttpGet("Id")]
-        public async Task<IActionResult> ObtenerPorId(int Id)
+        [HttpGet("{id}")]
+        public async Task<IActionResult> ObtenerPorId(int id)
         {
             var companyIdClaim = User.Claims.FirstOrDefault(c => c.Type == "companyId");
             var companyId = int.Parse(companyIdClaim.Value);
-            var response = await _personServicio.ObtenerColaborador(Id, companyId);
+            var response = await _personServicio.ObtenerColaborador(id, companyId);
             return Ok(response);
         }
         [HttpPost]
@@ -41,20 +41,20 @@ namespace BaseWeb.Controllers.API
             var response = await _personServicio.CrearColaborador(request, companyId);
             return Ok(response);
         }
-        [HttpPut("Id")]
-        public async Task<IActionResult> EditarColaborador([FromBody] ColaboradorCreate request, int Id)
+        [HttpPut("{id}")]
+        public async Task<IActionResult> EditarColaborador([FromBody] ColaboradorCreate request, int id)
         {
             var companyIdClaim = User.Claims.FirstOrDefault(c => c.Type == "companyId");
             var companyId = int.Parse(companyIdClaim.Value);
-            var response = await _personServicio.EditarColaborador(request, Id, companyId);
+            var response = await _personServicio.EditarColaborador(request, id, companyId);
             return Ok(response);
         }
-        [HttpDelete("Id")]
-        public async Task<IActionResult> EliminarColaborador(int Id)
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> EliminarColaborador(int id)
         {
             var companyIdClaim = User.Claims.FirstOrDefault(c => c.Type == "companyId");
             var companyId = int.Parse(companyIdClaim.Value);
-            var response = await _personServicio.EliminarColaborador(Id, companyId);
+            var response = await _personServicio.EliminarColaborador(id, companyId);
             return Ok(response);
         }
     }

@@ -13,13 +13,10 @@ import Swal from "sweetalert2";
 import Loader from "../../../components/loader";
 import { useParams } from "react-router-dom";
 import { Cancel } from "@mui/icons-material";
-import authService from "../../../AuthService/authService";
-import apiClient from "../../../AuthService/authInterceptor";
-import ICategoria from "../../../interfaces/ICategoria";
-import CategoriaService from "../../../services/CategoriasServices";
+import categoriaServices from "../../../services/CategoriasServices";
+import ICategoriaDto from "../../../interfaces/Categoria/ICategoriaDto";
 
-const initialCategoriaData: ICategoria = {
-  id: 0,
+const initialCategoriaData: ICategoriaDto = {
   nombreCategoria: "",
 };
 const initialErrors = {
@@ -30,11 +27,10 @@ const initialErrors = {
 export default function EmpleadoCEComponent() {
   const { id } = useParams();
   const [title, setTitle] = useState<string>("Registrar Categoria");
-  const [categoriaData, setCategoriaData] = useState<ICategoria>(initialCategoriaData);
+  const [categoriaData, setCategoriaData] = useState<ICategoriaDto>(initialCategoriaData);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState(initialErrors);
   const [disabledBtn, setDisabledBtn] = useState(true);
-  const token = authService.getToken();
 
 
   // Manejador genérico para cambios en los inputs
@@ -62,7 +58,7 @@ export default function EmpleadoCEComponent() {
 
     const hasEmptyFields = fields
       .some((field) => {
-        return !categoriaData[field as keyof ICategoria];
+        return !categoriaData[field as keyof ICategoriaDto];
       });
 
     return hasErrors || hasEmptyFields;
@@ -93,9 +89,9 @@ export default function EmpleadoCEComponent() {
       let response: IResponse;
       const data = categoriaData;
       if (!id) {
-        response = await CategoriaService.post(data);
+        response = await categoriaServices.post(data);
       } else {
-        response = await CategoriaService.put(id, data);
+        response = await categoriaServices.put(id, data);
       }
       if (response.isSuccess) {
         Swal.fire({
@@ -146,9 +142,8 @@ export default function EmpleadoCEComponent() {
       if (!id) return;
       try {
         setLoading(true);
-        const data = await CategoriaService.getCategoria(id)
+        const data = await categoriaServices.getCategoria(id)
         setCategoriaData({
-          id: data.id,
           nombreCategoria: data.nombreCategoria,
         });
       } catch (error) {

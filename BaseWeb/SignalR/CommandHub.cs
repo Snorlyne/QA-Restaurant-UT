@@ -25,22 +25,27 @@ namespace BaseWeb.SignalR
             await base.OnDisconnectedAsync(exception);
         }
 
-        public async Task OnCommandCreated(Command command)
+        public async Task OnCommandCreated(string companyId, object res)
         {
             // Enviar a todas las conexiones del grupo correspondiente
-            await Clients.Group(command.Restaurante.ToString()).SendAsync("OnCommandCreated", command);
+            await Clients.Group(companyId).SendAsync("OnCommandCreated", res);
         }
 
-        public async Task OnCommandUpdated(Command command)
+        public async Task OnCommandUpdated(string companyId, object res)
         {
             // Enviar a todas las conexiones del grupo correspondiente
-            await Clients.Group(command.Restaurante.ToString()).SendAsync("OnCommandUpdated", command);
+            await Clients.Group(companyId).SendAsync("OnCommandUpdated", res);
         }
 
         public async Task OnCommandDeleted(string companyId, int commandId)
         {
             // Enviar a todas las conexiones del grupo correspondiente
             await Clients.Group(companyId).SendAsync("OnCommandDeleted", commandId);
+        }
+        public async Task OnOrderDeleted(string companyId, object res)
+        {
+            // Enviar a todas las conexiones del grupo correspondiente
+            await Clients.Group(companyId).SendAsync("OnOrderDeleted", res);
         }
     }
 }

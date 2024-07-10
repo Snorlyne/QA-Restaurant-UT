@@ -9,17 +9,14 @@ import {
 import CheckIcon from "@mui/icons-material/Check";
 import { ChangeEvent, useEffect, useState } from "react";
 import IResponse from "../../../interfaces/IResponse.";
-import axios from "axios";
 import Swal from "sweetalert2";
 import Loader from "../../../components/loader";
 import { useParams } from "react-router-dom";
 import { Cancel } from "@mui/icons-material";
-import authService from "../../../AuthService/authService";
 import apiClient from "../../../AuthService/authInterceptor";
+import IEmpresaDto from "../../../interfaces/Empresa/IEmpresaDto";
+import empresaServices from "../../../services/EmpresaServices";
 
-interface CompanyData {
-  nombre: string;
-}
 export default function EmpresaCreateEditComponent() {
   const { id } = useParams();
   const [nombre, setNombre] = useState<string>("");
@@ -40,26 +37,18 @@ export default function EmpresaCreateEditComponent() {
     }
   };
   const setDatos = async () => {
-    setLoading(true);
-    let response: any;
-
     try {
-      let data: CompanyData = {
-        nombre: nombre,
-      };
+      setLoading(true);
+      let response: IResponse;
+      const data: IEmpresaDto = {nombre: nombre};
       if (!id) {
-        response = await apiClient.post("/APICompany", data);
+        response = await empresaServices.post(data);
       } else {
-        response = await apiClient.put(`/APICompany/Id?Id=${id}`, data);
+        response = await empresaServices.put(id, data);
       }
-      if (response.status !== 200) {
-        throw new Error("Network response was not ok");
-      }
-      const dataResponse: IResponse = response.data;
-
-      if (dataResponse.isSuccess) {
+      if (response.isSuccess) {
         Swal.fire({
-          title: dataResponse.message,
+          title: response.message,
           icon: "success",
           showCancelButton: false,
           confirmButtonColor: "#3085d6",
@@ -73,7 +62,7 @@ export default function EmpresaCreateEditComponent() {
         });
       } else {
         Swal.fire({
-          title: dataResponse.message,
+          title: response.message,
           icon: "error",
           showCancelButton: false,
           confirmButtonColor: "#3085d6",
@@ -86,7 +75,7 @@ export default function EmpresaCreateEditComponent() {
       }
     } catch (error: any) {
       Swal.fire({
-        title: error.message,
+        title: "Se ha producido un error",
         icon: "error",
         showCancelButton: false,
         confirmButtonColor: "#3085d6",
@@ -102,23 +91,22 @@ export default function EmpresaCreateEditComponent() {
   };
   useEffect(() => {
     const fetchData = async () => {
+      if (!id) {
+        setdisabledBtn(false);
+        return;
+      }
       try {
+        setTitle("Editar Empresa");
         setLoading(true);
-        const response = await apiClient.get(`/APICompany/Id?Id=${id}`);
-        const data = response.data;
-        setNombre(data.result.nombre);
+        const response = await empresaServices.getEmpresa(id);
+        setNombre(response.nombre);
       } catch (error) {
-        console.error("Error fetching empresa data:", error);
+        console.error("Error fetching cliente data:", error);
       } finally {
         setLoading(false);
       }
     };
-
-    if (id) {
-      setdisabledBtn(false);
-      fetchData();
-      setTitle("Editar empresa");
-    }
+    fetchData();
   }, [id]);
   return (
     <>

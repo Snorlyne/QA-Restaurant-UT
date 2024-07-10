@@ -23,10 +23,10 @@ namespace BaseWeb.Controllers.API
             var response = await _personServicio.ObtenerListaCliente();
             return Ok(response);
         }
-        [HttpGet("Id")]
-        public async Task<IActionResult> ObtenerPorId(int Id)
+        [HttpGet("{id}")]
+        public async Task<IActionResult> ObtenerPorId(int id)
         {
-            var response = await _personServicio.ObtenerCliente(Id);
+            var response = await _personServicio.ObtenerCliente(id);
             return Ok(response);
         }
         [HttpPost]
@@ -35,16 +35,16 @@ namespace BaseWeb.Controllers.API
             var response = await _personServicio.CrearCliente(request);
             return Ok(response);
         }
-        [HttpPut("Id")]
-        public async Task<IActionResult> EditarCliente([FromBody] ClienteCreate request, int Id)
+        [HttpPut("{id}")]
+        public async Task<IActionResult> EditarCliente([FromBody] ClienteCreate request, int id)
         {
-            var response = await _personServicio.EditarCliente(request, Id);
+            var response = await _personServicio.EditarCliente(request, id);
             return Ok(response);
         }
-        [HttpDelete("Id")]
-        public async Task<IActionResult> EliminarCliente(int Id)
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> EliminarCliente(int id)
         {
-            var response = await _personServicio.EliminarCliente(Id);
+            var response = await _personServicio.EliminarCliente(id);
             return Ok(response);
         }
     }

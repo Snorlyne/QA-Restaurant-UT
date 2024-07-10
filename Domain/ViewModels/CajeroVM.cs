@@ -18,11 +18,10 @@ namespace Domain.ViewModels
             public int Mesa { get;set;}
             public string Estado { get; set; }
             public string Imagen { get; set; }
-            public OrderVM[] Ordenes { get;set;}
+            public OrderCajeroVM[] Ordenes { get;set;}
         }
     }
-
-    public class OrderVM
+    public class OrderCajeroVM
     {
         public int Id { get; set; }
         public string Estado { get; set; }

@@ -11,7 +11,6 @@ import GuardarPedidos from "./Meseros/GuardarPedidos";
 import Unauthorized from "./AuthService/Unauthorized";
 import ProtectedRoute from "./AuthService/ProtectedRoute";
 import DashboardCajero from "./Desktop/Cajero/DashboardCajero";
-
 const App: React.FC = () => {
   return (
     <Router>

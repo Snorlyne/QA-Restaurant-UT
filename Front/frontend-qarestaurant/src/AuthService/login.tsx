@@ -12,8 +12,8 @@ import {
   CircularProgress,
 } from "@mui/material";
 import styled from "styled-components";
-import Logo from "../img/Logo.png";
-import agua from "../img/agua.jpg";
+import Logo from "../assets/img/Logo.png";
+import agua from "../assets/img/agua.jpg";
 import LoadingButton from "@mui/lab/LoadingButton";
 const Login: React.FC = () => {
   const [email, setEmail] = useState("");

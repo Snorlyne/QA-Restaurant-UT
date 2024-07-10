@@ -61,7 +61,7 @@ namespace Services.Servicio
                 return new Response<List<ClienteView>>(ex.Message);
             }
         }
-        public async Task<Response<ClienteView>> ObtenerCliente(int Id)
+        public async Task<Response<ClienteCreate>> ObtenerCliente(int Id)
         {
             try
             {
@@ -76,14 +76,10 @@ namespace Services.Servicio
                 string? base64String = person.Foto != null
                     ? Convert.ToBase64String(person.Foto)
                     : null;
-                ClienteView view = new()
+                ClienteCreate view = new()
                 {
                     Nombre = person.Nombre,
-                    Company = new CompanyView()
-                    {
-                        Id = person.Company.Id,
-                        Nombre = person.Company.Nombre
-                    },
+                    FK_Company_Id = person.FK_Company_Id,
                     Apellido_Materno = person.Apellido_Materno,
                     Apellido_Paterno = person.Apellido_Paterno,
                     CURP = person.CURP,
@@ -91,11 +87,11 @@ namespace Services.Servicio
                     Foto = person.Foto != null ? "data:image/png;base64," + base64String:null
             };
 
-                return new Response<ClienteView>(view);
+                return new Response<ClienteCreate>(view);
 
             } catch (Exception ex)
             {
-                return new Response<ClienteView>(ex.Message);
+                return new Response<ClienteCreate>(ex.Message);
             }
         }
         public async Task<Response<ClienteCreate>> CrearCliente(ClienteCreate request)

@@ -27,7 +27,7 @@ namespace BaseWeb.Controllers.API
             var result = await _inventarioService.ObtenerInventario(companyId);
             return Ok(result);
         }
-        [HttpGet("id")]
+        [HttpGet("{id}")]
         public async Task<IActionResult> ObtenerPorId(int Id)
         {
             var companyIdClaim = User.Claims.FirstOrDefault(c => c.Type == "companyId");
@@ -46,14 +46,14 @@ namespace BaseWeb.Controllers.API
             return Ok(result);
         }
 
-        [HttpPut("id")]
+        [HttpPut("{id}")]
         public async Task<IActionResult> Actualizar(int id, [FromBody] CreateProductoVM inventario)
         {
             var result = await _inventarioService.ActualizarProducto(id, inventario);
             return Ok(result);
         }
 
-        [HttpDelete("id")]
+        [HttpDelete("{id}")]
         public async Task<IActionResult> Eliminar(int id)
         {
             var result = await _inventarioService.EliminarProducto(id);

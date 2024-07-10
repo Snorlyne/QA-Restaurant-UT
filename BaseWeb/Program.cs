@@ -104,7 +104,7 @@ builder.Services.AddScoped<IInventarioServicio, InventarioServicio>();
 builder.Services.AddTransient<ICategoriaServicio, CategoriaServicio>();
 
 builder.Services.AddTransient<IColaboradorServicio, ColaboradorServicio>();
-//builder.Services.AddTransient<ICajeroServicio, CajeroServicio>();
+builder.Services.AddTransient<ICajeroServicio, CajeroServicio>();
 builder.Services.AddTransient<IStatusServicio, StatusServicio>();
 builder.Services.AddTransient<IOrderServicio, OrderServicio>();
 builder.Services.AddTransient<ICommandServicio, CommandServicio>();

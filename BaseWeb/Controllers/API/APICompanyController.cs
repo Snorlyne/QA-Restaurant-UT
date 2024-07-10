@@ -25,10 +25,10 @@ namespace BaseWeb.Controllers.API
             var response = await _companyServicio.ObtenerListaCompany();
             return Ok(response);
         }
-        [HttpGet("Id")]
-        public async Task<IActionResult> ObtenerPorId(int Id)
+        [HttpGet("{id}")]
+        public async Task<IActionResult> ObtenerPorId(int id)
         {
-            var response = await _companyServicio.ObtenerCompany(Id);
+            var response = await _companyServicio.ObtenerCompany(id);
             return Ok(response);
         }
         [HttpPost]
@@ -37,17 +37,17 @@ namespace BaseWeb.Controllers.API
             var response = await _companyServicio.CrearCompany(request);
             return Ok(response);
         }
-        [HttpPut("Id")]
-        public async Task<IActionResult> Editar(CompanyCreate request, int Id)
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Editar(CompanyCreate request, int id)
         {
-            var response = await _companyServicio.EditarCompany(request, Id);
+            var response = await _companyServicio.EditarCompany(request, id);
             return Ok(response);
         }
 
-        [HttpDelete("Id")]
-        public async Task<IActionResult> Eliminar(int Id)
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Eliminar(int id)
         {
-            var response = await _companyServicio.EliminarCompany(Id);
+            var response = await _companyServicio.EliminarCompany(id);
             return Ok(response);
         }
     }

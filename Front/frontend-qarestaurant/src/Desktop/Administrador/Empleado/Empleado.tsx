@@ -1,6 +1,5 @@
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
 import Box from "@mui/material/Box";
-import axios from "axios";
 import { useCallback, useEffect, useState } from "react";
 import {
   Avatar,
@@ -19,10 +18,11 @@ import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 // import IResponse from "../../../interfaces/IResponse.";
 import Loader from "../../../components/loader";
-import apiClient from "../../../AuthService/authInterceptor";
 import GeneralModal from "../../../components/GeneralModal";
 import IEmpleado from "../../../interfaces/Empleado/IEmpleado";
-import EmpleadoServices from "../../../services/EmpleadoServices";
+import empleadoServices from "../../../services/EmpleadoServices";
+import IResponse from "../../../interfaces/IResponse.";
+import { dataURLToFile } from "../../../assets/utils/DataURLToFile";
 
 // Función para filtrar filas
 const filterRows = (rows: IEmpleado[], term: string) => {
@@ -38,23 +38,6 @@ const filterRows = (rows: IEmpleado[], term: string) => {
     ].some((field) => field.toLowerCase().includes(searchTerm))
   );
 };
-
-// Función para convertir dataURL a File
-const dataURLToFile = (dataurl: string, filename: string): File => {
-  const [header, data] = dataurl.split(",");
-  const mimeMatch = header.match(/:(.*?);/);
-  if (!mimeMatch) throw new Error("Invalid data URL format");
-  const mime = mimeMatch[1];
-  const bstr = atob(data);
-  const u8arr = new Uint8Array(bstr.length);
-
-  for (let i = 0; i < bstr.length; i++) {
-    u8arr[i] = bstr.charCodeAt(i);
-  }
-
-  return new File([u8arr], filename, { type: mime });
-};
-
 export default function EmpleadoComponent() {
   const [rows, setRows] = useState<IEmpleado[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -155,7 +138,7 @@ export default function EmpleadoComponent() {
           <Button
             variant="contained"
             color="error"
-            onClick={() => fetchDelete(params.row.id)}
+            onClick={() => handleDelete(params.row.id)}
           >
             <DeleteIcon />
           </Button>
@@ -168,7 +151,7 @@ export default function EmpleadoComponent() {
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await EmpleadoServices.getEmpleados();
+      const data = await empleadoServices.getEmpleados();
       setRows(data);
       setFilteredRows(data);
     } catch (error) {
@@ -178,23 +161,51 @@ export default function EmpleadoComponent() {
   }, []);
 
   // Función para eliminar un colaborador
-  const fetchDelete = async (id: number) => {
+  const handleDelete = async (id: number) => {
     try {
-      const result = await Swal.fire({
-        title: "¿Está seguro de eliminar al colaborador?",
+      await Swal.fire({
+        title: "¿Está seguro de eliminar al cliente?",
         icon: "warning",
         showCancelButton: true,
         confirmButtonColor: "#3085d6",
         cancelButtonColor: "#d33",
         confirmButtonText: "Si",
         cancelButtonText: "No",
+        customClass: {
+          container: "custom-swal-container",
+        },
+      }).then(async (result) => {
+        if (result.isConfirmed) {
+          setLoading(true);
+          const response: IResponse = await empleadoServices.delete(id);
+          if (response.isSuccess) {
+            Swal.fire({
+              title: response.message,
+              icon: "success",
+              showCancelButton: false,
+              confirmButtonColor: "#3085d6",
+              cancelButtonColor: "#d33",
+              confirmButtonText: "Ok",
+              customClass: {
+                container: "custom-swal-container",
+              },
+            });
+          } else {
+            Swal.fire({
+              title: response.message,
+              icon: "error",
+              showCancelButton: false,
+              confirmButtonColor: "#3085d6",
+              cancelButtonColor: "#d33",
+              confirmButtonText: "Ok",
+              customClass: {
+                container: "custom-swal-container",
+              },
+            });
+          }
+          fetchData();
+        }
       });
-
-      if (result.isConfirmed) {
-        setLoading(true);
-        await EmpleadoServices.delete(id);
-        fetchData();
-      }
     } catch (error: any) {
       Swal.fire({
         title: "Error al Eliminar",

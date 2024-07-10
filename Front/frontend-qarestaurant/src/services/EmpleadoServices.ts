@@ -3,7 +3,7 @@ import IEmpleado from "../interfaces/Empleado/IEmpleado";
 import IEmpleadoDto from "../interfaces/Empleado/IEmpleadoDto";
 import IResponse from "../interfaces/IResponse.";
 
-const EmpleadoServices = {
+const empleadoServices = {
     async getEmpleados(): Promise<IEmpleado[]> {
         try {
             const response = await apiClient.get("/APIColaborador/lista");
@@ -14,7 +14,7 @@ const EmpleadoServices = {
     },
     async getEmpleado(id:string): Promise<IEmpleadoDto> {
         try {
-            const response = await apiClient.get(`/APIColaborador/Id?Id=${id}`);
+            const response = await apiClient.get(`/APIColaborador/${id}`);
             return response.data.result as IEmpleadoDto;
         }catch (err) {
             throw err;
@@ -30,7 +30,7 @@ const EmpleadoServices = {
     },
     async put(id: string, req: IEmpleadoDto): Promise<IResponse> {
         try {
-            const response = await apiClient.put(`/APIColaborador/Id?Id=${id}`, req);
+            const response = await apiClient.put(`/APIColaborador/${id}`, req);
             return response.data as IResponse;
         } catch (error) {
             throw error;
@@ -38,7 +38,7 @@ const EmpleadoServices = {
     },
     async delete(id: number): Promise<IResponse> {
         try {
-            const response = await apiClient.delete(`/APIColaborador/Id?Id=${id}`);
+            const response = await apiClient.delete(`/APIColaborador/${id}`);
             return response.data as IResponse;
         } catch (error) {
             throw error;
@@ -46,4 +46,4 @@ const EmpleadoServices = {
     }
 }
 
-export default EmpleadoServices;
+export default empleadoServices;

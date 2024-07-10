@@ -18,7 +18,7 @@ import SearchIcon from "@mui/icons-material/Search";
 import StorefrontIcon from "@mui/icons-material/Storefront";
 import HailIcon from "@mui/icons-material/Hail";
 import LogoutIcon from "@mui/icons-material/Logout";
-import logoSinBG from "./../../img/logoSinBG.png";
+import logoSinBG from "./../../assets/img/logoSinBG.png";
 import ClientesComponent from "./Cliente/Cliente";
 import { useEffect, useState } from "react";
 import InicioComponent from "./Inicio";

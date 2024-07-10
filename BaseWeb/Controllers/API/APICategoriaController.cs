@@ -34,12 +34,12 @@ namespace BaseWeb.Controllers.API
             }
         }
 
-        [HttpGet("id")]
-        public async Task<IActionResult> ObtenerPorId(int Id)
+        [HttpGet("{id}")]
+        public async Task<IActionResult> ObtenerPorId(int id)
         {
             var companyIdClaim = User.Claims.FirstOrDefault(c => c.Type == "companyId");
             var companyId = int.Parse(companyIdClaim.Value);
-            var response = await _categoriaService.ObtenerCategoriaById(Id, companyId);
+            var response = await _categoriaService.ObtenerCategoriaById(id, companyId);
             return Ok(response);
         }
 
@@ -59,7 +59,7 @@ namespace BaseWeb.Controllers.API
             }
         }
 
-        [HttpPut("id")]
+        [HttpPut("{id}")]
         public async Task<IActionResult> Actualizar(int id, [FromBody] CreateCategiaVM request)
         {
             try
@@ -75,7 +75,7 @@ namespace BaseWeb.Controllers.API
             }
         }
 
-        [HttpDelete("id")]
+        [HttpDelete("{id}")]
         public async Task<IActionResult> Eliminar(int id)
         {
             try

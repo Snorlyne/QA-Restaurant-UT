@@ -10,15 +10,14 @@ import {
 import CheckIcon from "@mui/icons-material/Check";
 import { useCallback, useEffect, useState } from "react";
 import IResponse from "../../../interfaces/IResponse.";
-import axios from "axios";
 import Swal from "sweetalert2";
 import Loader from "../../../components/loader";
 import { useParams } from "react-router-dom";
 import { useDropzone } from "react-dropzone";
 import { Cancel } from "@mui/icons-material";
-import authService from "../../../AuthService/authService";
 import IEmpleadoDto from "../../../interfaces/Empleado/IEmpleadoDto";
-import EmpleadoServices from "../../../services/EmpleadoServices";
+import empleadoServices from "../../../services/EmpleadoServices";
+import { dataURLToFile } from "../../../assets/utils/DataURLToFile";
 
 interface RoleData {
   id: number;
@@ -45,23 +44,6 @@ const initialErrors = {
 
 const MAX_FILE_SIZE_MB = 2; // Tamaño máximo de archivo en MB
 
-// Función para convertir dataURL a File
-const dataURLToFile = (dataurl: string, filename: string): File => {
-  const [header, data] = dataurl.split(",");
-  const mimeMatch = header.match(/:(.*?);/);
-  if (!mimeMatch) throw new Error("Invalid data URL format");
-  const mime = mimeMatch[1];
-  const bstr = atob(data);
-  const u8arr = new Uint8Array(bstr.length);
-
-  for (let i = 0; i < bstr.length; i++) {
-    u8arr[i] = bstr.charCodeAt(i);
-  }
-
-  return new File([u8arr], filename, { type: mime });
-};
-
-
 export default function EmpleadoCEComponent() {
   const { id } = useParams();
   const [title, setTitle] = useState<string>("Registrar empleado");
@@ -70,7 +52,6 @@ export default function EmpleadoCEComponent() {
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState(initialErrors);
   const [disabledBtn, setDisabledBtn] = useState(true);
-  const token = authService.getToken();
   const [selectedRole, setSelectedRole] = useState<RoleData | null>(null);
   const roles: RoleData[] = [
     { id: 3, nombre: "Chef" },
@@ -209,9 +190,9 @@ export default function EmpleadoCEComponent() {
       let response: IResponse;
       const data = empleadoData;
       if (!id) {
-        response = await EmpleadoServices.post(data);
+        response = await empleadoServices.post(data);
       } else {
-        response = await EmpleadoServices.put(id, data);
+        response = await empleadoServices.put(id, data);
       }
 
       if (response.isSuccess) {
@@ -274,15 +255,26 @@ export default function EmpleadoCEComponent() {
         return;
       }
       try {
-        setTitle("Editar cliente");
+        setTitle("Editar empleado");
         setLoading(true);
-        const response = await EmpleadoServices.getEmpleado(id);
+        const response = await empleadoServices.getEmpleado(id);
         setEmpleadoData(response);
-        setFile(
-          response.foto ? dataURLToFile(response.foto, "foto.png") : null
-        );
+        switch (response.role){
+          case 3:
+            setSelectedRole({ id: 3, nombre: "Chef" });
+            break;
+          case 4:
+            setSelectedRole({ id: 4, nombre: "Mesero" });
+            break;
+          case 5:
+            setSelectedRole({ id: 5, nombre: "Cajero" });
+            break;
+        }
+        if (response.foto) {
+          setFile(dataURLToFile(response.foto, "foto.png"));
+        }
       } catch (error) {
-        console.error("Error fetching cliente data:", error);
+        console.error("Error fetching empleado data:", error);
       } finally {
         setLoading(false);
       }
@@ -472,6 +464,7 @@ export default function EmpleadoCEComponent() {
                       <Autocomplete
                         options={roles}
                         value={selectedRole}
+                        isOptionEqualToValue={(option, value) => option.id === value?.id}
                         getOptionLabel={(option) => option.nombre}
                         onChange={handleRoleChange}
                         renderInput={(params) => (

@@ -7,6 +7,7 @@ using Repository.Context;
 using Services.IServicio;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.Design;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -35,7 +36,7 @@ namespace Services.Servicio
                     .Include(c => c.Order)
                         .ThenInclude(o => o.Person)
                     .Include(c => c.Command)
-                    .Where(x => x.Command.Restaurante == companyId)
+                    .Where(x => x.Command.Restaurante == companyId && x.Command.Fecha.Day == DateTime.Today.Day)
                     .ToListAsync();
 
 
@@ -43,7 +44,7 @@ namespace Services.Servicio
                     .GroupBy(oic => oic.Command) // Agrupa por Command para agrupar los orders en una comanda
                     .Select(g =>
                     {
-                        var orders = g.Select(oic => new OrderVM
+                        var orders = g.Select(oic => new OrderCajeroVM
                         {
                             Id = oic.Order.Id,
                             Estado = oic.Order.Status.Nombre,
@@ -88,7 +89,7 @@ namespace Services.Servicio
                 return new Response<List<ViewComandasVM>>(ex.Message);
             }
         }
-        public async Task<Response<ViewComandasVM>> GenerarTicketDeCobro(int idCommand, int idPerson, int companyId)
+        public async Task<Response<object>> GenerarTicketDeCobro(int idCommand, int idPerson, int companyId)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
@@ -101,7 +102,10 @@ namespace Services.Servicio
                     .Include(c => c.Order)
                         .ThenInclude(o => o.Person)
                     .Include(c => c.Command)
-                    .Where(x => x.Command.Restaurante == companyId && x.Command.Id == idCommand && x.Order.Status.Nombre == "Por cobrar")
+                    .Where(x => x.Command.Restaurante == companyId 
+                          && x.Command.Id == idCommand
+                          && x.Order.Status.Nombre == "Por cobrar" 
+                          && x.Command.Fecha == DateTime.Today)
                     .ToListAsync();
 
                 if(ordersInCommands.Count == 0) 
@@ -124,47 +128,23 @@ namespace Services.Servicio
                 _context.Commands.Update(command);
                 _context.SaveChanges();
 
-                ViewComandasVM ticket = ordersInCommands
-                .GroupBy(oic => oic.Command.Id)
-                .Select(g =>
-                {
-                    // Obtenemos una lista de OrderVM
-                    var orders = g.Select(oic => new OrderVM
-                    {
-                        Id = oic.Order.Id,
-                        Estado = "Pagando",
-                        Producto = new ProductVM
-                        {
-                            Nombre = oic.Order.Inventario.Nombre,
-                            Precio = oic.Order.Inventario.Precio
-                        }
-                    }).ToArray();
-
-                    // Devolvemos el objeto ViewComandasVM
-                    return new ViewComandasVM
-                    {
-                        Id = g.Key,
-                        Estado = "Pagando",
-                        MeseroCargo = _context.Person.FirstOrDefault(p => p.Id == g.First().Command.Propietario)?.Nombre ?? "Desconocido",
-                        Cobrador = _context.Person.FirstOrDefault(p => p.Id == command.Cobrador)?.Nombre ?? "Desconocido",
-                        Total = g.First().Command.Total,
-                        Mesa = g.First().Order.Mesa,
-                        Ordenes = orders
-                    };
-                })
-                .FirstOrDefault();
-
                 // Commit la transacción si todo es exitoso
                 await transaction.CommitAsync();
 
-                return new Response<ViewComandasVM>(ticket, "Ticket de cobro generado con éxito.");
+                object res = new
+                {
+                    commandId = idCommand,
+                    status = 5
+                };
+
+                return new Response<object>(res, "Ticket de cobro generado con éxito.");
 
             }
             catch (Exception ex)
             {
                 // Rollback la transacción si ocurre un error
                 await transaction.RollbackAsync();
-                return new Response<ViewComandasVM>(ex.Message);
+                return new Response<object>(ex.Message);
             }
 
         }
@@ -212,18 +192,18 @@ namespace Services.Servicio
                     throw new Exception("No existe la comanda.");
                 }
 
+
                 Order order = ordersInCommand.Select(o => o.Order).FirstOrDefault(x => x.Id == idOrden);
+                if (order == null)
+                {
+                    throw new Exception("No existe la orden.");
+                }
+                int idCommand = ordersInCommand.Where(x => x.Order.Id == idOrden).Select(c => c.Command).FirstOrDefault().Id;
 
                 if (ordersInCommand.Count == 1)
                 {
-                    int idCommand = ordersInCommand.Where(x => x.Order.Id == idOrden).Select(c => c.Command).FirstOrDefault().Id;
                     await _context.Database.ExecuteSqlRawAsync("EXEC sp_DeleteCommand @idCommand", new SqlParameter("@idCommand", idCommand));
                     message = "Comanda eliminada con éxito.";
-                }
-
-                if(order == null)
-                {
-                    throw new Exception("No existe la orden.");
                 }
 
                 _context.Orders.Remove(order);
@@ -231,7 +211,12 @@ namespace Services.Servicio
 
                 // Commit la transacción si todo es exitoso
                 await transaction.CommitAsync();
-                return new Response<object>(null, message);
+                object res = new
+                {
+                    commandId = idCommand,
+                    orderId = idOrden
+                };
+                return new Response<object>(res, message);
 
             }
             catch(Exception ex)

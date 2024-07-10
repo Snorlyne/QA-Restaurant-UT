@@ -1,5 +1,5 @@
 import { Box, Container, Grid, Typography } from "@mui/material";
-import Image from "../img/403.png";
+import Image from "../assets/img/403.png";
 export default function Unauthorized() {
   return (
     <Container>
