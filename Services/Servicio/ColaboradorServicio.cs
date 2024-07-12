@@ -1,5 +1,6 @@
 ﻿using Domain.Entidades;
 using Domain.Util;
+using Domain.ViewModels;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Repository.Context;
@@ -252,14 +253,27 @@ namespace Services.Servicio
                 return null;
             }
         }
+        //public static string HashPassword(string password)
+        //{
+        //    using (var sha256 = SHA256.Create())
+        //    {
+        //        // Calcula el hash de la contraseña
+        //        byte[] hashedBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(password));
+
+        //        // Convierte el hash a una cadena hexadecimal
+        //        StringBuilder builder = new StringBuilder();
+        //        for (int i = 0; i < hashedBytes.Length; i++)
+        //        {
+        //            builder.Append(hashedBytes[i].ToString("x2"));
+        //        }
+        //        return builder.ToString();
+        //    }
+        //}
         public static string HashPassword(string password)
         {
             using (var sha256 = SHA256.Create())
             {
-                // Calcula el hash de la contraseña
                 byte[] hashedBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(password));
-
-                // Convierte el hash a una cadena hexadecimal
                 StringBuilder builder = new StringBuilder();
                 for (int i = 0; i < hashedBytes.Length; i++)
                 {
