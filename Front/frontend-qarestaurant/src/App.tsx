@@ -7,6 +7,7 @@ import {
 import Dashboard from "./Desktop/Administrador/Dashboard";
 import Login from "./AuthService/login";
 import DashboardMeseros from "./Meseros/DashboardMeseros";
+import DashboardMeseros2 from "./Meseros/DashboardMeseros2";
 import GuardarPedidos from "./Meseros/GuardarPedidos";
 import Unauthorized from "./AuthService/Unauthorized";
 import ProtectedRoute from "./AuthService/ProtectedRoute";
@@ -27,6 +28,7 @@ const App: React.FC = () => {
           element={<ProtectedRoute roles={["Cashier"]} element={<DashboardCajero />} />}
         />
         <Route path="/meseros" element={<DashboardMeseros />}></Route>
+        <Route path="/meseros2" element={<DashboardMeseros2 />}></Route>
         <Route path="/GuardarPedidos" element={<GuardarPedidos />}></Route>
       </Routes>
     </Router>

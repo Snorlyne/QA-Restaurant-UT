@@ -30,7 +30,7 @@ const authService = {
 
     login: (email: string, password: string): Promise<string> => {
         return new Promise((resolve, reject) => {
-            axios.post('https://localhost:44314/APIAuth/Login', {
+            axios.post('https://localhost:7047/APIAuth/Login', {
                 email: email,
                 password: password
             })
