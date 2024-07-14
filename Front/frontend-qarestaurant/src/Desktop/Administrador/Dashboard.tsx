@@ -240,7 +240,7 @@ const Dashboard: React.FC = () => {
     const role = authService.getRole();
     if (role === "Root") {
       setSelectedMenuItems(
-        menuItems.filter((item) => item.text !== "")
+        menuItems.filter((item) => item.text !== "Inventario" && item.text !== "Empleados" && item.text !== "Categorias")
       );
     } else {
       setSelectedMenuItems(
