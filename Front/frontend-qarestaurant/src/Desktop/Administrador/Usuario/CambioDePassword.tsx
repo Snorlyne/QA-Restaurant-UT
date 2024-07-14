@@ -10,6 +10,7 @@ import {
 import Swal from 'sweetalert2';
 import axios from 'axios';
 import authService from "../../../AuthService/authService";
+import Loader from "../../../components/loader";
 
 const CambioDePassword: React.FC = () => {
     const [oldPassword, setOldPassword] = useState('');
@@ -54,7 +55,7 @@ const CambioDePassword: React.FC = () => {
                         container: 'custom-swal-container'
                     }
                 }).then(() => {
-                    // redireccionar al login o lo que sea
+                    authService.logout();
                 });
         
                 setOldPassword('');
@@ -85,6 +86,8 @@ const CambioDePassword: React.FC = () => {
     };
 
     return (
+        <>
+        {loading && <Loader />}
         <Container maxWidth="sm">
             <Box sx={{ mt: 4 }}>
                 <Typography variant="h4" component="h2" gutterBottom>
@@ -124,6 +127,7 @@ const CambioDePassword: React.FC = () => {
                 </form>
             </Box>
         </Container>
+        </>
     );
 };
 
