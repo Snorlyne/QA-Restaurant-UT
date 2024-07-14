@@ -1,4 +1,3 @@
-import axios from 'axios';
 import apiClient from './authInterceptor';
 
 
@@ -41,11 +40,13 @@ const authService = {
                 const usuario = response.data.result.nombre;
                 const rol = response.data.result.rol;
                 const empresa = response.data.result.empresa;
+                const email = response.data.result.email;
 
                 setCookie('token', token, 1); // Expira en 1 día
                 setCookie('usuario', usuario, 1);
                 setCookie('role', rol, 1);
                 setCookie('empresa', empresa, 1);
+                setCookie('email', email, 1);
                 resolve(rol);
             })
             .catch(function (error) {
@@ -60,6 +61,7 @@ const authService = {
         deleteCookie('usuario');
         deleteCookie('role');
         deleteCookie('empresa');
+        deleteCookie('email');
 
         // Redirigir al usuario a la página de inicio de sesión o la página de inicio
         window.location.href = '/'; // Ajusta la ruta según tu aplicación
@@ -79,6 +81,9 @@ const authService = {
             return parseInt(empresaCookie);
         }
         return null;
+    },
+    getEmail: (): string | null => {
+        return getCookie('email');
     }
 };
 

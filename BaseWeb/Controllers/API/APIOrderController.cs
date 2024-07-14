@@ -15,7 +15,7 @@ namespace BaseWeb.Controllers.API
         {
             _orderServicio = orderServicio;
         }
-        [HttpGet]
+        [HttpGet("listaOrdenes")]
         public async Task<IActionResult> ObtenerListaOrders()
         {
             var response = await _orderServicio.ObtenerListaOrders();
@@ -31,7 +31,14 @@ namespace BaseWeb.Controllers.API
         [HttpPost]
         public async Task<IActionResult> CrearOrder([FromBody] OrderCreateVM request)
         {
-            var response = await _orderServicio.CrearOrder(request);
+            var personIdClaim = User.Claims.FirstOrDefault(c => c.Type == "personId");
+            if (personIdClaim == null)
+            {
+                return Unauthorized("No se pudo obtener el ID de la persona de la sesión.");
+            }
+
+            var personId = int.Parse(personIdClaim.Value);
+            var response = await _orderServicio.CrearOrder(request,personId);
             return Ok(response);
         }
 

@@ -11,5 +11,7 @@ namespace Services.IServicio
     public interface IAuthServicio
     {
         Task<Response<AuthVM.Response>> Login(AuthVM.Request request);
+        Task<Response<bool>> CambiarContrasena(int Id, UserVM.UserChangePassword request);
+
     }
 }

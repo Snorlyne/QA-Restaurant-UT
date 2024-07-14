@@ -57,5 +57,6 @@ namespace BaseWeb.Controllers.API
             var response = await _personServicio.EliminarColaborador(id, companyId);
             return Ok(response);
         }
+
     }
 }

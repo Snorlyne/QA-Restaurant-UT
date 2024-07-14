@@ -33,6 +33,7 @@
     "react-datepicker": "^7.0.0",
     "react-dom": "^18.3.1",
     "react-dropzone": "^14.2.3",
+    "react-google-recaptcha": "^3.1.0",
     "react-hook-form": "^7.51.5",
     "react-lazyload": "^3.2.1",
     "react-modal": "^3.16.1",
@@ -66,5 +67,8 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "@types/react-google-recaptcha": "^2.1.9"
   }
 }
