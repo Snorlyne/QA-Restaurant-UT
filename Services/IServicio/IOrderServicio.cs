@@ -14,7 +14,7 @@ namespace Services.IServicio
     {
         public Task<Response<List<OrderViewVM>>> ObtenerListaOrders();
         public Task<Response<OrderVM.OrderViewVM>> ObtenerOrderById(int id);
-        public Task<Response<Order>> CrearOrder(OrderCreateVM request);
+        public Task<Response<Order>> CrearOrder(OrderCreateVM request, int personId);
         public Task<Response<OrderVM.OrderViewVM>> UpdateOrder(int id, OrderVM.OrderUpdateVM request);
         public Task<Response<Order>> DeleteOrder(int id);
     }

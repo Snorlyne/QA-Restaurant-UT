@@ -69,5 +69,6 @@ namespace Domain.ViewModels
             public string Email { get; set; }
             public RoleView Role { get; set; }
         }
+
     }
 }

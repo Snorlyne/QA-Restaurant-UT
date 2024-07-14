@@ -67,7 +67,7 @@ namespace Services.Servicio
             claims.AddClaim(new Claim(ClaimTypes.Email, user.Email));
             claims.AddClaim(new Claim(ClaimTypes.Role, user.Role.Nombre));
             claims.AddClaim(new Claim("companyId", company));
-            claims.AddClaim(new Claim("userId", user.Id.ToString()));
+            claims.AddClaim(new Claim("personId", person.Id.ToString()));
 
             var credencialesToken = new SigningCredentials(
                 new SymmetricSecurityKey(keyBytes),
@@ -107,5 +107,32 @@ namespace Services.Servicio
                 return builder.ToString();
             }
         }
+        public async Task<Response<bool>> CambiarContrasena(int Id, UserVM.UserChangePassword request)
+        {
+            try
+            {
+                User user = await _context.User.FindAsync(Id);
+                if (user == null)
+                {
+                    throw new Exception("Usuario no encontrado");
+                }
+
+                if (HashPassword(request.OldPassword) != user.Password)
+                {
+                    throw new Exception("La contraseña antigua no es correcta");
+                }
+
+                user.Password = HashPassword(request.NewPassword);
+                _context.Update(user);
+                await _context.SaveChangesAsync();
+
+                return new Response<bool>(true, "Contraseña cambiada con éxito.");
+            }
+            catch (Exception ex)
+            {
+                return new Response<bool>(false, ex.Message);
+            }
+        }
+
     }
 }

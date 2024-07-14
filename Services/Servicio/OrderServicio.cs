@@ -113,7 +113,7 @@ namespace Services.Servicio
             }
         }
 
-        public async Task<Response<Order>> CrearOrder (OrderVM.OrderCreateVM request)
+        public async Task<Response<Order>> CrearOrder (OrderVM.OrderCreateVM request, int personId)
         {
             try
             {
@@ -122,6 +122,7 @@ namespace Services.Servicio
                     Mesa = request.Mesa,
                     Fecha = request.Fecha,
                     Adicional = request.Adicional,
+                    FK_person_id = personId,
                     FK_status_id = request.FK_status_id,
                     FK_inventory_id = request.FK_inventory_id,
                 };
