@@ -32,9 +32,6 @@ const authService = {
     login: async (email: string, password: string): Promise<string> => {
         try {
             const response = await apiClient.post('Auth/Login', { email, password });
-            if (response.data.isSuccess) {
-                throw new Error();
-            }
             const { jwTtoken: token, nombre: usuario, rol, empresa, email: emailResponse } = response.data.result;
     
             setCookie('token', token, 1); // Expira en 1 día

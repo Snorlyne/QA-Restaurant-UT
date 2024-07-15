@@ -143,7 +143,7 @@ const OrderScreen: React.FC = () => {
                 {orders.map(order => (
                     <View key={order.id} style={styles.orderCard}>
                         <Image
-                            source={{ uri: `data:image/png;base64,${order.inventario.imagenInventario}` }}
+                            source={{ uri: `${order.inventario.imagenInventario}` }}
                             style={styles.image}
                         />
                         <View style={styles.titleContainer}>
