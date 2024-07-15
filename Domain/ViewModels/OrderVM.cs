@@ -11,7 +11,7 @@ namespace Domain.ViewModels
 {
     public class OrderVM
     {
-        public class OrderCreateVM 
+        public class OrderCreateVM
         {
             public int Mesa { get; set; }
             public DateTime Fecha { get; set; }
@@ -52,10 +52,15 @@ namespace Domain.ViewModels
             public string Nombre { get; set; }
         }
 
+
         public class ViewProductoVM
         {
             public int Id { get; set; }
+            public string ImagenInventario { get; set; }
+
             public string Nombre { get; set; }
-        }
+
+        } 
     }
+
 }
