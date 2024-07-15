@@ -109,13 +109,14 @@ builder.Services.AddTransient<IStatusServicio, StatusServicio>();
 builder.Services.AddTransient<IOrderServicio, OrderServicio>();
 builder.Services.AddTransient<ICommandServicio, CommandServicio>();
 builder.Services.AddTransient<IOrderInCommandServicio, OrderInCommandServicio>();
+builder.Services.AddTransient<ICocinerosServicio, CocinerosServicio>();
 
 //Configuraci?n para permitir el host del front para hace uso del Web API //Configurar cuando se pase a produccion.
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowWebApp", builder =>
     {
-        builder.WithOrigins("http://localhost:3000") // Cambia esto a la URL de tu aplicación React
+        builder.WithOrigins("http://localhost:3000","http://localhost:8081") // Cambia esto a la URL de tu aplicación React
                .AllowAnyHeader()
                .AllowAnyMethod()
                .AllowCredentials(); // Necesario para permitir credenciales

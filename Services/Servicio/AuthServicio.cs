@@ -37,7 +37,7 @@ namespace Services.Servicio
                 }
                 request.Password = HashPassword(request.Password);
 
-                if (au.Password != request.Password) 
+                if (au.Password != request.Password)
                 {
                     throw new Exception("Credenciales Invalidas");
                 }
@@ -70,6 +70,7 @@ namespace Services.Servicio
             claims.AddClaim(new Claim(ClaimTypes.Email, user.Email));
             claims.AddClaim(new Claim(ClaimTypes.Role, user.Role.Nombre));
             claims.AddClaim(new Claim("companyId", company));
+            claims.AddClaim(new Claim("userId", user.Id.ToString()));
             claims.AddClaim(new Claim("personId", personId));
 
             var credencialesToken = new SigningCredentials(
@@ -94,7 +95,7 @@ namespace Services.Servicio
 
         }
 
-    public static string HashPassword(string password)
+        public static string HashPassword(string password)
         {
             using (var sha256 = SHA256.Create())
             {

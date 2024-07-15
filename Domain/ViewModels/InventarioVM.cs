@@ -31,5 +31,13 @@ namespace Domain.ViewModels
             public Boolean Preparado { get; set; }
 
         }
+        
+        public class  ViewChef
+        {
+            public int Id { get; set; }
+            public string ImagenInventario { get; set; }
+            public string Nombre { get; set; }
+
+        }
     }
 }

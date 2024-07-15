@@ -1,23 +1,126 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, Modal, ScrollView } from 'react-native';
+import React, { useState, useEffect, useCallback } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Image, Modal, ScrollView, SafeAreaView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import authService from '../AuthService/authservice';
+import apiClient from '../AuthService/authInterceptor';
+import { useParams } from "react-router-dom";
 
-const OrderScreen = () => {
+interface Status {
+    id: number;
+    nombre: string;
+}
+
+interface Inventario {
+    id: number;
+    imagenInventario: string;
+    nombre: string;
+    descripcion: string;
+    precio: number;
+    preparado: boolean;
+}
+
+interface Order {
+    id: number;
+    mesa: number;
+    adicional: string;
+    status: Status;
+    inventario: Inventario;
+}
+
+const initialOrderData: Order = {
+    id: 0,
+    mesa: 0,
+    adicional: "",
+    status: {
+        id: 0,
+        nombre: "",
+    },
+    inventario: {
+        id: 0,
+        imagenInventario: "",
+        nombre: "",
+        descripcion: "",
+        precio: 0,
+        preparado: false,
+    },
+};
+
+const OrderScreen: React.FC = () => {
     const navigation = useNavigation();
-    const [orderStatus, setOrderStatus] = useState({
-        soup: 'pending',
-        steak: 'pending'
-    });
+    const [orders, setOrders] = useState<Order[]>([]);
     const [modalVisible, setModalVisible] = useState(false);
+    const [completedOrder, setCompletedOrder] = useState<number | null>(null);
+    const token = authService.getToken();
+    const [loading, setLoading] = useState(false);
+    const { id } = useParams();
 
-    const handlePreparation = (item: string) => {
-        setOrderStatus({ ...orderStatus, [item]: 'inPreparation' });
+    useEffect(() => {
+        fetchOrders();
+    }, []);
+
+    const fetchOrders = useCallback(async () => {
+        try {
+            setLoading(true);
+            const response = await apiClient.get<{ result: Order[] }>('/api/APICocineros/ObtenerOrdenes');
+            const data = response.data;
+            console.log('API Response:', data);
+            const filteredOrders = data.result.filter(order => order.status.nombre !== 'Pedido listo');
+            setOrders(filteredOrders);
+        } catch (error) {
+            console.error('Error fetching data:', error);
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    const updateOrderStatus = async (id: number, nombre: string) => {
+        try {
+            const token = await authService.getToken();
+            if (!token) {
+                console.error('No se ha encontrado el token de autorización.');
+                return;
+            }
+
+            const response = await fetch(`https://localhost:7047/api/APICocineros/ActualizarEstadoOrden/${id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                },
+                body: JSON.stringify({ nuevoEstado: nombre }),
+            });
+
+            if (!response.ok) {
+                const errorDetails = await response.text();
+                throw new Error(`Error al actualizar el estado de la orden: ${response.status} - ${errorDetails}`);
+            }
+
+            const result = await response.json();
+            console.log('Response from server:', result);
+
+            if (result.isSuccess) {
+                if (nombre === 'Pedido listo') {
+                    setOrders(prevOrders => prevOrders.filter(order => order.id !== id));
+                    setCompletedOrder(id);
+                    setModalVisible(true);
+                } else {
+                    fetchOrders();
+                }
+            } else {
+                console.error('Error al actualizar el estado de la orden:', result.message);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+        }
     };
 
-    const handleCompletion = (item: string) => {
-        setOrderStatus({ ...orderStatus, [item]: 'completed' });
-        setModalVisible(true); // Mostrar el modal
+    const handlePreparation = (id: number) => {
+        updateOrderStatus(id, 'En preparación');
+    };
+
+    const handleCompletion = (id: number) => {
+        updateOrderStatus(id, 'Pedido listo');
     };
 
     const handleLogout = () => {
@@ -29,7 +132,7 @@ const OrderScreen = () => {
     };
 
     return (
-        <View style={styles.container}>
+        <SafeAreaView style={styles.container}>
             <View style={styles.headerContainer}>
                 <Text style={styles.header}>Ordenes pedidas:</Text>
                 <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
@@ -37,58 +140,33 @@ const OrderScreen = () => {
                 </TouchableOpacity>
             </View>
             <ScrollView contentContainerStyle={styles.scrollViewContent}>
-                <View style={styles.orderCard}>
-                    <Image
-                        source={{ uri: 'https://www.deliciosi.com/images/300/393/sopa-de-zanahoria-665.webp' }}
-                        style={styles.image}
-                    />
-                    <View style={styles.titleContainer}>
-                        <Text style={styles.title}>Sopa de Zanahoria</Text>
-                        <Text style={styles.table}>Mesa N: #2</Text>
-                    </View>
-                    <Text style={styles.note}>Nota: sin cebolla</Text>
-                    <View style={styles.buttonContainer}>
-                        {orderStatus.soup === 'inPreparation' && (
-                            <View style={styles.inPreparationContainer}>
-                                <Text style={styles.inPreparation}>Orden en preparación...</Text>
-                                <TouchableOpacity style={styles.completedButton} onPress={() => handleCompletion('soup')}>
-                                    <Text style={styles.completedButtonText}>Completada</Text>
+                {orders.map(order => (
+                    <View key={order.id} style={styles.orderCard}>
+                        <Image
+                            source={{ uri: `data:image/png;base64,${order.inventario.imagenInventario}` }}
+                            style={styles.image}
+                        />
+                        <View style={styles.titleContainer}>
+                            <Text style={styles.title}>{order.inventario.nombre}</Text>
+                            <Text style={styles.table}>Mesa N: #{order.mesa}</Text>
+                        </View>
+                        <Text style={styles.note}>Nota: {order.adicional}</Text>
+                        <View style={styles.buttonContainer}>
+                            {order.status.nombre === 'En preparación' ? (
+                                <View style={styles.inPreparationContainer}>
+                                    <Text style={styles.inPreparation}>Orden en preparación...</Text>
+                                    <TouchableOpacity style={styles.completedButton} onPress={() => handleCompletion(order.id)}>
+                                        <Text style={styles.completedButtonText}>Completada</Text>
+                                    </TouchableOpacity>
+                                </View>
+                            ) : (
+                                <TouchableOpacity style={styles.preparationButton} onPress={() => handlePreparation(order.id)}>
+                                    <Text style={styles.buttonText}>En preparación</Text>
                                 </TouchableOpacity>
-                            </View>
-                        )}
-                        {orderStatus.soup === 'pending' && (
-                            <TouchableOpacity style={styles.preparationButton} onPress={() => handlePreparation('soup')}>
-                                <Text style={styles.buttonText}>En preparación</Text>
-                            </TouchableOpacity>
-                        )}
+                            )}
+                        </View>
                     </View>
-                </View>
-                <View style={styles.orderCard}>
-                    <Image
-                        source={{ uri: 'https://assets.farmison.com/images/module-image--large/66489-wagyu-sirloin-beef-28757-2-.jpg' }}
-                        style={styles.image}
-                    />
-                    <View style={styles.titleContainer}>
-                        <Text style={styles.title}>Wagyu Sirloin</Text>
-                        <Text style={styles.table}>Mesa N: #3</Text>
-                    </View>
-                    <Text style={styles.note}>Nota: Termino medio</Text>
-                    <View style={styles.buttonContainer}>
-                        {orderStatus.steak === 'inPreparation' && (
-                            <View style={styles.inPreparationContainer}>
-                                <Text style={styles.inPreparation}>Orden en preparación...</Text>
-                                <TouchableOpacity style={styles.completedButton} onPress={() => handleCompletion('steak')}>
-                                    <Text style={styles.completedButtonText}>Completada</Text>
-                                </TouchableOpacity>
-                            </View>
-                        )}
-                        {orderStatus.steak === 'pending' && (
-                            <TouchableOpacity style={styles.preparationButton} onPress={() => handlePreparation('steak')}>
-                                <Text style={styles.buttonText}>En preparación</Text>
-                            </TouchableOpacity>
-                        )}
-                    </View>
-                </View>
+                ))}
 
                 {/* Modal para la alerta personalizada */}
                 <Modal
@@ -107,15 +185,16 @@ const OrderScreen = () => {
                         </View>
                     </View>
                 </Modal>
+
             </ScrollView>
-        </View>
+        </SafeAreaView>
     );
 };
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        padding: 16,
+        padding: 16, // Mantenemos el padding general del contenedor principal
         backgroundColor: '#FFF6ED',
     },
     headerContainer: {
@@ -123,6 +202,8 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         alignItems: 'center',
         marginBottom: 16,
+        padding: 10, // Aumentado para dar más espacio interno
+        marginTop: 10, // Añadido para dar espacio adicional en la parte superior
     },
     header: {
         fontSize: 24,
@@ -196,8 +277,8 @@ const styles = StyleSheet.create({
     },
     preparationButton: {
         backgroundColor: '#add8e6',
-        paddingVertical: 5, 
-        paddingHorizontal: 20, 
+        paddingVertical: 5,
+        paddingHorizontal: 20,
         borderRadius: 8,
     },
     completedButton: {
