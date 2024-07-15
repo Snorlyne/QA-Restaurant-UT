@@ -5,11 +5,11 @@ namespace BaseWeb.Controllers.API
 {
     [ApiController]
     [Route("[controller]")]
-    public class APICommandController : ControllerBase
+    public class CommandController : ControllerBase
     {
         private readonly ICommandServicio _commandServicio;
 
-        public APICommandController(ICommandServicio commandServicio)
+        public CommandController(ICommandServicio commandServicio)
         {
             _commandServicio = commandServicio;
         }

@@ -7,11 +7,11 @@ namespace BaseWeb.Controllers.API
     [Route("[controller]")]
     [ApiController]
     [Authorize(Roles = "Root")]
-    public class APIStatusController : ControllerBase
+    public class StatusController : ControllerBase
     {
         private readonly IStatusServicio _statusServicio;
 
-        public APIStatusController(IStatusServicio statusServicio)
+        public StatusController(IStatusServicio statusServicio)
         {
             _statusServicio = statusServicio;
         }

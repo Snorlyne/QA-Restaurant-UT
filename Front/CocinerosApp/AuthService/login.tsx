@@ -20,19 +20,15 @@ const Login: React.FC = () => {
     try {
       const login = await authService.login(email, password);
       switch (login) {
-        case "Root":
-        case "Admin":
         case "Chef":
-        case "Waiter":
-        case "Cashier":
           navigation.navigate("Bienvenido");
           break;
         default:
-          setError("Error: Correo o contraseña incorrecta");
+          setError("Usuario no autorizado");
           break;
       }
     } catch (err) {
-      setError("Error: Correo o contraseña incorrecta");
+      setError("Correo o contraseña incorrecta");
     }
   };
 

@@ -62,7 +62,7 @@ const OrderScreen: React.FC = () => {
     const fetchOrders = useCallback(async () => {
         try {
             setLoading(true);
-            const response = await apiClient.get<{ result: Order[] }>('/api/APICocineros/ObtenerOrdenes');
+            const response = await apiClient.get<{ result: Order[] }>('/Cocineros/ObtenerOrdenes');
             const data = response.data;
             console.log('API Response:', data);
             const filteredOrders = data.result.filter(order => order.status.nombre !== 'Pedido listo');
@@ -82,7 +82,7 @@ const OrderScreen: React.FC = () => {
                 return;
             }
 
-            const response = await fetch(`https://localhost:7047/api/APICocineros/ActualizarEstadoOrden/${id}`, {
+            const response = await fetch(`https://localhost:7047/Cocineros/ActualizarEstadoOrden/${id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',

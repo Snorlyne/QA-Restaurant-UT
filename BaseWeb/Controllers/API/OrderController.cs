@@ -10,11 +10,11 @@ namespace BaseWeb.Controllers.API
     [ApiController]
     [Route("[controller]")]
     [Authorize(Roles="Chef")]
-    public class APIOrderController : ControllerBase
+    public class OrderController : ControllerBase
     {
         private readonly IOrderServicio _orderServicio;
 
-        public APIOrderController(IOrderServicio orderServicio)
+        public OrderController(IOrderServicio orderServicio)
         {
             _orderServicio = orderServicio;
         }

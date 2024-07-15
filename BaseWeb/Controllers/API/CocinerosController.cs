@@ -7,13 +7,13 @@ using System.Threading.Tasks;
 
 namespace API.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("[controller]")]
     [ApiController]
-    public class APICocinerosController : ControllerBase
+    public class CocinerosController : ControllerBase
     {
         private readonly ICocinerosServicio _cocinerosServicio;
 
-        public APICocinerosController(ICocinerosServicio cocinerosServicio)
+        public CocinerosController(ICocinerosServicio cocinerosServicio)
         {
             _cocinerosServicio = cocinerosServicio;
         }
