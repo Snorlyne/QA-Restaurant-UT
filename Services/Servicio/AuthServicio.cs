@@ -36,7 +36,7 @@ namespace Services.Servicio
                 }
                 request.Password = HashPassword(request.Password);
 
-                if (au.Password != request.Password)
+                if (au.Password != request.Password) 
                 {
                     throw new Exception("Credenciales Invalidas");
                 }
@@ -46,7 +46,7 @@ namespace Services.Servicio
                 {
                     Email = request.Email,
                     Rol = au.Role.Nombre,
-                    Nombre = person != null ? $"{person.Nombre} {person.Apellido_Paterno}" : "RALL",
+                    Nombre = person != null ? $"{person.Nombre} {person.Apellido_Paterno}": "RALL",
                     JWTtoken = accessToken
                 };
                 return new Response<AuthVM.Response>(response);
@@ -67,7 +67,7 @@ namespace Services.Servicio
             claims.AddClaim(new Claim(ClaimTypes.Email, user.Email));
             claims.AddClaim(new Claim(ClaimTypes.Role, user.Role.Nombre));
             claims.AddClaim(new Claim("companyId", company));
-            claims.AddClaim(new Claim("userId", user.Id.ToString()));
+            claims.AddClaim(new Claim("personId", person.Id.ToString()));
 
             var credencialesToken = new SigningCredentials(
                 new SymmetricSecurityKey(keyBytes),
@@ -91,7 +91,7 @@ namespace Services.Servicio
 
         }
 
-        public static string HashPassword(string password)
+    public static string HashPassword(string password)
         {
             using (var sha256 = SHA256.Create())
             {

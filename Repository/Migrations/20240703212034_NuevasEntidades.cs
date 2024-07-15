@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace Repository.Migrations
 {
-    public partial class migracion : Migration
+    public partial class NuevasEntidades : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -137,11 +137,17 @@ namespace Repository.Migrations
                     Descripcion = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Precio = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     Preparado = table.Column<bool>(type: "bit", nullable: false),
-                    FK_Categoria = table.Column<int>(type: "int", nullable: true)
+                    FK_Categoria = table.Column<int>(type: "int", nullable: true),
+                    CategoriasId = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Inventario", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Inventario_Categorias_CategoriasId",
+                        column: x => x.CategoriasId,
+                        principalTable: "Categorias",
+                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_Inventario_Categorias_FK_Categoria",
                         column: x => x.FK_Categoria,
@@ -253,6 +259,11 @@ namespace Repository.Migrations
                 name: "IX_ConfiguracionGeneral_FK_Company_Id",
                 table: "ConfiguracionGeneral",
                 column: "FK_Company_Id");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Inventario_CategoriasId",
+                table: "Inventario",
+                column: "CategoriasId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Inventario_FK_Categoria",

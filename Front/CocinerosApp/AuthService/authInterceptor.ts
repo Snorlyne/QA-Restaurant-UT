@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { Alert } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import authService from './authservice';
 
 // Crear una instancia de Axios
@@ -12,16 +13,12 @@ const apiClient = axios.create({
 
 // Interceptor de solicitud
 apiClient.interceptors.request.use(
-    async (config) => {
-        try {
-            const token = await authService.getToken(); // Obtener el token desde el authService de manera asíncrona
-            if (token) {
-                config.headers['Authorization'] = `Bearer ${token}`;
-            }
-            return config;
-        } catch (error) {
-            return Promise.reject(error);
+    (config) => {
+        const token = authService.getToken(); // Obtener el token desde el authService
+        if (token) {
+            config.headers['Authorization'] = `Bearer ${token}`;
         }
+        return config;
     },
     (error) => {
         // Manejo de errores en la solicitud
@@ -45,7 +42,7 @@ apiClient.interceptors.response.use(
                     'Sesión expirada',
                     'Por favor, inicia sesión de nuevo.',
                     [
-                        { text: 'Aceptar', onPress: () => authService.logout({}) }
+                        { text: 'Aceptar', onPress: () => authService.logout() }
                     ],
                     { cancelable: false }
                 );

@@ -120,6 +120,9 @@ namespace Repository.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
+                    b.Property<int?>("CategoriasId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Descripcion")
                         .HasColumnType("nvarchar(max)");
 
@@ -139,6 +142,8 @@ namespace Repository.Migrations
                         .HasColumnType("bit");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CategoriasId");
 
                     b.HasIndex("FK_Categoria");
 
@@ -338,8 +343,12 @@ namespace Repository.Migrations
 
             modelBuilder.Entity("Domain.Entidades.Inventario", b =>
                 {
-                    b.HasOne("Domain.Entidades.Categorias", "Categorias")
+                    b.HasOne("Domain.Entidades.Categorias", null)
                         .WithMany("Inventarios")
+                        .HasForeignKey("CategoriasId");
+
+                    b.HasOne("Domain.Entidades.Categorias", "Categorias")
+                        .WithMany()
                         .HasForeignKey("FK_Categoria")
                         .OnDelete(DeleteBehavior.SetNull);
 
