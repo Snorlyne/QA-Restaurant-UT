@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import { Button, Card, CardContent, Grid, Typography, Checkbox, FormControlLabel, Box } from "@mui/material";
 import AddIcon from '@mui/icons-material/Add';
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 import { Order, ApiResponse } from "./Orders";
 
 interface ITool {
@@ -17,6 +18,8 @@ const cardButtons = ['Nueva orden', 'Pagar'];
 const DashboardMeseros: React.FC = () => {
     const [tools, setTools] = useState<ITool[]>([]);
     const [checkedState, setCheckedState] = useState<boolean[][]>([]);
+
+    const navigate = useNavigate();
 
     useEffect(() => {
         fetchOrders();
@@ -116,6 +119,7 @@ const DashboardMeseros: React.FC = () => {
                                         {cardButtons.map((cardButton) => (
                                             <Button
                                                 key={cardButton}
+                                                onClick={() => navigate("/GuardarPedidos")}
                                                 sx={{
                                                     textTransform: 'none',
                                                     color: 'black',

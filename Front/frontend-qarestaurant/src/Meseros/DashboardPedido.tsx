@@ -165,7 +165,7 @@ const items = [
     },
 ];
 
-const App: React.FC = () => {
+const DashboardPedido: React.FC = () => {
     const theme = useTheme();
     const [open, setOpen] = React.useState(false);
     const [modalOpen, setModalOpen] = React.useState(false);
@@ -326,4 +326,4 @@ const App: React.FC = () => {
     );
 };
 
-export default App;
+export default DashboardPedido;

@@ -30,19 +30,11 @@ import { Card } from '@mui/material';
 import ExitToAppIcon from '@mui/icons-material/ExitToApp';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import Hidden from '@mui/material/Hidden';
-import { Link } from 'react-router-dom';
-import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
 import SearchIcon from '@mui/icons-material/Search';
-
-const handleSave = () => {
-  console.log('Guardar');
-  // Aquí puedes agregar la lógica para guardar
-};
-
-const handleCancel = () => {
-  console.log('Cancelar');
-  // Aquí puedes agregar la lógica para cancelar
-};
+import axios from 'axios';
+import apiClient from '../AuthService/authInterceptor';
 
 
 const drawerWidth = 240;
@@ -140,28 +132,77 @@ const MenuItem = styled(ListItem)(({ theme }) => ({
 }));
 
 
-const items = [
-  {
-    id: 1,
-    name: 'Cheese Pizza',
-    image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRFr7UUQCqtJ6Juf0IGcgyJEuMLg9TEUd_mgg&s',
-    quantity: 1,
-  },
-  {
-    id: 2,
-    name: 'Pepperoni Pizza',
-    image: 'https://images.ecestaticos.com/WJT0BFvdZ4poZa5PiFHuCXX2sTo=/0x0:2121x1414/1200x900/filters:fill(white):format(jpg)/f.elconfidencial.com%2Foriginal%2F96f%2F563%2Fc84%2F96f563c8404ac8cd97c158887aa56ae1.jpg',
-    quantity: 1,
-  },
-];
+// const items = [
+//   {
+//     id: 1,
+//     name: 'Cheese Pizza',
+//     image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRFr7UUQCqtJ6Juf0IGcgyJEuMLg9TEUd_mgg&s',
+//     quantity: 1,
+//   },
+//   {
+//     id: 2,
+//     name: 'Pepperoni Pizza',
+//     image: 'https://images.ecestaticos.com/WJT0BFvdZ4poZa5PiFHuCXX2sTo=/0x0:2121x1414/1200x900/filters:fill(white):format(jpg)/f.elconfidencial.com%2Foriginal%2F96f%2F563%2Fc84%2F96f563c8404ac8cd97c158887aa56ae1.jpg',
+//     quantity: 1,
+//   },
+// ];
+
+interface Product {
+  id: number;
+  nombre: string;
+  imagenInventario: string | null;
+  categoria: string;
+  descripcion: string;
+  precio: number;
+}
+
+interface CategoriaData {
+  id: number;
+  nombreCategoria: string;
+}
 
 const App: React.FC = () => {
   const theme = useTheme();
+  const navigate = useNavigate();
   const [open, setOpen] = React.useState(false);
   const [modalOpen, setModalOpen] = React.useState(false);
   const [currentItem, setCurrentItem] = React.useState<number | null>(null);
+  const [products, setProducts] = useState<Product[]>([]);
   const [additionText, setAdditionText] = React.useState('');
   const [searchTerm, setSearchTerm] = useState('');
+  const [categories, setCategories] = useState<CategoriaData[]>([]);
+
+  const handleSave = () => {
+    console.log('Guardar');
+    // Aquí puedes agregar la lógica para guardar
+  };
+  
+  const handleCancel = () => {
+    navigate("/meseros2");
+  };
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await apiClient.get('/APICategoria');
+        setCategories(response.data.result);
+      } catch (error) {
+        console.error('Error fetching categories:', error);
+      }
+    };
+
+    const fetchProducts = async () => {
+      try {
+        const responseProduct = await apiClient.get('/APIInventario');
+        setProducts(responseProduct.data.result);
+      } catch (error) {
+        console.error('Error fetching products:', error);
+      }
+    };
+
+    fetchCategories();
+    fetchProducts();
+  }, []);
 
   const handleLogout = () => {
     // Aquí puedes agregar la lógica para cerrar sesión, por ejemplo:
@@ -195,8 +236,8 @@ const App: React.FC = () => {
     setSearchTerm(event.target.value);
   };
   
-  const filteredProducts = items.filter(item =>
-    item.name.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredProducts = products.filter(product =>
+    product.nombre.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -237,12 +278,12 @@ QA Restaurant
         <LogoContainer>
             <img src={logo} alt="Logo" style={{ width: '80%', height: 'auto' }} />
         </LogoContainer>
-        <Typography variant="h6" sx={{ color: '#ffffff', textAlign: 'center', display: 'block'}}>Mesas</Typography>
+        <Typography variant="h6" sx={{ color: '#ffffff', textAlign: 'center', display: 'block'}}>Categorias</Typography>
         <Divider />
 
         <List>
-          {['Mesa 1', 'Mesa 2', 'Mesa 3'].map((text, index) => (
-            <MenuItem key={text} disablePadding selected={index === 0} sx={{ display: 'block' }}>
+          {categories.map((category) => (
+            <MenuItem key={category.id} disablePadding sx={{ display: 'block' }}>
               <ListItemButton
                 sx={{
                   minHeight: 48,
@@ -258,9 +299,9 @@ QA Restaurant
                     color: '#ffffff',
                   }}
                 >
-                  {index % 2 === 0 ?  <TableChartIcon /> :  <TableChartIcon />}
+                  <TableChartIcon />
                 </ListItemIcon>
-                <ListItemText primary={text} sx={{ opacity: open ? 1 : 0 }} />
+                <ListItemText primary={category.nombreCategoria} sx={{ opacity: open ? 1 : 0 }} />
               </ListItemButton>
             </MenuItem>
           ))}
@@ -292,17 +333,16 @@ QA Restaurant
 </Box>
   {/* ...otros componentes... */}
   <Grid container spacing={2}>
-  {filteredProducts.map((item) =>  (
-      <Grid item xs={12} sm={6} md={6} lg={6}>
+  {filteredProducts.map((product) => (
+      <Grid item xs={12} sm={6} md={6} lg={6} key={product.id}>
         <OrderItem
-          key={item.id}
-          image={item.image}
-          title={item.name}
-          quantity={item.quantity}
-          onAdd={() => console.log(`Añadir más de ${item.name}`)}
-          onRemove={() => console.log(`Eliminar uno de ${item.name}`)}
-          onAddExtras={() => handleModalOpen(item.id)}
-          onInfoClick={() => console.log(`Información de ${item.name}`)}
+          image={product.imagenInventario || 'https://png.pngtree.com/element_our/20190602/ourlarge/pngtree-no-photo-taking-photo-illustration-image_1407166.jpg'}
+          title={product.nombre}
+          quantity={1} // Ajusta según sea necesario
+          onAdd={() => console.log(`Añadir más de ${product.nombre}`)}
+          onRemove={() => console.log(`Eliminar uno de ${product.nombre}`)}
+          onAddExtras={() => handleModalOpen(product.id)}
+          onInfoClick={() => console.log(`Información de ${product.nombre}`)}
         />
       </Grid>
     ))}
