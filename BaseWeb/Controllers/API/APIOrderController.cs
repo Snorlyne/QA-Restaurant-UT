@@ -1,4 +1,6 @@
-﻿using Domain.ViewModels;
+﻿using Domain.Util;
+using Domain.ViewModels;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Services.IServicio;
 using static Domain.ViewModels.OrderVM;
@@ -7,6 +9,7 @@ namespace BaseWeb.Controllers.API
 {
     [ApiController]
     [Route("[controller]")]
+    [Authorize(Roles="Chef")]
     public class APIOrderController : ControllerBase
     {
         private readonly IOrderServicio _orderServicio;
