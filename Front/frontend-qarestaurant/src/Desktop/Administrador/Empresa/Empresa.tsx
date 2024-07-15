@@ -15,7 +15,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import Loader from "../../../components/loader";
-import apiClient from "../../../AuthService/authInterceptor";
+import apiClient from "../../../auth/AuthInterceptor";
 import IEmpresa from "../../../interfaces/Empresa/IEmpresa";
 import empresaServices from "../../../services/EmpresaServices";
 import IResponse from "../../../interfaces/IResponse.";

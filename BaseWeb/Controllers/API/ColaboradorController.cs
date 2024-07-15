@@ -10,10 +10,10 @@ namespace BaseWeb.Controllers.API
     [Route("[controller]")]
     [ApiController]
     [Authorize(Roles = "Admin")]
-    public class APIColaboradorController : ControllerBase
+    public class ColaboradorController : ControllerBase
     {
         private readonly IColaboradorServicio _personServicio;
-        public APIColaboradorController(IColaboradorServicio personServicio)
+        public ColaboradorController(IColaboradorServicio personServicio)
         {
             _personServicio = personServicio;
         }

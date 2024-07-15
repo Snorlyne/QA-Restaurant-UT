@@ -10,10 +10,10 @@ namespace BaseWeb.Controllers.API
     [Route("[controller]")]
     [ApiController]
     [Authorize(Roles = "Root")]
-    public class APIClienteController : ControllerBase
+    public class ClienteController : ControllerBase
     {
         private readonly IClienteServicio _personServicio;
-        public APIClienteController(IClienteServicio personServicio)
+        public ClienteController(IClienteServicio personServicio)
         {
             _personServicio = personServicio;
         }

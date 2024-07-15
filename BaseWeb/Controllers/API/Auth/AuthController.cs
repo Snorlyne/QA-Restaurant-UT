@@ -10,10 +10,10 @@ namespace BaseWeb.Controllers.API.Auth
     [ApiController]
   
 
-    public class APIAuthController : ControllerBase
+    public class AuthController : ControllerBase
     {
         private readonly IAuthServicio _authServicio;
-        public APIAuthController(IAuthServicio authServicio) 
+        public AuthController(IAuthServicio authServicio) 
         {
             _authServicio = authServicio;
         }

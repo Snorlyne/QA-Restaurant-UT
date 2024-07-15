@@ -5,13 +5,14 @@ import {
   Routes,
 } from "react-router-dom";
 import Dashboard from "./Desktop/Administrador/Dashboard";
-import Login from "./AuthService/login";
 import DashboardMeseros from "./Meseros/DashboardMeseros";
 import DashboardMeseros2 from "./Meseros/DashboardMeseros2";
 import GuardarPedidos from "./Meseros/GuardarPedidos";
-import Unauthorized from "./AuthService/Unauthorized";
-import ProtectedRoute from "./AuthService/ProtectedRoute";
+import Unauthorized from "./auth/Unauthorized";
+import ProtectedRoute from "./auth/ProtectedRoute";
 import DashboardCajero from "./Desktop/Cajero/DashboardCajero";
+import NotFound from "./auth/NotFound";
+import Login from "./auth/Login";
 const App: React.FC = () => {
   return (
     <Router>
@@ -29,6 +30,7 @@ const App: React.FC = () => {
         <Route path="/meseros" element={<DashboardMeseros />}></Route>
         <Route path="/meseros2" element={<DashboardMeseros2 />}></Route>
         <Route path="/GuardarPedidos" element={<GuardarPedidos />}></Route>
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </Router>
   );

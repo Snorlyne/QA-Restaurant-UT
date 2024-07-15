@@ -30,7 +30,7 @@ import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import mesaIMG from "../../assets/img/vinos.jpg";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import Swal from "sweetalert2";
-import authService from "../../AuthService/authService";
+import authService from "../../services/AuthServices";
 import LazyLoad from "react-lazyload";
 import deepOrange from "@mui/material/colors/deepOrange";
 import { dataURLToFile } from "../../assets/utils/DataURLToFile";

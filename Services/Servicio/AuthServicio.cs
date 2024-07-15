@@ -12,6 +12,7 @@ using System.Linq.Expressions;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
+using static Domain.ViewModels.UserVM;
 
 namespace Services.Servicio
 {
@@ -109,7 +110,7 @@ namespace Services.Servicio
                 return builder.ToString();
             }
         }
-        public async Task<Response<bool>> CambiarContrasena(int Id, UserVM.UserChangePassword request)
+        public async Task<Response<bool>> CambiarContrasena(int Id, UserChangePassword request)
         {
             try
             {

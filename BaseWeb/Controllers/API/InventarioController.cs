@@ -10,11 +10,11 @@ namespace BaseWeb.Controllers.API
     [ApiController]
     [Authorize(Roles = "Admin")]
     [Route("[controller]")]
-    public class APIInventarioController : ControllerBase
+    public class InventarioController : ControllerBase
     {
         private readonly IInventarioServicio _inventarioService;
 
-        public APIInventarioController(IInventarioServicio inventarioService)
+        public InventarioController(IInventarioServicio inventarioService)
         {
             _inventarioService = inventarioService;
         }

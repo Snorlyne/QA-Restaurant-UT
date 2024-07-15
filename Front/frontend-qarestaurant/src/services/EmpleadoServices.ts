@@ -1,4 +1,4 @@
-import apiClient from "../AuthService/authInterceptor";
+import apiClient from "../auth/AuthInterceptor";
 import IEmpleado from "../interfaces/Empleado/IEmpleado";
 import IEmpleadoDto from "../interfaces/Empleado/IEmpleadoDto";
 import IResponse from "../interfaces/IResponse.";
@@ -6,7 +6,7 @@ import IResponse from "../interfaces/IResponse.";
 const empleadoServices = {
     async getEmpleados(): Promise<IEmpleado[]> {
         try {
-            const response = await apiClient.get("/APIColaborador/lista");
+            const response = await apiClient.get("/Colaborador/lista");
             return response.data.result as IEmpleado[];
         }catch (err) {
             throw err;
@@ -14,7 +14,7 @@ const empleadoServices = {
     },
     async getEmpleado(id:string): Promise<IEmpleadoDto> {
         try {
-            const response = await apiClient.get(`/APIColaborador/${id}`);
+            const response = await apiClient.get(`/Colaborador/${id}`);
             return response.data.result as IEmpleadoDto;
         }catch (err) {
             throw err;
@@ -22,7 +22,7 @@ const empleadoServices = {
     },
     async post(req: IEmpleadoDto): Promise<IResponse> {
         try {
-            const response = await apiClient.post("/APIColaborador", req);
+            const response = await apiClient.post("/Colaborador", req);
             return response.data as IResponse;
         } catch (error) {
             throw error;
@@ -30,7 +30,7 @@ const empleadoServices = {
     },
     async put(id: string, req: IEmpleadoDto): Promise<IResponse> {
         try {
-            const response = await apiClient.put(`/APIColaborador/${id}`, req);
+            const response = await apiClient.put(`/Colaborador/${id}`, req);
             return response.data as IResponse;
         } catch (error) {
             throw error;
@@ -38,7 +38,7 @@ const empleadoServices = {
     },
     async delete(id: number): Promise<IResponse> {
         try {
-            const response = await apiClient.delete(`/APIColaborador/${id}`);
+            const response = await apiClient.delete(`/Colaborador/${id}`);
             return response.data as IResponse;
         } catch (error) {
             throw error;

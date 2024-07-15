@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Box, Typography, Button, Avatar, Grid, Divider } from '@mui/material';
 import { deepOrange } from '@mui/material/colors';
-import authService from '../AuthService/authService';
+import authService from '../../services/AuthServices';
 import { useNavigate } from 'react-router-dom';
 
 interface ModalUsuarioProps {

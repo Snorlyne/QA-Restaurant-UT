@@ -11,10 +11,10 @@ namespace BaseWeb.Controllers.API
     [Route("[controller]")]
     [ApiController]
     [Authorize(Roles = "Root")]
-    public class APICompanyController : ControllerBase
+    public class CompanyController : ControllerBase
     {
         private readonly ICompanyServicio _companyServicio;
-        public APICompanyController(ICompanyServicio companyServicio) 
+        public CompanyController(ICompanyServicio companyServicio) 
         {
             _companyServicio = companyServicio;
         }

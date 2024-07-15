@@ -1,6 +1,6 @@
 import axios from 'axios';
 import Swal from 'sweetalert2';
-import authService from './authService';
+import authService from '../services/AuthServices';
 
 // Crear una instancia de Axios
 const apiClient = axios.create({

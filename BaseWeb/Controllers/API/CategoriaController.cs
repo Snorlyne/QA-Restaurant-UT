@@ -9,11 +9,11 @@ namespace BaseWeb.Controllers.API
     [ApiController]
     [Authorize(Roles = "Admin")]
     [Route("[controller]")]
-    public class APICategoriaController : ControllerBase
+    public class CategoriaController : ControllerBase
     {
         private readonly ICategoriaServicio _categoriaService;
 
-        public APICategoriaController(ICategoriaServicio categoriaService)
+        public CategoriaController(ICategoriaServicio categoriaService)
         {
             _categoriaService = categoriaService;
         }

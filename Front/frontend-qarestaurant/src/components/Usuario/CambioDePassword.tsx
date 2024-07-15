@@ -8,9 +8,8 @@ import {
     Box
 } from '@mui/material';
 import Swal from 'sweetalert2';
-import axios from 'axios';
-import authService from "../../../AuthService/authService";
-import Loader from "../../../components/loader";
+import authService from "../../services/AuthServices";
+import Loader from "../loader";
 
 const CambioDePassword: React.FC = () => {
     const [oldPassword, setOldPassword] = useState('');
@@ -18,7 +17,6 @@ const CambioDePassword: React.FC = () => {
     const [confirmPassword, setConfirmPassword] = useState('');
     const [errorMessage, setErrorMessage] = useState('');
     const [loading, setLoading] = useState(false);
-    const token = authService.getToken();
 
 
     const handlePasswordChange = async (event: React.FormEvent) => {
@@ -31,22 +29,11 @@ const CambioDePassword: React.FC = () => {
 
         try {
             setLoading(true);
-        
-            const headers = {
-                Authorization: `Bearer ${token}`
-            };
-        
-            const response = await axios.put('https://localhost:7047/APIAuth/change-password', {
-                oldPassword,
-                newPassword
-            }, { headers });
-        
-            setLoading(false);
-        
-            if (response.status === 200 && response.data === 'Contraseña cambiada con éxito.') {
+            const response = await authService.changePassword(oldPassword, newPassword);
+            if (response.isSuccess) {
                 Swal.fire({
                     title: '¡Contraseña cambiada!',
-                    text: response.data,
+                    text: "Se cerrará la sesión a continuación",
                     icon: 'success',
                     showCancelButton: false,
                     confirmButtonColor: '#3085d6',
@@ -63,17 +50,22 @@ const CambioDePassword: React.FC = () => {
                 setConfirmPassword('');
                 setErrorMessage('');
             } else {
-                throw new Error('Hubo un problema al intentar cambiar la contraseña.');
+                Swal.fire({
+                    title: 'Ocurrió un error',
+                    text: response.message,
+                    icon: 'error',
+                    showCancelButton: false,
+                    confirmButtonColor: '#3085d6',
+                    confirmButtonText: 'Ok',
+                    customClass: {
+                        container: 'custom-swal-container'
+                    }
+                });
             }
-        } catch (error) {
-            setLoading(false);
-            console.error('Error al cambiar la contraseña:', error);
-        
-            const message = (error as Error).message || 'Hubo un problema al intentar cambiar la contraseña.';
-        
+        } catch (error: any) {
             Swal.fire({
                 title: 'Error',
-                text: message,
+                text: error.message,
                 icon: 'error',
                 showCancelButton: false,
                 confirmButtonColor: '#3085d6',
@@ -82,6 +74,8 @@ const CambioDePassword: React.FC = () => {
                     container: 'custom-swal-container'
                 }
             });
+        } finally {
+            setLoading(false);
         }
     };
 

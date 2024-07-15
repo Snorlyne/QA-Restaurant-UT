@@ -1,5 +1,5 @@
 import { HttpTransportType, HubConnectionBuilder } from "@microsoft/signalr";
-import authService from "../AuthService/authService";
+import authService from "./AuthServices";
 
 export default function commandHub() {
     const idEmpresa = authService.getCompany();

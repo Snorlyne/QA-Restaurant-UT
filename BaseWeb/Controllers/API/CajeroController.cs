@@ -13,11 +13,11 @@ namespace BaseWeb.Controllers.API
     [Route("[controller]")]
     [ApiController]
     [Authorize(Roles = "Cashier")]
-    public class APICajero : ControllerBase
+    public class CajeroController : ControllerBase
     {
         private readonly ICajeroServicio _cajeroServicio;
         private readonly IHubContext<CommandHub> _hubContext;
-        public APICajero(ICajeroServicio cajeroServicio, IHubContext<CommandHub> hubContext)
+        public CajeroController(ICajeroServicio cajeroServicio, IHubContext<CommandHub> hubContext)
         {
             _cajeroServicio = cajeroServicio;
             _hubContext = hubContext;

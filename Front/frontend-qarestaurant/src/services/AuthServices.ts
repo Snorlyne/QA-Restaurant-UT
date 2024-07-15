@@ -1,4 +1,5 @@
-import apiClient from './authInterceptor';
+import apiClient from '../auth/AuthInterceptor';
+import IResponse from '../interfaces/IResponse.';
 
 
 // Función para establecer una cookie segura
@@ -10,14 +11,14 @@ const setCookie = (name: string, value: string, days: number) => {
 };
 
 // Función para obtener el valor de una cookie
-const getCookie = (name: string): string | null  => {
+const getCookie = (name: string): string | null => {
     const value = `; ${document.cookie}`;
     const parts = value.split(`; ${name}=`);
     if (parts.length === 2 && parts[1]) {
-      const cookieValue = parts.pop();
-      if (cookieValue) {
-        return cookieValue.split(';').shift()!;
-      }
+        const cookieValue = parts.pop();
+        if (cookieValue) {
+            return cookieValue.split(';').shift()!;
+        }
     }
     return null;
 };
@@ -28,33 +29,26 @@ const deleteCookie = (name: string) => {
 
 const authService = {
 
-    login: (email: string, password: string): Promise<string> => {
-        return new Promise((resolve, reject) => {
-            apiClient.post('APIAuth/Login', {
-                email: email,
-                password: password
-            })
-            .then(function (response) {
-                // Almacenar token en una cookie segura
-                const token = response.data.result.jwTtoken;
-                const usuario = response.data.result.nombre;
-                const rol = response.data.result.rol;
-                const empresa = response.data.result.empresa;
-                const email = response.data.result.email;
-
-                setCookie('token', token, 1); // Expira en 1 día
-                setCookie('usuario', usuario, 1);
-                setCookie('role', rol, 1);
-                setCookie('empresa', empresa, 1);
-                setCookie('email', email, 1);
-                resolve(rol);
-            })
-            .catch(function (error) {
-                console.error(error);
-                reject('error');
-            });
-        });
+    login: async (email: string, password: string): Promise<string> => {
+        try {
+            const response = await apiClient.post('Auth/Login', { email, password });
+            if (response.data.isSuccess) {
+                throw new Error();
+            }
+            const { jwTtoken: token, nombre: usuario, rol, empresa, email: emailResponse } = response.data.result;
+    
+            setCookie('token', token, 1); // Expira en 1 día
+            setCookie('usuario', usuario, 1);
+            setCookie('role', rol, 1);
+            setCookie('empresa', empresa, 1);
+            setCookie('email', emailResponse, 1);
+    
+            return rol;
+        } catch (error) {
+            return "error"
+        }
     },
+    
     logout: () => {
         // Eliminar las cookies de sesión
         deleteCookie('token');
@@ -84,6 +78,19 @@ const authService = {
     },
     getEmail: (): string | null => {
         return getCookie('email');
+    },
+    async changePassword(oldPassword: string, newPassword: string): Promise<IResponse> {
+        try {
+            const response = await apiClient.put("Auth/change-password",
+                {
+                    oldPassword,
+                    newPassword
+                },
+            )
+            return response.data as IResponse;
+        } catch (error) {
+            throw error;
+        }
     }
 };
 

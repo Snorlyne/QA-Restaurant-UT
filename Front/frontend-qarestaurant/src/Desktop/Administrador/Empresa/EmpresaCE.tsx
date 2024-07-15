@@ -13,7 +13,7 @@ import Swal from "sweetalert2";
 import Loader from "../../../components/loader";
 import { useParams } from "react-router-dom";
 import { Cancel } from "@mui/icons-material";
-import apiClient from "../../../AuthService/authInterceptor";
+import apiClient from "../../../auth/AuthInterceptor";
 import IEmpresaDto from "../../../interfaces/Empresa/IEmpresaDto";
 import empresaServices from "../../../services/EmpresaServices";
 

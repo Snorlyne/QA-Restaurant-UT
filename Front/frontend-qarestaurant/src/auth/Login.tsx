@@ -1,6 +1,6 @@
 import React, { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import authService from "../AuthService/authService";
+import authService from "../services/AuthServices";
 import {
   Box,
   Button,
@@ -20,20 +20,21 @@ import ReCAPTCHA from "react-google-recaptcha";
 const Login: React.FC = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const recaptchaRef = useRef<ReCAPTCHA>(null);
+  const key = process.env.REACT_APP_APIKEY_RECAPTCHA || "";
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     const recaptchaValue = recaptchaRef.current?.getValue();
     if (!recaptchaValue) {
-      setError("Error: Por favor, completa el ReCAPTCHA");
+      setError("Por favor, completa el ReCAPTCHA");
       return;
     }
     try {
+      setLoading(true);
       const login = await authService.login(email, password);
       switch (login) {
         case "Root":
@@ -43,7 +44,7 @@ const Login: React.FC = () => {
           navigate("/dashboard");
           break;
         case "Chef":
-          navigate("/dashboard");
+          navigate("/unauthorized");
           break;
         case "Waiter":
           navigate("/dashboard");
@@ -52,11 +53,11 @@ const Login: React.FC = () => {
           navigate("/cajeros");
           break;
         default:
-          setError("Error: Correo o contraseña incorrecta");
+          setError("Correo o contraseña incorrecta");
           break;
       }
     } catch (err) {
-      setError("Error: Correo o contraseña incorrecta");
+      setError("Correo o contraseña incorrecta");
     } finally {
       setLoading(false);
     }
@@ -93,17 +94,6 @@ const Login: React.FC = () => {
                   variant="outlined"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={rememberMe}
-                      onChange={(e) => setRememberMe(e.target.checked)}
-                    />
-                  }
-                  label="Mantener sesión abierta"
                 />
               </Grid>
               <Grid item xs={12} style={{ display: "flex", justifyContent: "center" }}>

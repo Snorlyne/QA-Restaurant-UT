@@ -15,7 +15,7 @@ import Loader from "../../../components/loader";
 import { useParams } from "react-router-dom";
 import { useDropzone } from "react-dropzone";
 import { Cancel } from "@mui/icons-material";
-import authService from "../../../AuthService/authService";
+import authService from "../../../services/AuthServices";
 import IClienteDto from "../../../interfaces/Cliente/IClienteDto";
 import clienteServices from "../../../services/ClientesServices";
 import empresaServices from "../../../services/EmpresaServices";

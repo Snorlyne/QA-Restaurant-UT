@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
 import Swal from "sweetalert2";
-import authService from "./authService";
+import authService from "../services/AuthServices";
 
 interface ProtectedRouteProps {
   element: JSX.Element;

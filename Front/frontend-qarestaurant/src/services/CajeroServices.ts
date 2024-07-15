@@ -1,11 +1,11 @@
-import apiClient from "../AuthService/authInterceptor";
+import apiClient from "../auth/AuthInterceptor";
 import IComanda from "../interfaces/Cajero/IComanda";
 import IResponse from "../interfaces/IResponse.";
 
 const cajeroServices = {
     async getComandas(): Promise<IComanda[]> {
         try {
-            const response = await apiClient.get("/APICajero/Comandas");
+            const response = await apiClient.get("/Cajero/Comandas");
             return response.data.result as IComanda[];
         } catch (error) {
             throw error;
@@ -13,7 +13,7 @@ const cajeroServices = {
     },
     async facturar(id: number): Promise<IResponse> {
         try {
-            const response = await apiClient.post(`/APICajero/Ticket/${id}`);
+            const response = await apiClient.post(`/Cajero/Ticket/${id}`);
             return response.data as IResponse;
         } catch (error) {
             throw error;
@@ -22,7 +22,7 @@ const cajeroServices = {
     async deleteOrder(id: number): Promise<IResponse> {
         try {
             const response = await apiClient.delete(
-                `/APICajero/Orden/${id}`
+                `/Cajero/Orden/${id}`
             );
             return response.data as IResponse;
         } catch (error) {
@@ -32,7 +32,7 @@ const cajeroServices = {
     async deleteCommand(id: number): Promise<IResponse> {
         try {
             const response = await apiClient.delete(
-                `/APICajero/Comanda/${id}`
+                `/Cajero/Comanda/${id}`
             );
             return response.data as IResponse;
         } catch (error) {
