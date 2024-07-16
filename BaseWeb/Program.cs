@@ -105,10 +105,11 @@ builder.Services.AddTransient<ICategoriaServicio, CategoriaServicio>();
 
 builder.Services.AddTransient<IColaboradorServicio, ColaboradorServicio>();
 builder.Services.AddTransient<ICajeroServicio, CajeroServicio>();
+builder.Services.AddTransient<IMeseroServicio, MeseroServicio>();
 builder.Services.AddTransient<IStatusServicio, StatusServicio>();
-builder.Services.AddTransient<IOrderServicio, OrderServicio>();
-builder.Services.AddTransient<ICommandServicio, CommandServicio>();
-builder.Services.AddTransient<IOrderInCommandServicio, OrderInCommandServicio>();
+//builder.Services.AddTransient<IOrderServicio, OrderServicio>();
+//builder.Services.AddTransient<ICommandServicio, CommandServicio>();
+//builder.Services.AddTransient<IOrderInCommandServicio, OrderInCommandServicio>();
 builder.Services.AddTransient<ICocinerosServicio, CocinerosServicio>();
 
 //Configuraci?n para permitir el host del front para hace uso del Web API //Configurar cuando se pase a produccion.

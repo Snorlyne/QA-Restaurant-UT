@@ -36,7 +36,7 @@ namespace BaseWeb.Controllers.API
             var companyIdClaim = User.Claims.FirstOrDefault(c => c.Type == "companyId");
             var companyId = int.Parse(companyIdClaim.Value);
             var personIdClaim = User.Claims.FirstOrDefault(c => c.Type == "personId");
-            var personId = int.Parse(companyIdClaim.Value);
+            var personId = int.Parse(personIdClaim.Value);
             var response = await _cajeroServicio.GenerarTicketDeCobro(id, personId, companyId);
             if (response.IsSuccess)
             {

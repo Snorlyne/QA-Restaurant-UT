@@ -31,26 +31,26 @@ namespace BaseWeb.Controllers.API
             var response = await _orderServicio.ObtenerOrderById(id);
             return Ok(response);
         }
-        [HttpPost]
-        public async Task<IActionResult> CrearOrder([FromBody] OrderCreateVM request)
-        {
-            var personIdClaim = User.Claims.FirstOrDefault(c => c.Type == "personId");
-            if (personIdClaim == null)
-            {
-                return Unauthorized("No se pudo obtener el ID de la persona de la sesión.");
-            }
+        //[HttpPost]
+        //public async Task<IActionResult> CrearOrder([FromBody] OrderCreateVM request)
+        //{
+        //    var personIdClaim = User.Claims.FirstOrDefault(c => c.Type == "personId");
+        //    if (personIdClaim == null)
+        //    {
+        //        return Unauthorized("No se pudo obtener el ID de la persona de la sesión.");
+        //    }
 
-            var personId = int.Parse(personIdClaim.Value);
-            var response = await _orderServicio.CrearOrder(request,personId);
-            return Ok(response);
-        }
+        //    var personId = int.Parse(personIdClaim.Value);
+        //    var response = await _orderServicio.CrearOrder(request,personId);
+        //    return Ok(response);
+        //}
 
-        [HttpPut("id")]
-        public async Task<IActionResult> UpdateOrder(int id, [FromBody] OrderUpdateVM request)
-        {
-            var result = await _orderServicio.UpdateOrder(id, request);
-            return Ok(result);
-        }
+        //[HttpPut("id")]
+        //public async Task<IActionResult> UpdateOrder(int id, [FromBody] OrderUpdateVM request)
+        //{
+        //    var result = await _orderServicio.UpdateOrder(id, request);
+        //    return Ok(result);
+        //}
 
         [HttpDelete("id")]
         public async Task<IActionResult> DeleteOrder(int id)

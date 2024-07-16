@@ -29,8 +29,8 @@ namespace Services.Servicio
                     .Select(c => new CommandViewVM
                     {
                         Id = c.Id,
-                        Propietario = c.Propietario,
-                        Cobrador = c.Cobrador,
+                        Propietario = c.Propietario.ToString(),
+                        Cobrador = c.Cobrador.ToString(),
                         Total = c.Total,
                         Fecha = c.Fecha,
                         Restaurante = c.Restaurante

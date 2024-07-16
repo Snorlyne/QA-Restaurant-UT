@@ -5,13 +5,8 @@ using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Repository.Context;
 using Services.IServicio;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel.Design;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using static Domain.ViewModels.CajeroVM;
+using static Domain.ViewModels.CommandVM;
 
 namespace Services.Servicio
 {
@@ -24,7 +19,7 @@ namespace Services.Servicio
             _context = context;
         }
 
-        public async Task<Response<List<ViewComandasVM>>> ObtenerComandas(int companyId)
+        public async Task<Response<List<ViewComandasCajaVM>>> ObtenerComandas(int companyId)
         {
             try
             {
@@ -36,19 +31,19 @@ namespace Services.Servicio
                     .Include(c => c.Order)
                         .ThenInclude(o => o.Person)
                     .Include(c => c.Command)
-                    .Where(x => x.Command.Restaurante == companyId && x.Command.Fecha.Day == DateTime.Today.Day)
+                    .Where(x => x.Command.Restaurante == companyId && x.Command.Fecha.Date == DateTime.Today)
                     .ToListAsync();
 
 
-                List<ViewComandasVM> viewComandasVMs = ordersInCommands
+                List<ViewComandasCajaVM> viewComandasVMs = ordersInCommands
                     .GroupBy(oic => oic.Command) // Agrupa por Command para agrupar los orders en una comanda
                     .Select(g =>
                     {
-                        var orders = g.Select(oic => new OrderCajeroVM
+                        var orders = g.Select(oic => new OrdenCajaVM
                         {
                             Id = oic.Order.Id,
                             Estado = oic.Order.Status.Nombre,
-                            Producto = new ProductVM
+                            Producto = new ProductoCajaVM
                             {
                                 Nombre = oic.Order.Inventario.Nombre, // Asume que Inventario tiene una propiedad Nombre
                                 Precio = oic.Order.Inventario.Precio // Asume que Inventario tiene una propiedad Precio que es decimal o similar
@@ -68,7 +63,7 @@ namespace Services.Servicio
                             estado = estados.FirstOrDefault() ?? "Desconocido";
                         }
                         var Imagen = g.FirstOrDefault().Order.Inventario.ImagenInventario != null ? "data:image/png;base64," + Convert.ToBase64String(g.FirstOrDefault().Order.Inventario.ImagenInventario) : null;
-                        return new ViewComandasVM
+                        return new ViewComandasCajaVM
                         {
                             Id = g.Key.Id,
                             MeseroCargo = _context.Person.FirstOrDefault(p => p.Id == g.Key.Propietario)?.Nombre ?? "Desconocido",
@@ -81,15 +76,15 @@ namespace Services.Servicio
                         };
                     }).ToList();
 
-                return new Response<List<ViewComandasVM>>(viewComandasVMs);
+                return new Response<List<ViewComandasCajaVM>>(viewComandasVMs);
 
             }
             catch (Exception ex)
             {
-                return new Response<List<ViewComandasVM>>(ex.Message);
+                return new Response<List<ViewComandasCajaVM>>(ex.Message);
             }
         }
-        public async Task<Response<object>> GenerarTicketDeCobro(int idCommand, int idPerson, int companyId)
+        public async Task<Response<CommandUpdateStatusVM>> GenerarTicketDeCobro(int idCommand, int idPerson, int companyId)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
@@ -131,24 +126,24 @@ namespace Services.Servicio
                 // Commit la transacción si todo es exitoso
                 await transaction.CommitAsync();
 
-                object res = new
+                CommandUpdateStatusVM res = new()
                 {
-                    commandId = idCommand,
-                    status = 5
+                    Id = idCommand,
+                    Status = 5
                 };
 
-                return new Response<object>(res, "Ticket de cobro generado con éxito.");
+                return new Response<CommandUpdateStatusVM>(res, "Ticket de cobro generado con éxito.");
 
             }
             catch (Exception ex)
             {
                 // Rollback la transacción si ocurre un error
                 await transaction.RollbackAsync();
-                return new Response<object>(ex.Message);
+                return new Response<CommandUpdateStatusVM>(ex.Message);
             }
 
         }
-        public async Task<Response<object>> EliminarComanda(int idCommand, int companyId)
+        public async Task<Response<Command>> EliminarComanda(int idCommand, int companyId)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
@@ -164,18 +159,18 @@ namespace Services.Servicio
 
                 // Commit la transacción si todo es exitoso
                 await transaction.CommitAsync();
-                return new Response<object>(command, "Eliminación con éxito.");
+                return new Response<Command>(command, "Eliminación con éxito.");
 
             }catch (Exception ex)
             {
                 // Rollback la transacción si ocurre un error
                 await transaction.RollbackAsync();
-                return new Response<object>(ex.Message);
+                return new Response<Command>(ex.Message);
 
             }
         }
 
-        public async Task<Response<object>> EliminarOrden(int idOrden, int companyId)
+        public async Task<Response<CommandOrderDeleteVM>> EliminarOrden(int idOrden, int companyId)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
             string message = "Orden eliminada con éxito.";
@@ -211,19 +206,20 @@ namespace Services.Servicio
 
                 // Commit la transacción si todo es exitoso
                 await transaction.CommitAsync();
-                object res = new
+
+                CommandOrderDeleteVM res = new()
                 {
-                    commandId = idCommand,
-                    orderId = idOrden
+                    Id = idCommand,
+                    OrderId = idOrden
                 };
-                return new Response<object>(res, message);
+                return new Response<CommandOrderDeleteVM>(res, message);
 
             }
             catch(Exception ex)
             {
                 // Rollback la transacción si ocurre un error
                 await transaction.RollbackAsync();
-                return new Response<object>(ex.Message);
+                return new Response<CommandOrderDeleteVM>(ex.Message);
             }
 
         }

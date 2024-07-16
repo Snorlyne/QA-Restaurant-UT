@@ -9,7 +9,7 @@ namespace Domain.ViewModels
 {
     public class CajeroVM
     {
-        public class ViewComandasVM
+        public class ViewComandasCajaVM
         {
             public int Id {  get; set; }
             public string MeseroCargo {get;set;}
@@ -18,16 +18,16 @@ namespace Domain.ViewModels
             public int Mesa { get;set;}
             public string Estado { get; set; }
             public string Imagen { get; set; }
-            public OrderCajeroVM[] Ordenes { get;set;}
+            public OrdenCajaVM[] Ordenes { get;set;}
         }
     }
-    public class OrderCajeroVM
+    public class OrdenCajaVM
     {
         public int Id { get; set; }
         public string Estado { get; set; }
-        public ProductVM Producto { get; set; }
+        public ProductoCajaVM Producto { get; set; }
     }
-    public class ProductVM
+    public class ProductoCajaVM
     {
         public string Nombre { get; set;}
         public decimal Precio { get; set; }
