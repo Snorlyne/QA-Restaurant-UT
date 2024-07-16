@@ -93,7 +93,7 @@ namespace Services.Servicio
                 return new Response<List<ViewComandasMeseroVM>>(ex.Message);
             }
         }
-        public async Task<Response<object>> CrearComandaYOrdenes(int idPerson, int companyId, CommandCreateVM req)
+        public async Task<Response<CommandViewVM>> CrearComandaYOrdenes(int idPerson, int companyId, CommandCreateVM req)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
             Command command = new();
@@ -160,70 +160,43 @@ namespace Services.Servicio
                 }
                 await _context.SaveChangesAsync();
 
-                if (ordersInCommands == null)
-                {
 
-                    CommandViewVM commandVM = new()
+                CommandViewVM commandVM = new()
+                {
+                    Propietario = await ObtenerEmpleado(command.Propietario),
+                    Id = command.Id,
+                    Fecha = command.Fecha,
+                    Restaurante = command.Restaurante,
+                    Total = command.Total,
+                    Ordenes = orders.Select(x => new OrderViewVM
                     {
-                        Propietario = await ObtenerEmpleado(command.Propietario),
-                        Id = command.Id,
-                        Fecha = command.Fecha,
-                        Restaurante = command.Restaurante,
-                        Total = command.Total,
-                        Ordenes = orders.Select(x => new OrderViewVM
+                        Fecha = x.Fecha,
+                        Adicional = x.Adicional,
+                        Id = x.Id,
+                        Mesa = x.Mesa,
+                        Producto = new()
                         {
-                            Fecha = x.Fecha,
-                            Adicional = x.Adicional,
-                            Id = x.Id,
-                            Mesa = x.Mesa,
-                            Producto = new()
-                            {
-                                Descripcion = inventarios[(int)x.FK_inventory_id].Descripcion,
-                                Id = (int)x.FK_inventory_id,
-                                ImagenInventario = inventarios[(int)x.FK_inventory_id].ImagenInventario != null ?
-                                    "data:image/png;base64," + Convert.ToBase64String(inventarios[(int)x.FK_inventory_id].ImagenInventario) : null,
-                                Nombre = inventarios[(int)x.FK_inventory_id].Nombre,
-                                Precio = inventarios[(int)x.FK_inventory_id].Precio,
-                                Preparado = inventarios[(int)x.FK_inventory_id].Preparado
-                            },
-                            Status = new() { Id = 1, Nombre = "Anotado" },
-                        }).ToArray(),
-                    };
+                            Descripcion = inventarios[(int)x.FK_inventory_id].Descripcion,
+                            Id = (int)x.FK_inventory_id,
+                            ImagenInventario = inventarios[(int)x.FK_inventory_id].ImagenInventario != null ?
+                                "data:image/png;base64," + Convert.ToBase64String(inventarios[(int)x.FK_inventory_id].ImagenInventario) : null,
+                            Nombre = inventarios[(int)x.FK_inventory_id].Nombre,
+                            Precio = inventarios[(int)x.FK_inventory_id].Precio,
+                            Preparado = inventarios[(int)x.FK_inventory_id].Preparado
+                        },
+                        Status = new() { Id = 1, Nombre = "Anotado" },
+                    }).ToArray(),
+                };
 
-                    await transaction.CommitAsync();
+                await transaction.CommitAsync();
 
-                    return new Response<object>(commandVM, "Comanda y ordenes creados con éxito.");
-                }else
-                {
-                    List<OrderViewVM> orderViewVM = orders
-                        .Select(o => new OrderViewVM
-                        {
-                            Id = o.Id,
-                            Adicional = o.Adicional,
-                            Fecha = o.Fecha,
-                            Mesa = o.Mesa,
-                            Producto = new()
-                            {
-                                Descripcion = inventarios[(int)o.FK_inventory_id].Descripcion,
-                                Id = (int)o.FK_inventory_id,
-                                ImagenInventario = inventarios[(int)o.FK_inventory_id].ImagenInventario != null ?
-                                    "data:image/png;base64," + Convert.ToBase64String(inventarios[(int)o.FK_inventory_id].ImagenInventario) : null,
-                                Nombre = inventarios[(int)o.FK_inventory_id].Nombre,
-                                Precio = inventarios[(int)o.FK_inventory_id].Precio,
-                                Preparado = inventarios[(int)o.FK_inventory_id].Preparado
-                            },
-                            Status = new() { Id = 1, Nombre = "Anotado" },
-                        }).ToList();
-
-                    await transaction.CommitAsync();
-
-                    return new Response<object>(orderViewVM, "Ordenes creados con éxito.");
-                }
+                return new Response<CommandViewVM>(commandVM, "Ordenes registradas con éxito.");
+             
             }
             catch (Exception ex)
             {
                 await transaction.RollbackAsync();
-                return new Response<object>(ex.Message);
+                return new Response<CommandViewVM>(ex.Message);
             }
         }
 
