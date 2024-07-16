@@ -13,7 +13,7 @@ namespace Services.IServicio
     public interface IClienteServicio
     {
         Task<Response<List<ClienteView>>> ObtenerListaCliente();
-        Task<Response<ClienteView>> ObtenerCliente(int Id);
+        Task<Response<ClienteCreate>> ObtenerCliente(int Id);
         Task<Response<ClienteCreate>> CrearCliente(ClienteCreate request);
         Task<Response<ClienteCreate>> EditarCliente(ClienteCreate request, int Id);
         Task<Response<ClienteView>> EliminarCliente(int Id);

@@ -7,7 +7,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="Controllers\API\APICajero.cs" />
+    <Compile Remove="Controllers\API\CommandController.cs" />
+    <Compile Remove="Controllers\API\OrderController.cs" />
+    <Compile Remove="Controllers\API\OrderInCommandController.cs" />
   </ItemGroup>
 
   <ItemGroup>

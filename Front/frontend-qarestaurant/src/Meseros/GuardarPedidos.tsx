@@ -23,7 +23,7 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
 import TextField from '@mui/material/TextField';
-import logo from '../img/LogoAzul.jpg';
+import logo from '../assets/img/LogoAzul.jpg';
 import TableChartIcon from '@mui/icons-material/TableChart';
 import OrderItem from './OrdenItem';
 import { Card } from '@mui/material';

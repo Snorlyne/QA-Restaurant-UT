@@ -1,6 +1,5 @@
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
 import Box from "@mui/material/Box";
-import axios from "axios";
 import { useCallback, useEffect, useState } from "react";
 import {
   Button,
@@ -15,25 +14,22 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
-// import IResponse from "../../../interfaces/IResponse.";
 import Loader from "../../../components/loader";
-import authService from "../../../AuthService/authService";
-import apiClient from "../../../AuthService/authInterceptor";
+import apiClient from "../../../auth/AuthInterceptor";
+import IEmpresa from "../../../interfaces/Empresa/IEmpresa";
+import empresaServices from "../../../services/EmpresaServices";
+import IResponse from "../../../interfaces/IResponse.";
 
-interface CompanyData {
-  id: number;
-  nombre: string;
-}
 
-const filterRows = (rows: CompanyData[], term: string) => {
+const filterRows = (rows: IEmpresa[], term: string) => {
   const searchTerm = term.toLowerCase();
   return rows.filter((row) => row.nombre.toLowerCase().includes(searchTerm));
 };
 
 export default function EmpresaComponent() {
-  const [rows, setRows] = useState<CompanyData[]>([]);
+  const [rows, setRows] = useState<IEmpresa[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [filteredRows, setFilteredRows] = useState<CompanyData[]>([]);
+  const [filteredRows, setFilteredRows] = useState<IEmpresa[]>([]);
   const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
@@ -80,43 +76,74 @@ export default function EmpresaComponent() {
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await apiClient.get("/APICompany/lista")
-      const data = response.data.result;
+      const data = await empresaServices.getEmpresas();
       setRows(data);
       setFilteredRows(data);
     } catch (error) {
-      console.error("Error fetching data:", error);
-    } finally {
-      setLoading(false);
+      console.error("Error:", error);
     }
+    setLoading(false);
   }, []);
 
   const handleDelete = async (id: number) => {
-    const confirmation = await Swal.fire({
-      title: "¿Está seguro de eliminar la empresa?",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#3085d6",
-      cancelButtonColor: "#d33",
-      confirmButtonText: "Si",
-      cancelButtonText: "No",
-    });
-
-    if (confirmation.isConfirmed) {
-      setLoading(true);
-      try {
-        const response = await apiClient.delete(`/APICompany/Id?Id=${id}`)
-        if (response.status === 200 && response.data.isSuccess) {
-          Swal.fire("Eliminado!", response.data.message, "success");
+    try {
+      await Swal.fire({
+        title: "¿Está seguro de eliminar al cliente?",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "Si",
+        cancelButtonText: "No",
+        customClass: {
+          container: "custom-swal-container",
+        },
+      }).then(async (result) => {
+        if (result.isConfirmed) {
+          setLoading(true);
+          const response: IResponse = await empresaServices.delete(id);
+          if (response.isSuccess) {
+            Swal.fire({
+              title: response.message,
+              icon: "success",
+              showCancelButton: false,
+              confirmButtonColor: "#3085d6",
+              cancelButtonColor: "#d33",
+              confirmButtonText: "Ok",
+              customClass: {
+                container: "custom-swal-container",
+              },
+            });
+          } else {
+            Swal.fire({
+              title: response.message,
+              icon: "error",
+              showCancelButton: false,
+              confirmButtonColor: "#3085d6",
+              cancelButtonColor: "#d33",
+              confirmButtonText: "Ok",
+              customClass: {
+                container: "custom-swal-container",
+              },
+            });
+          }
           fetchData();
-        } else {
-          Swal.fire("Error!", response.data.message, "error");
         }
-      } catch (error: any) {
-        Swal.fire("Error!", error.message, "error");
-      } finally {
-        setLoading(false);
-      }
+      });
+    } catch (error: any) {
+      Swal.fire({
+        title: "Error al Eliminar",
+        icon: "error",
+        showCancelButton: false,
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "Ok",
+        customClass: {
+          container: "custom-swal-container",
+        },
+      });
+    } finally {
+      setLoading(false);
     }
   };
 

@@ -57,18 +57,5 @@ namespace Domain.ViewModels
             public string Email { get; set; }
             public string Puesto { get; set; }
         }
-        public class ColaboradorViewById
-        {
-            public int Id { get; set; }
-            public string Nombre { get; set; }
-            public string Apellido_Paterno { get; set; }
-            public string Apellido_Materno { get; set; }
-            public string CURP { get; set; }
-            public DateTime FechaNacimiento { get; set; }
-            public string Foto { get; set; }
-            public string Email { get; set; }
-            public RoleView Role { get; set; }
-        }
-
     }
 }

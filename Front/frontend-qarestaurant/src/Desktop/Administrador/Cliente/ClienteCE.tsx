@@ -15,29 +15,22 @@ import Loader from "../../../components/loader";
 import { useParams } from "react-router-dom";
 import { useDropzone } from "react-dropzone";
 import { Cancel } from "@mui/icons-material";
-import authService from "../../../AuthService/authService";
-import apiClient from "../../../AuthService/authInterceptor";
-interface Company {
-  id: number;
-  nombre: string;
-}
-interface PersonData {
-  nombre: string;
-  apellido_Paterno: string;
-  apellido_Materno: string;
-  curp: string;
-  fechaNacimiento: Date | string;
-  foto: string | null;
-  fk_company_id: number | null;
-}
-const initialPersonData: PersonData = {
+import authService from "../../../services/AuthServices";
+import IClienteDto from "../../../interfaces/Cliente/IClienteDto";
+import clienteServices from "../../../services/ClientesServices";
+import empresaServices from "../../../services/EmpresaServices";
+import IEmpresa from "../../../interfaces/Empresa/IEmpresa";
+import { dataURLToFile } from "../../../assets/utils/DataURLToFile";
+
+
+const initialPersonData: IClienteDto = {
   nombre: "",
   apellido_Paterno: "",
   apellido_Materno: "",
   curp: "",
   fechaNacimiento: "",
   foto: null,
-  fk_company_id: null,
+  fK_Company_Id: null,
 };
 const initialErrors = {
   nombre: "",
@@ -54,19 +47,18 @@ const MAX_FILE_SIZE_MB = 2; // Tamaño máximo de archivo en MB
 export default function ClienteCEComponent() {
   const { id } = useParams();
   const [title, setTitle] = useState<string>("Registrar cliente");
-  const [personData, setPersonData] = useState<PersonData>(initialPersonData);
+  const [clienteData, setClienteData] = useState<IClienteDto>(initialPersonData);
   const [file, setFile] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState(initialErrors);
   const [disabledBtn, setDisabledBtn] = useState(true);
-  const [companies, setCompanies] = useState<Company[]>([]);
-  const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
-  const token = authService.getToken();
+  const [companies, setCompanies] = useState<IEmpresa[]>([]);
+  const [selectedCompany, setSelectedCompany] = useState<IEmpresa | null>(null);
   // Manejador genérico para cambios en los inputs
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
-    setPersonData({
-      ...personData,
+    setClienteData({
+      ...clienteData,
       [name]: value,
     });
 
@@ -79,10 +71,10 @@ export default function ClienteCEComponent() {
     setDisabledBtn(hasErrorsOrEmptyFields());
   };
   // Manejo del cambio de selección de empresa
-  const handleCompanyChange = (event: any, value: Company | null) => {
-    setPersonData((prevData) => ({
+  const handleCompanyChange = (event: any, value: IEmpresa | null) => {
+    setClienteData((prevData) => ({
       ...prevData,
-      fk_company_id: value ? value.id : 0,
+      fK_Company_Id: value ? value.id : 0,
     }));
     setSelectedCompany(value);
 
@@ -105,18 +97,18 @@ export default function ClienteCEComponent() {
       "curp",
       "fechaNacimiento",
       "foto",
-      "fk_company_id",
+      "fK_Company_Id",
     ];
     const hasErrors = Object.values(errors).some((error) => error !== "");
 
     const hasEmptyFields = fields
       .filter((field) => field !== "foto")
       .some((field) => {
-        return !personData[field as keyof PersonData];
+        return !clienteData[field as keyof IClienteDto];
       });
 
     return hasErrors || hasEmptyFields;
-  }, [errors, personData]);
+  }, [errors, clienteData]);
 
   const validateField = (
     name: string,
@@ -192,18 +184,17 @@ export default function ClienteCEComponent() {
   const setDatos = async () => {
     try {
       setLoading(true);
-      let response: any;
-      const data = personData;
+      let response: IResponse;
+      const data = clienteData;
       if (!id) {
-        response = await apiClient.post("/APICliente", data);
+        response = await clienteServices.post(data);
       } else {
-        response = await apiClient.put(`/APICliente/Id?Id=${id}`, data);
+        response = await clienteServices.put(id, data);
       }
-      const dataResponse: IResponse = response.data;
 
-      if (dataResponse.isSuccess) {
+      if (response.isSuccess) {
         Swal.fire({
-          title: dataResponse.message,
+          title: response.message,
           icon: "success",
           showCancelButton: false,
           confirmButtonColor: "#3085d6",
@@ -217,7 +208,7 @@ export default function ClienteCEComponent() {
         });
       } else {
         Swal.fire({
-          title: dataResponse.message,
+          title: response.message,
           icon: "error",
           showCancelButton: false,
           confirmButtonColor: "#3085d6",
@@ -229,7 +220,17 @@ export default function ClienteCEComponent() {
         });
       }
     } catch (error: any) {
-      console.error("Error", error);
+      Swal.fire({
+        title: "Se ha producido un error",
+        icon: "error",
+        showCancelButton: false,
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "Ok",
+        customClass: {
+          container: "custom-swal-container",
+        },
+      });
     } finally {
       setLoading(false);
     }
@@ -237,23 +238,23 @@ export default function ClienteCEComponent() {
 
   const handleRemove = () => {
     setFile(null);
-    if (personData.foto != null) {
-      setPersonData({
-        ...personData,
+    if (clienteData.foto != null) {
+      setClienteData({
+        ...clienteData,
         foto: null,
       });
     }
   };
   const fetchCompanies = useCallback(async (selectedId: number | null) => {
     try {
-      const response = await apiClient.get("/APICompany/lista");
-      const companiesData = response.data.result;
-      setCompanies(companiesData);
+      const response = await empresaServices.getEmpresas();
+      setCompanies(response);
       if (selectedId) {
-        const selectedCompany = companiesData.find(
-          (company: Company) => company.id === selectedId
+        const company = response.find(
+          (company: IEmpresa) => company.id === selectedId
         );
-        setSelectedCompany(selectedCompany || null);
+        console.log(company);
+        setSelectedCompany(company || null);
       }
     } catch (error) {
       console.error("Error fetching companies", error);
@@ -262,51 +263,33 @@ export default function ClienteCEComponent() {
 
   useEffect(() => {
     const fetchData = async () => {
+      if (!id) {
+        fetchCompanies(null);
+        setDisabledBtn(false);
+        return;
+      }
       try {
+        setTitle("Editar cliente");
         setLoading(true);
-        const response = await apiClient.get(`/APICliente/Id?Id=${id}`);
-        const data = response.data.result;
-        setPersonData({
-          nombre: data.nombre,
-          apellido_Paterno: data.apellido_Paterno,
-          apellido_Materno: data.apellido_Materno,
-          curp: data.curp,
-          fechaNacimiento: data.fechaNacimiento,
-          foto: data.foto,
-          fk_company_id: data.company.id,
-        });
-        fetchCompanies(data.company.id);
-        setFile(data.foto ? dataURLToFile(data.foto, "foto.png") : null);
+        const response = await clienteServices.getCliente(id);
+        setClienteData(response)
+        fetchCompanies(response.fK_Company_Id);
+        setFile(
+          response.foto ? dataURLToFile(response.foto, "foto.png") : null
+        );
       } catch (error) {
         console.error("Error fetching cliente data:", error);
       } finally {
         setLoading(false);
       }
     };
-    const dataURLToFile = (dataurl: any, filename: any) => {
-      const arr = dataurl.split(",");
-      const mime = arr[0].match(/:(.*?);/)[1];
-      const bstr = atob(arr[1]);
-      let n = bstr.length;
-      const u8arr = new Uint8Array(n);
-      while (n--) {
-        u8arr[n] = bstr.charCodeAt(n);
-      }
-      return new File([u8arr], filename, { type: mime });
-    };
-    if (id) {
-      setDisabledBtn(false);
-      fetchData();
-      setTitle("Editar cliente");
-    } else {
-      fetchCompanies(null);
-    }
-  }, [fetchCompanies, id, token]);
+    fetchData();
+  }, [fetchCompanies, id]);
 
   useEffect(() => {
     // Verificar errores y campos vacíos iniciales y actualizar el estado del botón
     setDisabledBtn(hasErrorsOrEmptyFields());
-  }, [personData, errors, hasErrorsOrEmptyFields]);
+  }, [clienteData, errors, hasErrorsOrEmptyFields]);
 
   const { getRootProps, getInputProps } = useDropzone({
     accept: {
@@ -351,7 +334,7 @@ export default function ClienteCEComponent() {
 
       const reader = new FileReader();
       reader.onload = () => {
-        setPersonData({ ...personData, foto: reader.result!.toString() });
+        setClienteData({ ...clienteData, foto: reader.result!.toString() });
       };
       reader.readAsDataURL(file);
     },
@@ -505,7 +488,7 @@ export default function ClienteCEComponent() {
                         type="text"
                         name="nombre"
                         label="Nombre"
-                        value={personData.nombre}
+                        value={clienteData.nombre}
                         onChange={handleInputChange}
                         error={!!errors.nombre}
                         helperText={errors.nombre}
@@ -519,7 +502,7 @@ export default function ClienteCEComponent() {
                         type="text"
                         name="apellido_Paterno"
                         label="Apellido Paterno"
-                        value={personData.apellido_Paterno}
+                        value={clienteData.apellido_Paterno}
                         onChange={handleInputChange}
                         error={!!errors.apellido_Paterno}
                         helperText={errors.apellido_Paterno}
@@ -533,7 +516,7 @@ export default function ClienteCEComponent() {
                         type="text"
                         name="apellido_Materno"
                         label="Apellido Materno"
-                        value={personData.apellido_Materno}
+                        value={clienteData.apellido_Materno}
                         onChange={handleInputChange}
                         error={!!errors.apellido_Materno}
                         helperText={errors.apellido_Materno}
@@ -565,7 +548,7 @@ export default function ClienteCEComponent() {
                         type="text"
                         name="curp"
                         label="CURP"
-                        value={personData.curp}
+                        value={clienteData.curp}
                         onChange={handleInputChange}
                         error={!!errors.curp}
                         helperText={errors.curp}
@@ -580,8 +563,8 @@ export default function ClienteCEComponent() {
                         name="fechaNacimiento"
                         label="Fecha de Nacimiento"
                         value={
-                          personData.fechaNacimiento
-                            ? new Date(personData.fechaNacimiento)
+                          clienteData.fechaNacimiento
+                            ? new Date(clienteData.fechaNacimiento)
                                 .toISOString()
                                 .split("T")[0]
                             : ""

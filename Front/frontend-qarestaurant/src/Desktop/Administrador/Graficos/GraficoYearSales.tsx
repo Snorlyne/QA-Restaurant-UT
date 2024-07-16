@@ -27,7 +27,7 @@ const fakeSalesData = [
   { month: "January", value: 650, year: 2023 },
   { month: "February", value: 590, year: 2023 },
   { month: "March", value: 800, year: 2023 },
-  { month: "April", value: 810, year: 2023 },
+  { month: "April", value: 0, year: 2023 },
   { month: "May", value: 560, year: 2023 },
   { month: "June", value: 550, year: 2023 },
   { month: "July", value: 400, year: 2023 },

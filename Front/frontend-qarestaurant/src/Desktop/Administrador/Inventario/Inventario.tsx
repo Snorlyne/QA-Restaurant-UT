@@ -19,26 +19,21 @@ import AddCircleIcon from '@mui/icons-material/AddCircle';
 import SearchIcon from '@mui/icons-material/Search';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import authService from '../../../AuthService/authService';
-import apiClient from '../../../AuthService/authInterceptor';
+import authService from '../../../services/AuthServices';
+import apiClient from '../../../auth/AuthInterceptor';
 import Swal from "sweetalert2";
 import IResponse from "../../../interfaces/IResponse.";
 import GeneralModal from "../../../components/GeneralModal";
 import Loader from "../../../components/loader";
+import IProducto from '../../../interfaces/Inventario/IProducto';
+import inventarioServices from '../../../services/InventarioServices';
+import { dataURLToFile } from '../../../assets/utils/DataURLToFile';
 
 
 
-interface Product {
-  id: number;
-  nombre: string;
-  imagenInventario: string | null;
-  categoria: string;
-  descripcion: string;
-  precio: number;
-  preparado: boolean;
-}
 
-const filterRows = (rows: Product[], term: string) => {
+
+const filterRows = (rows: IProducto[], term: string) => {
   return rows.filter((row) => {
     const searchTerm = term.toLowerCase();
     return (
@@ -52,12 +47,11 @@ const ITEMS_PER_PAGE = 8;
 export default function Inventario() {
   const [page, setPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
-  const [filteredRows, setFilteredRows] = useState<Product[]>([]);
-  const [rows, setRows] = useState<Product[]>([]);
-  const [products, setProducts] = useState<Product[]>([]);
-  const [paginatedProducts, setPaginatedProducts] = useState<Product[]>([]);
+  const [filteredRows, setFilteredRows] = useState<IProducto[]>([]);
+  const [rows, setRows] = useState<IProducto[]>([]);
+  const [paginatedProducts, setPaginatedProducts] = useState<IProducto[]>([]);
   const [loading, setLoading] = useState(false);
-  const [modalData, setModalData] = useState<Product | null>(null);
+  const [modalData, setModalData] = useState<IProducto | null>(null);
   const [openModal, setOpenModal] = useState(false);
 
   const navigate = useNavigate();
@@ -70,7 +64,7 @@ export default function Inventario() {
     setSearchTerm(event.target.value);
   };
 
-  const updatePaginatedProducts = (filtered: Product[], currentPage: number) => {
+  const updatePaginatedProducts = (filtered: IProducto[], currentPage: number) => {
     const start = (currentPage - 1) * ITEMS_PER_PAGE;
     const end = start + ITEMS_PER_PAGE;
     setPaginatedProducts(filtered.slice(start, end));
@@ -80,55 +74,36 @@ export default function Inventario() {
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await apiClient.get('/APIInventario');
-      const data = response.data;
-      console.log('API Response:', data);
-      setRows(data.result);
-      setProducts(data.result);
+      const data = await inventarioServices.getProductos();
+      setRows(data);
+      setFilteredRows(data);
     } catch (error) {
-      console.error('Error fetching data:', error);
+      console.error("Error:", error);
     }
     setLoading(false);
   }, []);
 
-  const dataURLToFile = (dataurl: any, filename: any) => {
-    console.log(dataurl, filename);
-    const arr = dataurl.split(",");
-    const mime = arr[0].match(/:(.*?);/)[1];
-    const bstr = atob(arr[1]);
-    let n = bstr.length;
-    const u8arr = new Uint8Array(n);
-    while (n--) {
-      u8arr[n] = bstr.charCodeAt(n);
-    }
-    return new File([u8arr], filename, { type: mime });
-  };
-
   //eliminar un producto
-  const fetchDelete = async (id: number) => {
-    let response: any;
-
+  const handleDelete = async (id: number) => {
     try {
       await Swal.fire({
-        title: "¿Está seguro de eliminar este producto?",
+        title: "¿Está seguro de eliminar al cliente?",
         icon: "warning",
         showCancelButton: true,
         confirmButtonColor: "#3085d6",
         cancelButtonColor: "#d33",
         confirmButtonText: "Si",
         cancelButtonText: "No",
+        customClass: {
+          container: "custom-swal-container",
+        },
       }).then(async (result) => {
         if (result.isConfirmed) {
           setLoading(true);
-          response = await apiClient.delete(`/APIInventario/Id?Id=${id}`);
-          if (response.status !== 200) {
-            throw new Error("Network response was not ok");
-          }
-          const dataResponse: IResponse = response.data;
-
-          if (dataResponse.isSuccess) {
+          const response: IResponse = await inventarioServices.delete(id);
+          if (response.isSuccess) {
             Swal.fire({
-              title: dataResponse.message,
+              title: response.message,
               icon: "success",
               showCancelButton: false,
               confirmButtonColor: "#3085d6",
@@ -140,7 +115,7 @@ export default function Inventario() {
             });
           } else {
             Swal.fire({
-              title: dataResponse.message,
+              title: response.message,
               icon: "error",
               showCancelButton: false,
               confirmButtonColor: "#3085d6",
@@ -151,11 +126,21 @@ export default function Inventario() {
               },
             });
           }
+          fetchData();
         }
-        fetchData();
       });
     } catch (error: any) {
-      console.error("Error:", error);
+      Swal.fire({
+        title: "Error al Eliminar",
+        icon: "error",
+        showCancelButton: false,
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "Ok",
+        customClass: {
+          container: "custom-swal-container",
+        },
+      });
     } finally {
       setLoading(false);
     }
@@ -163,8 +148,8 @@ export default function Inventario() {
 
   const fetchById = (
     id: number
-  ): Product | undefined => {
-    return rows.find((row: Product) => row.id === id);
+  ): IProducto | undefined => {
+    return rows.find((row: IProducto) => row.id === id);
   };
 
   useEffect(() => {
@@ -297,7 +282,7 @@ export default function Inventario() {
                     <Button 
                     variant='contained' 
                     color='error'
-                    onClick={() => fetchDelete(product.id)}
+                    onClick={() => handleDelete(product.id)}
 >
                       <DeleteIcon />
                     </Button>
@@ -309,7 +294,7 @@ export default function Inventario() {
           <GeneralModal
             open={openModal}
             onClose={handleCloseModal}
-            title="Detalles del Cliente"
+            title="Detalles del Producto"
             content={
               modalData ? (
                 <Grid container spacing={2}>

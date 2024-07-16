@@ -24,7 +24,7 @@ const GeneralModal: React.FC<GeneralModalProps> = ({
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
       <DialogTitle>
-        {title && <Typography variant="h6">{title}</Typography>}
+        {title && <Typography>{title}</Typography>}
         <IconButton
           aria-label="close"
           onClick={onClose}
