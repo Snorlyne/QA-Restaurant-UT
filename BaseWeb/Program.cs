@@ -111,6 +111,7 @@ builder.Services.AddTransient<IStatusServicio, StatusServicio>();
 //builder.Services.AddTransient<ICommandServicio, CommandServicio>();
 //builder.Services.AddTransient<IOrderInCommandServicio, OrderInCommandServicio>();
 builder.Services.AddTransient<ICocinerosServicio, CocinerosServicio>();
+builder.Services.AddTransient<IVentasServicio, VentasServicio>();
 
 //Configuraci?n para permitir el host del front para hace uso del Web API //Configurar cuando se pase a produccion.
 builder.Services.AddCors(options =>
