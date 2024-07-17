@@ -31,17 +31,7 @@ namespace Domain.ViewModels
             public Boolean Preparado { get; set; }
 
         }
-        public class ViewProductoByIdVM
-        {
-            public int Id { get; set; }
-            public string ImagenInventario { get; set; }
-            public string Nombre { get; set; }
-            public ViewCategoriaVM Categoria { get; set; }
-            public string Descripcion { get; set; }
-            public decimal Precio { get; set; }
-            public Boolean Preparado { get; set; }
-
-        }
+        
         public class  ViewChef
         {
             public int Id { get; set; }

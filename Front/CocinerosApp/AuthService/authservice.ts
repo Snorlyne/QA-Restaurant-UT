@@ -30,7 +30,7 @@ const removeStorageItem = async (key: string) => {
 };
 
 // Usa la dirección IP de tu máquina local
-const API_URL = 'https://localhost:7047/APIAuth/Login'; 
+const API_URL = 'https://localhost:7047/Auth/Login'; 
 
 const authService = {
     login: async (email: string, password: string): Promise<string> => {

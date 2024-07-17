@@ -7,8 +7,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="IServicio\ICajeroServicio.cs" />
-    <Compile Remove="Servicio\CajeroServicio.cs" />
+    <Compile Remove="IServicio\ICommandServicio.cs" />
+    <Compile Remove="IServicio\IOrderInCommandServicio.cs" />
+    <Compile Remove="IServicio\IOrderServicio.cs" />
+    <Compile Remove="Servicio\CommandService.cs" />
+    <Compile Remove="Servicio\OrderInCommandServicio.cs" />
+    <Compile Remove="Servicio\OrderServicio.cs" />
   </ItemGroup>
 
   <ItemGroup>

@@ -17,29 +17,13 @@ import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import IResponse from "../../../interfaces/IResponse.";
 import Loader from "../../../components/loader";
-import apiClient from "../../../AuthService/authInterceptor";
 import InfoIcon from "@mui/icons-material/Info";
 import GeneralModal from "../../../components/GeneralModal";
+import ICliente from "../../../interfaces/Cliente/ICliente";
+import clienteServices from "../../../services/ClientesServices";
+import { dataURLToFile } from "../../../assets/utils/DataURLToFile";
 
-interface PersonData {
-  id: number;
-  nombre: string;
-  apellido_Paterno: string;
-  apellido_Materno: string;
-  curp: string;
-  fechaNacimiento: Date | string;
-  foto: string | null;
-  company: {
-    id: number;
-    nombre: string;
-  };
-  user: {
-    id: number;
-    email: string;
-  };
-}
-
-const filterRows = (rows: PersonData[], term: string) => {
+const filterRows = (rows: ICliente[], term: string) => {
   return rows.filter((row) => {
     const searchTerm = term.toLowerCase();
     return (
@@ -52,12 +36,12 @@ const filterRows = (rows: PersonData[], term: string) => {
   });
 };
 export default function ClientesComponent() {
-  const [rows, setRows] = useState([]);
+  const [rows, setRows] = useState<ICliente[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [filteredRows, setFilteredRows] = useState<PersonData[]>(rows);
+  const [filteredRows, setFilteredRows] = useState<ICliente[]>(rows);
   const [loading, setLoading] = useState(false);
   const [openModal, setOpenModal] = useState(false);
-  const [modalData, setModalData] = useState<PersonData | null>(null);
+  const [modalData, setModalData] = useState<ICliente | null>(null);
 
   const navigate = useNavigate();
 
@@ -87,7 +71,9 @@ export default function ClientesComponent() {
               alignItems: "center",
               justifyContent: "center",
             }}
-          >No image</div>
+          >
+            No image
+          </div>
         ),
     },
     {
@@ -152,7 +138,7 @@ export default function ClientesComponent() {
           <Button
             variant="contained"
             color="error"
-            onClick={() => fetchDelete(params.row.id)}
+            onClick={() => handleDelete(params.row.id)}
           >
             <DeleteIcon />
           </Button>
@@ -163,31 +149,15 @@ export default function ClientesComponent() {
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await apiClient.get("/APICliente/lista");
-      const data = response.data;
-      setRows(data.result);
-      setFilteredRows(data.result);
+      const response = await clienteServices.getClientes();
+      setRows(response);
+      setFilteredRows(response);
     } catch (error) {
       console.error("Error:", error);
     }
     setLoading(false);
   }, []);
-
-  const dataURLToFile = (dataurl: any, filename: any) => {
-    console.log(dataurl, filename);
-    const arr = dataurl.split(",");
-    const mime = arr[0].match(/:(.*?);/)[1];
-    const bstr = atob(arr[1]);
-    let n = bstr.length;
-    const u8arr = new Uint8Array(n);
-    while (n--) {
-      u8arr[n] = bstr.charCodeAt(n);
-    }
-    return new File([u8arr], filename, { type: mime });
-  };
-  const fetchDelete = async (id: number) => {
-    let response: any;
-
+  const handleDelete = async (id: number) => {
     try {
       await Swal.fire({
         title: "¿Está seguro de eliminar al cliente?",
@@ -197,18 +167,16 @@ export default function ClientesComponent() {
         cancelButtonColor: "#d33",
         confirmButtonText: "Si",
         cancelButtonText: "No",
+        customClass: {
+          container: "custom-swal-container",
+        },
       }).then(async (result) => {
         if (result.isConfirmed) {
           setLoading(true);
-          response = await apiClient.delete(`/APICliente/Id?Id=${id}`);
-          if (response.status !== 200) {
-            throw new Error("Network response was not ok");
-          }
-          const dataResponse: IResponse = response.data;
-
-          if (dataResponse.isSuccess) {
+          const response: IResponse = await clienteServices.delete(id);
+          if (response.isSuccess) {
             Swal.fire({
-              title: dataResponse.message,
+              title: response.message,
               icon: "success",
               showCancelButton: false,
               confirmButtonColor: "#3085d6",
@@ -220,7 +188,7 @@ export default function ClientesComponent() {
             });
           } else {
             Swal.fire({
-              title: dataResponse.message,
+              title: response.message,
               icon: "error",
               showCancelButton: false,
               confirmButtonColor: "#3085d6",
@@ -231,19 +199,27 @@ export default function ClientesComponent() {
               },
             });
           }
+          fetchData();
         }
-        fetchData();
       });
     } catch (error: any) {
-      console.error("Error:", error);
+      Swal.fire({
+        title: "Error al Eliminar",
+        icon: "error",
+        showCancelButton: false,
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "Ok",
+        customClass: {
+          container: "custom-swal-container",
+        },
+      });
     } finally {
       setLoading(false);
     }
   };
-  const fetchById = (
-    id: number
-  ): PersonData | undefined => {
-    return rows.find((row: PersonData) => row.id === id);
+  const fetchById = (id: number): ICliente | undefined => {
+    return rows.find((row: ICliente) => row.id === id);
   };
 
   const handleOpenModal = async (id: number) => {
@@ -405,17 +381,27 @@ export default function ClientesComponent() {
                     <Typography variant="h6">
                       <strong>Correo:</strong>
                     </Typography>
-                    <Typography variant="body1">{modalData.user.email}</Typography>
+                    <Typography variant="body1">
+                      {modalData.user.email}
+                    </Typography>
                     <Typography variant="h6">
                       <strong>Negocio:</strong>
                     </Typography>
-                    <Typography variant="body1">{modalData.company.nombre}</Typography>
+                    <Typography variant="body1">
+                      {modalData.company.nombre}
+                    </Typography>
                   </Grid>
-                  <Grid item xs={12} md={12} display={"flex"} alignItems={"center"}>
+                  <Grid
+                    item
+                    xs={12}
+                    md={12}
+                    display={"flex"}
+                    alignItems={"center"}
+                  >
                     <Typography variant="h6">
                       <strong>Fecha de Nacimiento:</strong>
                     </Typography>
-                    <Typography variant="body1" marginLeft={1} marginTop={.5}>
+                    <Typography variant="body1" marginLeft={1} marginTop={0.5}>
                       {new Date(modalData.fechaNacimiento).toLocaleDateString()}
                     </Typography>
                   </Grid>

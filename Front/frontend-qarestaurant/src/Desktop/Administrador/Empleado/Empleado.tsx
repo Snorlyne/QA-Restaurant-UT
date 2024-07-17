@@ -1,6 +1,5 @@
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
 import Box from "@mui/material/Box";
-import axios from "axios";
 import { useCallback, useEffect, useState } from "react";
 import {
   Avatar,
@@ -19,23 +18,14 @@ import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 // import IResponse from "../../../interfaces/IResponse.";
 import Loader from "../../../components/loader";
-import apiClient from "../../../AuthService/authInterceptor";
 import GeneralModal from "../../../components/GeneralModal";
-
-interface PersonData {
-  id: number;
-  nombre: string;
-  apellido_Paterno: string;
-  apellido_Materno: string;
-  curp: string;
-  fechaNacimiento: Date | string;
-  foto: string | null;
-  email: string;
-  puesto: string;
-}
+import IEmpleado from "../../../interfaces/Empleado/IEmpleado";
+import empleadoServices from "../../../services/EmpleadoServices";
+import IResponse from "../../../interfaces/IResponse.";
+import { dataURLToFile } from "../../../assets/utils/DataURLToFile";
 
 // Función para filtrar filas
-const filterRows = (rows: PersonData[], term: string) => {
+const filterRows = (rows: IEmpleado[], term: string) => {
   const searchTerm = term.toLowerCase();
   return rows.filter((row) =>
     [
@@ -48,31 +38,14 @@ const filterRows = (rows: PersonData[], term: string) => {
     ].some((field) => field.toLowerCase().includes(searchTerm))
   );
 };
-
-// Función para convertir dataURL a File
-const dataURLToFile = (dataurl: string, filename: string): File => {
-  const [header, data] = dataurl.split(",");
-  const mimeMatch = header.match(/:(.*?);/);
-  if (!mimeMatch) throw new Error("Invalid data URL format");
-  const mime = mimeMatch[1];
-  const bstr = atob(data);
-  const u8arr = new Uint8Array(bstr.length);
-
-  for (let i = 0; i < bstr.length; i++) {
-    u8arr[i] = bstr.charCodeAt(i);
-  }
-
-  return new File([u8arr], filename, { type: mime });
-};
-
 export default function EmpleadoComponent() {
-  const [rows, setRows] = useState<PersonData[]>([]);
+  const [rows, setRows] = useState<IEmpleado[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [filteredRows, setFilteredRows] = useState<PersonData[]>([]);
+  const [filteredRows, setFilteredRows] = useState<IEmpleado[]>([]);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const [openModal, setOpenModal] = useState(false);
-  const [modalData, setModalData] = useState<PersonData | null>(null);
+  const [modalData, setModalData] = useState<IEmpleado | null>(null);
 
   // Manejar el cambio del término de búsqueda
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -165,7 +138,7 @@ export default function EmpleadoComponent() {
           <Button
             variant="contained"
             color="error"
-            onClick={() => fetchDelete(params.row.id)}
+            onClick={() => handleDelete(params.row.id)}
           >
             <DeleteIcon />
           </Button>
@@ -178,8 +151,7 @@ export default function EmpleadoComponent() {
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await apiClient.get("/APIColaborador/lista");
-      const data = response.data.result;
+      const data = await empleadoServices.getEmpleados();
       setRows(data);
       setFilteredRows(data);
     } catch (error) {
@@ -189,31 +161,69 @@ export default function EmpleadoComponent() {
   }, []);
 
   // Función para eliminar un colaborador
-  const fetchDelete = async (id: number) => {
+  const handleDelete = async (id: number) => {
     try {
-      const result = await Swal.fire({
-        title: "¿Está seguro de eliminar al colaborador?",
+      await Swal.fire({
+        title: "¿Está seguro de eliminar al cliente?",
         icon: "warning",
         showCancelButton: true,
         confirmButtonColor: "#3085d6",
         cancelButtonColor: "#d33",
         confirmButtonText: "Si",
         cancelButtonText: "No",
+        customClass: {
+          container: "custom-swal-container",
+        },
+      }).then(async (result) => {
+        if (result.isConfirmed) {
+          setLoading(true);
+          const response: IResponse = await empleadoServices.delete(id);
+          if (response.isSuccess) {
+            Swal.fire({
+              title: response.message,
+              icon: "success",
+              showCancelButton: false,
+              confirmButtonColor: "#3085d6",
+              cancelButtonColor: "#d33",
+              confirmButtonText: "Ok",
+              customClass: {
+                container: "custom-swal-container",
+              },
+            });
+          } else {
+            Swal.fire({
+              title: response.message,
+              icon: "error",
+              showCancelButton: false,
+              confirmButtonColor: "#3085d6",
+              cancelButtonColor: "#d33",
+              confirmButtonText: "Ok",
+              customClass: {
+                container: "custom-swal-container",
+              },
+            });
+          }
+          fetchData();
+        }
       });
-
-      if (result.isConfirmed) {
-        setLoading(true);
-        await apiClient.delete(`/APIColaborador/Id?Id=${id}`);
-        fetchData();
-      }
     } catch (error: any) {
-      Swal.fire("Error!", error.message, "error");
+      Swal.fire({
+        title: "Error al Eliminar",
+        icon: "error",
+        showCancelButton: false,
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "Ok",
+        customClass: {
+          container: "custom-swal-container",
+        },
+      });
     } finally {
       setLoading(false);
     }
   };
-  const fetchById = (id: number): PersonData | undefined => {
-    return rows.find((row: PersonData) => row.id === id);
+  const fetchById = (id: number): IEmpleado | undefined => {
+    return rows.find((row: IEmpleado) => row.id === id);
   };
 
   const handleOpenModal = async (id: number) => {
@@ -377,15 +387,11 @@ export default function EmpleadoComponent() {
                     <Typography variant="h6">
                       <strong>Correo:</strong>
                     </Typography>
-                    <Typography variant="body1">
-                      {modalData.email}
-                    </Typography>
+                    <Typography variant="body1">{modalData.email}</Typography>
                     <Typography variant="h6">
                       <strong>Puesto:</strong>
                     </Typography>
-                    <Typography variant="body1">
-                      {modalData.puesto}
-                    </Typography>
+                    <Typography variant="body1">{modalData.puesto}</Typography>
                   </Grid>
                   <Grid
                     item

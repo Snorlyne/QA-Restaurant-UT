@@ -1,6 +1,6 @@
 import { Box, Container, Typography, Grid } from "@mui/material";
 import YearSales from "./Graficos/GraficoYearSales";
-import authService from "../../AuthService/authService";
+import authService from "../../services/AuthServices";
 
 export default function InicioComponent() {
   const isRoot = authService.getRole() === "Root" ? true : false;

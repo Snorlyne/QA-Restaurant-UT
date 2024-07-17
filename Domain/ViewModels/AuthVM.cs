@@ -18,6 +18,7 @@ namespace Domain.ViewModels
             public string Email { get; set; }
             public string Rol { get; set; }
             public string Nombre { get; set; }
+            public int? Empresa { get; set; }
             public string JWTtoken { get; set; }
         }
 

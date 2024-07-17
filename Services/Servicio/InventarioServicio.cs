@@ -49,11 +49,10 @@ namespace Services.Servicio
             }
         }
 
-        public async Task<Response<ViewProductoByIdVM>> ObtenerProducto(int id, int companyId)
+        public async Task<Response<CreateProductoVM>> ObtenerProducto(int id, int companyId)
         {
             try
             {
-
                 Inventario res = await _context.Inventario.Include(x => x.Categorias).FirstOrDefaultAsync(x => x.Id == id && x.Categorias.FK_Company == companyId);
                 if (res == null)
                 {
@@ -62,18 +61,17 @@ namespace Services.Servicio
                 string? base64String = res.ImagenInventario != null
                    ? Convert.ToBase64String(res.ImagenInventario)
                    : null;
-                ViewProductoByIdVM produc = new()
+                CreateProductoVM produc = new()
                 {
-                    Id = id,
                     Nombre = res.Nombre,
                     Precio = res.Precio,
                     Preparado = res.Preparado,
-                    Categoria = new() { id = res.Categorias.Id, NombreCategoria = res.Categorias.NombreCategoria},
+                    Categoria = (int)res.FK_Categoria,
                     Descripcion = res.Descripcion,
                     ImagenInventario = res.ImagenInventario != null ? "data:image/png;base64," + base64String : null,
 
                 };
-                return new Response<ViewProductoByIdVM>(produc);
+                return new Response<CreateProductoVM>(produc);
 
             }
             catch (Exception ex)

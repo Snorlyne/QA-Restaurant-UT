@@ -18,7 +18,7 @@ import SearchIcon from "@mui/icons-material/Search";
 import StorefrontIcon from "@mui/icons-material/Storefront";
 import HailIcon from "@mui/icons-material/Hail";
 import LogoutIcon from "@mui/icons-material/Logout";
-import logoSinBG from "./../../img/logoSinBG.png";
+import logoSinBG from "./../../assets/img/logoSinBG.png";
 import ClientesComponent from "./Cliente/Cliente";
 import { useEffect, useState } from "react";
 import InicioComponent from "./Inicio";
@@ -29,7 +29,6 @@ import {
   InputAdornment,
   TextField,
   Button,
-  Modal,
 } from "@mui/material";
 import deepOrange from "@mui/material/colors/deepOrange";
 import EmpresaComponent from "./Empresa/Empresa";
@@ -42,23 +41,19 @@ import {
 } from "react-router-dom";
 import EmpresaCreateEditComponent from "./Empresa/EmpresaCE";
 import ClienteCEComponent from "./Cliente/ClienteCE";
-import UsuarioComponent from "./Usuario/Usuario";
-import authService from "../../AuthService/authService";
+import authService from "../../services/AuthServices";
 import Swal from "sweetalert2";
 import EmpleadoComponent from "./Empleado/Empleado";
 import EmpleadoCEComponent from "./Empleado/EmpleadoCE";
-import ProtectedRoute from "../../AuthService/ProtectedRoute";
+import ProtectedRoute from "../../auth/ProtectedRoute";
 import Inventario from "./Inventario/Inventario";
 import ProductoCE from "./Inventario/ProductoCE";
 import InventoryIcon from "@mui/icons-material/Inventory";
 import Categoria from "./Categoria/Categoria";
 import CategoriaCE from "./Categoria/CategoriaCE";
-import CategoryIcon from '@mui/icons-material/Category';
-import PasswordIcon from '@mui/icons-material/Password';
-import CambioDePassword from "./Usuario/CambioDePassword";
-import { Navigation } from "@mui/icons-material";
-import ModalUsuario from "../../components/ModalUsuario";
-
+import CategoryIcon from "@mui/icons-material/Category";
+import CambioDePassword from "../../components/Usuario/CambioDePassword";
+import ModalUsuario from "../../components/Usuario/ModalUsuario";
 
 const drawerWidth = 240;
 
@@ -147,31 +142,24 @@ const menuItems = [
     icon: <DashboardIcon />,
     link: "/dashboard",
   },
-  // { text: 'Inventario', icon: <MailIcon />, component: <InventarioComponent /> },
-  // { text: 'Categoria', icon: <InboxIcon />, component: <CategoriaComponent /> },
-  { text: "Clientes",
-    icon: <HailIcon />,
-    link: "/dashboard/clientes" },
+  { text: "Clientes", icon: <HailIcon />, link: "/dashboard/clientes" },
   {
     text: "Empresas",
     icon: <StorefrontIcon />,
     link: "/dashboard/empresas",
   },
-  { text: "Empleados",
-    icon: <HailIcon />,
-    link: "/dashboard/empleados" },
+  { text: "Empleados", icon: <HailIcon />, link: "/dashboard/empleados" },
 
-   {
-     text: "Inventario",
-     icon: <InventoryIcon />,
-     link: "/dashboard/inventario",
-   },
-   {
+  {
+    text: "Inventario",
+    icon: <InventoryIcon />,
+    link: "/dashboard/inventario",
+  },
+  {
     text: "Categorias",
-    icon: <CategoryIcon/>,
+    icon: <CategoryIcon />,
     link: "/dashboard/categorias",
-   },
-
+  },
 
   // { text: 'Configuración General', icon: <InboxIcon />, component: <ConfiguracionGeneralComponent /> }
 ];
@@ -240,7 +228,12 @@ const Dashboard: React.FC = () => {
     const role = authService.getRole();
     if (role === "Root") {
       setSelectedMenuItems(
-        menuItems.filter((item) => item.text !== "")
+        menuItems.filter(
+          (item) =>
+            item.text !== "Inventario" &&
+            item.text !== "Empleados" &&
+            item.text !== "Categorias"
+        )
       );
     } else {
       setSelectedMenuItems(
@@ -347,7 +340,9 @@ const Dashboard: React.FC = () => {
                   }),
                 }}
               >
-                <Avatar sx={{ bgcolor: deepOrange[500] }}>U</Avatar>
+                <Avatar sx={{ bgcolor: deepOrange[500] }}>
+                  {userNombre?.charAt(0)}
+                </Avatar>
               </Grid>
               <Grid
                 item
@@ -430,7 +425,7 @@ const Dashboard: React.FC = () => {
                     </InputAdornment>
                   ),
                 }}
-                placeholder="Search"
+                placeholder="Buscar"
               />
             )}
           />
@@ -543,7 +538,6 @@ const Dashboard: React.FC = () => {
         <DrawerHeader />
         <Routes>
           <Route index element={<InicioComponent />} />
-          <Route path="usuario" element={<UsuarioComponent />} />
 
           <Route
             path="empresas"
@@ -597,18 +591,24 @@ const Dashboard: React.FC = () => {
             }
           />
 
-            <Route path="clientes/crear"  element={
+          <Route
+            path="clientes/crear"
+            element={
               <ProtectedRoute
                 roles={["Root"]}
                 element={<ClienteCEComponent />}
               />
-            } />
-            <Route path="cientes/editar/:id" element={
+            }
+          />
+          <Route
+            path="cientes/editar/:id"
+            element={
               <ProtectedRoute
                 roles={["Root"]}
                 element={<ClienteCEComponent />}
               />
-            } />
+            }
+          />
 
           <Route
             path="empleados"
@@ -618,41 +618,59 @@ const Dashboard: React.FC = () => {
                 element={<EmpleadoComponent />}
               />
             }
-          >
-            <Route path="crear" element={<EmpleadoCEComponent />} />
-            <Route path="editar/:id" element={<EmpleadoCEComponent />} />
-          </Route>
+          />
+          <Route path="empleados/crear" element={<EmpleadoCEComponent />} />
+          <Route
+            path="empleados/editar/:id"
+            element={<EmpleadoCEComponent />}
+          />
           <Route
             path="inventario"
-            element={<ProtectedRoute roles={["Admin"]} element={<Inventario />} />}
+            element={
+              <ProtectedRoute roles={["Admin"]} element={<Inventario />} />
+            }
           />
           <Route
-          path="inventario/crear"
-          element={<ProtectedRoute roles={["Admin"]} element={<ProductoCE />} />}
+            path="inventario/crear"
+            element={
+              <ProtectedRoute roles={["Admin"]} element={<ProductoCE />} />
+            }
           />
           <Route
-          path="inventario/editar/:id"
-          element={<ProtectedRoute roles={["Admin"]} element={<ProductoCE />} />}
+            path="inventario/editar/:id"
+            element={
+              <ProtectedRoute roles={["Admin"]} element={<ProductoCE />} />
+            }
           />
           <Route
             path="categorias"
-            element={<ProtectedRoute roles={["Admin"]} element={<Categoria />} />}
+            element={
+              <ProtectedRoute roles={["Admin"]} element={<Categoria />} />
+            }
           />
           <Route
             path="categorias/crear"
-            element={<ProtectedRoute roles={["Admin"]} element={<CategoriaCE />} />}
+            element={
+              <ProtectedRoute roles={["Admin"]} element={<CategoriaCE />} />
+            }
           />
           <Route
             path="categorias/editar/:id"
-            element={<ProtectedRoute roles={["Admin"]} element={<CategoriaCE />} />}
+            element={
+              <ProtectedRoute roles={["Admin"]} element={<CategoriaCE />} />
+            }
           />
 
           <Route
             path="Password"
-            element={<ProtectedRoute roles={["Admin", "Root", "Meseros"]} element={<CambioDePassword />} />}
+            element={
+              <ProtectedRoute
+                roles={["Admin", "Root", "Meseros"]}
+                element={<CambioDePassword />}
+              />
+            }
           />
         </Routes>
-
       </Box>
     </Box>
   );

@@ -1,4 +1,5 @@
 ﻿using BaseWeb.Middleware;
+using BaseWeb.SignalR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -25,6 +26,7 @@ builder.Services.AddControllers().AddJsonOptions(options =>
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSignalR();
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
@@ -102,15 +104,25 @@ builder.Services.AddScoped<IInventarioServicio, InventarioServicio>();
 builder.Services.AddTransient<ICategoriaServicio, CategoriaServicio>();
 
 builder.Services.AddTransient<IColaboradorServicio, ColaboradorServicio>();
-//builder.Services.AddTransient<ICajeroServicio, CajeroServicio>();
+builder.Services.AddTransient<ICajeroServicio, CajeroServicio>();
+builder.Services.AddTransient<IMeseroServicio, MeseroServicio>();
 builder.Services.AddTransient<IStatusServicio, StatusServicio>();
-builder.Services.AddTransient<IOrderServicio, OrderServicio>();
-builder.Services.AddTransient<ICommandServicio, CommandServicio>();
-builder.Services.AddTransient<IOrderInCommandServicio, OrderInCommandServicio>();
+//builder.Services.AddTransient<IOrderServicio, OrderServicio>();
+//builder.Services.AddTransient<ICommandServicio, CommandServicio>();
+//builder.Services.AddTransient<IOrderInCommandServicio, OrderInCommandServicio>();
 builder.Services.AddTransient<ICocinerosServicio, CocinerosServicio>();
 
 //Configuraci?n para permitir el host del front para hace uso del Web API //Configurar cuando se pase a produccion.
-builder.Services.AddCors(options => options.AddPolicy("AllowWebApp", builder => builder.AllowAnyOrigin()./* WithOrigins("http://localhost:8081").*/AllowAnyHeader().AllowAnyMethod()));
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowWebApp", builder =>
+    {
+        builder.WithOrigins("http://localhost:3000","http://localhost:8081") // Cambia esto a la URL de tu aplicación React
+               .AllowAnyHeader()
+               .AllowAnyMethod()
+               .AllowCredentials(); // Necesario para permitir credenciales
+    });
+});
 
 var app = builder.Build();
 var env = builder.Environment;
@@ -136,6 +148,8 @@ if (!env.IsProduction())
     }
 }
 app.UseCors("AllowWebApp");
+
+app.MapHub<CommandHub>("/commandHub");
 
 app.UseHttpsRedirection();
 

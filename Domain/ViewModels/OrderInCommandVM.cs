@@ -23,10 +23,10 @@ namespace Domain.ViewModels
             public int Id { get; set; }
         }
 
-        public class OrderViewVM
-        {
-            public int Id { get; set; }
-            public int Mesa { get; set; }
-        }
+        //public class OrderViewVM
+        //{
+        //    public int Id { get; set; }
+        //    public int Mesa { get; set; }
+        //}
     }
 }

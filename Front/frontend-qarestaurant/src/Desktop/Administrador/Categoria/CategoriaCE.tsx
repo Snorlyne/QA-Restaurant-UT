@@ -5,29 +5,18 @@ import {
   Box,
   Typography,
   Button,
-  Autocomplete,
 } from "@mui/material";
 import CheckIcon from "@mui/icons-material/Check";
 import { useCallback, useEffect, useState } from "react";
 import IResponse from "../../../interfaces/IResponse.";
-import axios from "axios";
 import Swal from "sweetalert2";
 import Loader from "../../../components/loader";
 import { useParams } from "react-router-dom";
-import { useDropzone } from "react-dropzone";
 import { Cancel } from "@mui/icons-material";
-import authService from "../../../AuthService/authService";
-import Select from '@mui/material/Select';
-import MenuItem from '@mui/material/MenuItem';
-import apiClient from "../../../AuthService/authInterceptor";
+import categoriaServices from "../../../services/CategoriasServices";
+import ICategoriaDto from "../../../interfaces/Categoria/ICategoriaDto";
 
-interface CategoriaData {
-  id: number;
-  nombreCategoria: string;
-
-}
-const initialCategoriaData: CategoriaData = {
-  id: 0,
+const initialCategoriaData: ICategoriaDto = {
   nombreCategoria: "",
 };
 const initialErrors = {
@@ -38,11 +27,10 @@ const initialErrors = {
 export default function EmpleadoCEComponent() {
   const { id } = useParams();
   const [title, setTitle] = useState<string>("Registrar Categoria");
-  const [categoriaData, setCategoriaData] = useState<CategoriaData>(initialCategoriaData);
+  const [categoriaData, setCategoriaData] = useState<ICategoriaDto>(initialCategoriaData);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState(initialErrors);
   const [disabledBtn, setDisabledBtn] = useState(true);
-  const token = authService.getToken();
 
 
   // Manejador genérico para cambios en los inputs
@@ -70,7 +58,7 @@ export default function EmpleadoCEComponent() {
 
     const hasEmptyFields = fields
       .some((field) => {
-        return !categoriaData[field as keyof CategoriaData];
+        return !categoriaData[field as keyof ICategoriaDto];
       });
 
     return hasErrors || hasEmptyFields;
@@ -98,18 +86,16 @@ export default function EmpleadoCEComponent() {
   const setDatos = async () => {
     try {
       setLoading(true);
-      let response: any;
+      let response: IResponse;
       const data = categoriaData;
       if (!id) {
-        response = await apiClient.post("/APICategoria", data);
+        response = await categoriaServices.post(data);
       } else {
-        response = await apiClient.put(`/APICategoria/Id?Id=${id}`, data);
+        response = await categoriaServices.put(id, data);
       }
-      const dataResponse: IResponse = response.data;
-
-      if (dataResponse.isSuccess) {
+      if (response.isSuccess) {
         Swal.fire({
-          title: dataResponse.message,
+          title: response.message,
           icon: "success",
           showCancelButton: false,
           confirmButtonColor: "#3085d6",
@@ -123,7 +109,7 @@ export default function EmpleadoCEComponent() {
         });
       } else {
         Swal.fire({
-          title: dataResponse.message,
+          title: response.message,
           icon: "error",
           showCancelButton: false,
           confirmButtonColor: "#3085d6",
@@ -135,7 +121,17 @@ export default function EmpleadoCEComponent() {
         });
       }
     } catch (error: any) {
-      console.error(error.response.data);
+      Swal.fire({
+        title: "Se ha producido un error",
+        icon: "error",
+        showCancelButton: false,
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "Ok",
+        customClass: {
+          container: "custom-swal-container",
+        },
+      });
     } finally {
       setLoading(false);
     }
@@ -143,15 +139,13 @@ export default function EmpleadoCEComponent() {
   
   useEffect(() => {
     const fetchData = async () => {
+      if (!id) return;
       try {
         setLoading(true);
-        const response = await apiClient.get(`/APICategoria/Id?Id=${id}`);
-        const data = response.data.result;
+        const data = await categoriaServices.getCategoria(id)
         setCategoriaData({
-          id: data.id,
           nombreCategoria: data.nombreCategoria,
         });
-
       } catch (error) {
         console.error("Error fetching categoria data:", error);
       } finally {
