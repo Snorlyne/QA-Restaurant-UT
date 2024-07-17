@@ -4,6 +4,7 @@ using Domain.ViewModels;
 using Microsoft.EntityFrameworkCore;
 using Repository.Context;
 using Services.IServicio;
+using System.ComponentModel.Design;
 using static Domain.ViewModels.CommandVM;
 using static Domain.ViewModels.MeseroVM;
 using static Domain.ViewModels.OrderVM;
@@ -123,7 +124,7 @@ namespace Services.Servicio
                     orders.Add(order);
                 }
 
-                OrdersInCommand ordersInCommands = await _context.OrdersInCommands
+                var existingCommand = await _context.OrdersInCommands
                     .Include(c => c.Order)
                         .ThenInclude(o => o.Person)
                     .Include(c => c.Command)
@@ -131,9 +132,10 @@ namespace Services.Servicio
                                 && x.Command.Fecha.Date == DateTime.Today
                                 && x.Order.Status.Nombre != "Pagado"
                                 && x.Order.Mesa == req.Mesa)
+                    .Select(x => x.Command)
                     .FirstOrDefaultAsync();
 
-                if (ordersInCommands == null)
+                if (existingCommand == null)
                 {
                     command = new()
                     {
@@ -144,10 +146,15 @@ namespace Services.Servicio
                     };
                     _context.Commands.Add(command);
                     await _context.SaveChangesAsync();
-                }else
-                {
-                    command = ordersInCommands.Command;
                 }
+                else
+                {
+                    existingCommand.Total += total;
+                    _context.Commands.Update(existingCommand);
+                    await _context.SaveChangesAsync();
+                    command = existingCommand;
+                }
+
 
                 foreach (Order order in orders)
                 {
