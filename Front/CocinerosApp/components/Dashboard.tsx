@@ -132,6 +132,7 @@ const OrderScreen: React.FC = () => {
     };
 
     return (
+        <div style={{ maxHeight: '100vh', overflowY: 'scroll' }}>
         <SafeAreaView style={styles.container}>
             <View style={styles.headerContainer}>
                 <Text style={styles.header}>Ordenes pedidas:</Text>
@@ -188,13 +189,14 @@ const OrderScreen: React.FC = () => {
 
             </ScrollView>
         </SafeAreaView>
+        </div>
     );
 };
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        padding: 16, // Mantenemos el padding general del contenedor principal
+        padding: 16, 
         backgroundColor: '#FFF6ED',
     },
     headerContainer: {
@@ -202,8 +204,8 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         alignItems: 'center',
         marginBottom: 16,
-        padding: 10, // Aumentado para dar más espacio interno
-        marginTop: 10, // Añadido para dar espacio adicional en la parte superior
+        padding: 10, 
+        marginTop: 10, 
     },
     header: {
         fontSize: 24,
