@@ -26,6 +26,7 @@ namespace Domain.ViewModels
             public ViewProductoVM Producto { get; set; }
         }
 
+
         //public class OrderUpdateVM
         //{
         //    public int Mesa { get; set; }

@@ -24,11 +24,19 @@ namespace Domain.ViewModels
             public decimal Total { get; set; }
             public DateTime Fecha { get; set; }
             public int Restaurante { get; set; }
+            public string Tipo { get; set; }
             public OrderViewVM[] Ordenes { get; set; }
         }
         public class CommandUpdateStatusVM
         {
-            public int Id { get;set; }
+            public int Id { get; set; }
+            public int Mesa { get; set; }
+            public int Status { get; set; }
+        }
+        public class CommandOrderUpdateStatusVM
+        {
+            public int Id { get; set; }
+            public int Mesa { get; set; }
             public int Status { get; set; }
         }
         public class CommandOrderDeleteVM

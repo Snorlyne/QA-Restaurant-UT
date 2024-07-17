@@ -100,7 +100,7 @@ namespace Services.Servicio
                     .Where(x => x.Command.Restaurante == companyId 
                           && x.Command.Id == idCommand
                           && x.Order.Status.Nombre == "Por cobrar" 
-                          && x.Command.Fecha == DateTime.Today)
+                          && x.Command.Fecha.Date == DateTime.Today)
                     .ToListAsync();
 
                 if(ordersInCommands.Count == 0) 
@@ -129,6 +129,7 @@ namespace Services.Servicio
                 CommandUpdateStatusVM res = new()
                 {
                     Id = idCommand,
+                    Mesa = ordersInCommands.FirstOrDefault().Order.Mesa,
                     Status = 5
                 };
 

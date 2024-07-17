@@ -98,6 +98,7 @@ namespace Services.Servicio
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
             Command command = new();
+            string tipo = "newComanda";
             try
             {
                 decimal total = 0;
@@ -153,6 +154,7 @@ namespace Services.Servicio
                     _context.Commands.Update(existingCommand);
                     await _context.SaveChangesAsync();
                     command = existingCommand;
+                    tipo = "newOrder";
                 }
 
 
@@ -175,6 +177,7 @@ namespace Services.Servicio
                     Fecha = command.Fecha,
                     Restaurante = command.Restaurante,
                     Total = command.Total,
+                    Tipo = tipo,
                     Ordenes = orders.Select(x => new OrderViewVM
                     {
                         Fecha = x.Fecha,
@@ -220,6 +223,7 @@ namespace Services.Servicio
                                 && x.Command.Id == idCommand
                                 && x.Order.Status.Nombre == "Pedido listo")
                     .ToListAsync();
+                var mesa = ordersInCommands.FirstOrDefault()?.Order.Mesa;
 
                 if (ordersInCommands.Count == 0)
                 {
@@ -241,6 +245,7 @@ namespace Services.Servicio
                 CommandUpdateStatusVM res = new()
                 {
                     Id = idCommand,
+                    Mesa = ordersInCommands.FirstOrDefault().Order.Mesa,
                     Status = 4
                 };
 
@@ -262,7 +267,7 @@ namespace Services.Servicio
                     .Where(x => x.Command.Restaurante == companyId
                                 && x.Command.Fecha.Date == DateTime.Today
                                 && x.Command.Id == idCommand
-                                && x.Order.Status.Nombre == "Pedido listo")
+                                && x.Order.Status.Nombre == "Pagando")
                     .ToListAsync();
 
                 if (ordersInCommands.Count == 0)
@@ -285,6 +290,7 @@ namespace Services.Servicio
                 CommandUpdateStatusVM res = new()
                 {
                     Id = idCommand,
+                    Mesa = ordersInCommands.FirstOrDefault().Order.Mesa,
                     Status = 6
                 };
                 return new Response<CommandUpdateStatusVM>(res, "Se ha cobrado el comensal con éxito,");

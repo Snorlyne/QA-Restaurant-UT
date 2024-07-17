@@ -58,7 +58,7 @@ export default function DashboardCajero() {
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
   const [openCommanda, setOpenCommanda] = useState(false);
-  const [isMounted, setIsMounted] = useState(false);
+  // const [isMounted, setIsMounted] = useState(false);
   const [showBadgePorCobrar, setShowBadgePorCobrar] = useState(false);
   const [showBadgePagado, setShowBadgePagado] = useState(false);
   const [notifiedMesas, setNotifiedMesas] = useState<
@@ -217,8 +217,8 @@ export default function DashboardCajero() {
             return;
           }
           Swal.fire({
-            title: title,
-            text: response.message,
+            title: "Eliminación con éxito",
+            text: title,
             icon: "success",
             confirmButtonText: "Aceptar",
             customClass: {
@@ -228,7 +228,6 @@ export default function DashboardCajero() {
         }
       });
     } catch (err: any) {
-      console.error(err);
       Swal.fire({
         title: "Error al eliminar la orden",
         text: err.message,
@@ -313,7 +312,7 @@ export default function DashboardCajero() {
             <div class="ticket-item"><span class="item-title">Mesero:</span> ${
               comanda.meseroCargo
             }</div>
-            <div class="ticket-item"><span class="item-title">Cobrador:</span> ${
+            <div class="ticket-item"><span class="item-title">Cajero:</span> ${
               comanda.cobrador
             }</div>
             <table class="orders-table">
@@ -383,28 +382,35 @@ export default function DashboardCajero() {
   };
 
   const fetchData = useCallback(async () => {
-    if (isMounted) return;
-    setLoading(true);
+    // setLoading(true);
     try {
       const data = await cajeroServices.getComandas();
       setComandas(data);
-      if (selectedMesa !== null) {
-        setSelectedMesa(
-          data.filter((m: IComanda) => m.id === selectedMesa.id).length > 0
-            ? data.filter((m: IComanda) => m.id === selectedMesa.id)[0]
-            : null
-        );
-      }
-      setIsMounted(true); // Marcar que los datos se han cargado
     } catch (error) {
       console.error("Error:", error);
     }
-    setLoading(false);
-  }, [selectedMesa, isMounted]);
+    // setLoading(false);
+  }, []);
 
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  useEffect(() => {
+    // Lógica para actualizar selectedMesa si es necesario
+    if (selectedMesa !== null && comandas !== null) {
+      const mesaActualizada = comandas.find(
+        (m: IComanda) => m.id === selectedMesa.id
+      );
+      if (mesaActualizada) {
+        // Si la mesa existe en las nuevas comandas, actualizarla
+        setSelectedMesa(mesaActualizada);
+      } else {
+        // Si la mesa no está en las nuevas comandas, limpiar selectedMesa
+        setSelectedMesa(null);
+      }
+    }
+  }, [comandas, selectedMesa]);
 
   useEffect(() => {
     let conectado: boolean = false;
@@ -421,15 +427,18 @@ export default function DashboardCajero() {
 
     startConnection();
     // Function to transform incoming command data
-    const transformCommandData = (command:ICommanda) => {
+    const transformCommandData = (command: ICommanda) => {
       return {
         id: command.id,
+        tipo: command.tipo,
         meseroCargo: command.propietario,
         cobrador: command.cobrador || "",
         total: command.total,
         mesa: command.ordenes.length > 0 ? command.ordenes[0].mesa : 0,
         estado:
-          command.ordenes.length > 0 ? statusMap[command.ordenes[0].status.id] : "",
+          command.ordenes.length > 0
+            ? statusMap[command.ordenes[0].status.id]
+            : "",
         imagen:
           command.ordenes.length > 0
             ? command.ordenes[0].producto.imagenInventario
@@ -447,30 +456,105 @@ export default function DashboardCajero() {
 
     connection.on("OnCommandCreated", (command) => {
       const newCommand = transformCommandData(command);
-      setComandas((prevComandas) => {
-        const existingComanda = prevComandas && prevComandas.find((c) => c.id === newCommand.id);
-        if (existingComanda) {
-          newCommand.ordenes.forEach((newOrder) => {
-            const existingOrder = existingComanda.ordenes.find(
-              (o) => o.id === newOrder.id
-            );
-            if (!existingOrder) {
-              existingComanda.ordenes.push(newOrder);
-              existingComanda.total = newCommand.total;
-            }
+      // setComandas((prevComandas) => {
+      //   const existingComanda = prevComandas && prevComandas.find((c) => c.id === newCommand.id);
+      //   if (existingComanda) {
+      //     newCommand.ordenes.forEach((newOrder) => {
+      //       const existingOrder = existingComanda.ordenes.find(
+      //         (o) => o.id === newOrder.id
+      //       );
+      //       if (!existingOrder) {
+      //         existingComanda.ordenes.push(newOrder);
+      //         existingComanda.total = newCommand.total;
+      //       }
+      //     });
+      //     return [...prevComandas];
+      //   } else {
+      //     if (audioPlayerRef.current && audioPlayerRef.current.audioEl.current) {
+      //       const audioElement = audioPlayerRef.current.audioEl.current;
+      //       audioElement.addEventListener("canplaythrough", () => {
+      //         audioElement
+      //           .play()
+      //           .catch((error) =>
+      //             console.error("Error al reproducir el audio:", error)
+      //           );
+      //       });
+      //       enqueueSnackbar(`Mesa ${newCommand.mesa} ha sido agregada`, {
+      //         variant: "success",
+      //         autoHideDuration: 6000,
+      //         anchorOrigin: {
+      //           vertical: "top",
+      //           horizontal: "right",
+      //         },
+      //       });
+      //       audioElement.load();
+      //     }
+      //     return prevComandas !== null ? [...prevComandas, newCommand] : [newCommand];
+      //   }
+      // });
+      if (newCommand.tipo === "newComanda") {
+        if (audioPlayerRef.current && audioPlayerRef.current.audioEl.current) {
+          const audioElement = audioPlayerRef.current.audioEl.current;
+          audioElement.addEventListener("canplaythrough", () => {
+            audioElement
+              .play()
+              .catch((error) =>
+                console.error("Error al reproducir el audio:", error)
+              );
           });
-          return [...prevComandas];
-        } else {
-          if (audioPlayerRef.current && audioPlayerRef.current.audioEl.current) {
-            const audioElement = audioPlayerRef.current.audioEl.current;
-            audioElement.addEventListener("canplaythrough", () => {
-              audioElement
-                .play()
-                .catch((error) =>
-                  console.error("Error al reproducir el audio:", error)
-                );
+          enqueueSnackbar(`Mesa ${newCommand.mesa} ha sido agregada`, {
+            variant: "success",
+            autoHideDuration: 6000,
+            anchorOrigin: {
+              vertical: "top",
+              horizontal: "right",
+            },
+          });
+          audioElement.load();
+        }
+      }
+      fetchData();
+    });
+
+    connection.on("OnCommandUpdated", (data) => {
+      console.log("Actualizando", data);
+      // setComandas((prevCommands) =>
+      //   prevCommands!.map((c) => {
+      //     if (c.id === data.commandId) {
+      //       return { ...c, estado: statusMap[data.status] };
+      //     }
+      //     return c;
+      //   })
+      // );
+      // if (selectedMesa !== null && selectedMesa.id === data.commandId) {
+      //   setSelectedMesa((prevMesa) => ({
+      //     ...prevMesa!,
+      //     estado: statusMap[data.status],
+      //   }));
+      // }
+      if (data.status === 4 || data.status === 6) {
+        if (audioPlayerRef.current && audioPlayerRef.current.audioEl.current) {
+          const audioElement = audioPlayerRef.current.audioEl.current;
+          audioElement.addEventListener("canplaythrough", () => {
+            audioElement
+              .play()
+              .catch((error) =>
+                console.error("Error al reproducir el audio:", error)
+              );
+          });
+          if (data.status === 4) {
+            setShowBadgePorCobrar(true);
+            enqueueSnackbar(`Mesa ${data.mesa} en espera de cobro`, {
+              variant: "warning",
+              autoHideDuration: 6000,
+              anchorOrigin: {
+                vertical: "top",
+                horizontal: "right",
+              },
             });
-            enqueueSnackbar(`Mesa ${newCommand.mesa} ha sido agregada`, {
+          }else {
+            setShowBadgePagado(true);
+            enqueueSnackbar(`Mesa ${data.mesa} ha sido pagada`, {
               variant: "success",
               autoHideDuration: 6000,
               anchorOrigin: {
@@ -478,54 +562,38 @@ export default function DashboardCajero() {
                 horizontal: "right",
               },
             });
-            audioElement.load();
           }
-          return prevComandas !== null ? [...prevComandas, newCommand] : [newCommand];
+          audioElement.load();
         }
-      });
-    });
-
-    connection.on("OnCommandUpdated", (data) => {
-      console.log("Actualizando");
-      setComandas((prevCommands) =>
-        prevCommands!.map((c) => {
-          if (c.id === data.commandId) {
-            return { ...c, estado: statusMap[data.status] };
-          }
-          return c;
-        })
-      );
-      if (selectedMesa !== null && selectedMesa.id === data.commandId) {
-        setSelectedMesa((prevMesa) => ({
-          ...prevMesa!,
-          estado: statusMap[data.status],
-        }));
       }
+      fetchData();
     });
 
     connection.on("OnCommandDeleted", (deletedCommandId) => {
       console.log("Eliminando");
-      setComandas((prevCommands) =>
-        prevCommands!.filter((c) => c.id !== deletedCommandId)
-      );
-      setSelectedMesa(null);
+      // setComandas((prevCommands) =>
+      //   prevCommands!.filter((c) => c.id !== deletedCommandId)
+      // );
+      // setSelectedMesa(null);
+      fetchData();
     });
 
     connection.on("OnOrderDeleted", (data) => {
       console.log("Eliminando");
-      if (comandas != null) {
-        const comandaIndex = comandas.findIndex((c) => c.id === data.commandId);
-        if (comandaIndex !== -1) {
-          const ordenIndex = comandas[comandaIndex].ordenes.findIndex(
-            (o) => o.id === data.orderId
-          );
-          if (ordenIndex !== -1) {
-            comandas[comandaIndex].ordenes.splice(ordenIndex, 1);
-          }
-        }
-        setSelectedMesa(comandas[comandaIndex]);
-        setComandas([...comandas]);
-      }
+      // if (comandas != null) {
+      //   const comandaIndex = comandas.findIndex((c) => c.id === data.commandId);
+      //   if (comandaIndex !== -1) {
+      //     const ordenIndex = comandas[comandaIndex].ordenes.findIndex(
+      //       (o) => o.id === data.orderId
+      //     );
+      //     if (ordenIndex !== -1) {
+      //       comandas[comandaIndex].ordenes.splice(ordenIndex, 1);
+      //     }
+      //   }
+      //   setSelectedMesa(comandas[comandaIndex]);
+      //   setComandas([...comandas]);
+      // }
+      fetchData();
     });
 
     return () => {
@@ -534,93 +602,93 @@ export default function DashboardCajero() {
         console.log("Conexión detenida.");
       }
     };
-  }, [comandas, selectedMesa]);
+  }, [enqueueSnackbar, fetchData]);
 
-  useEffect(() => {
-    if (comandas) {
-      const tienePorCobrar = comandas.find((c) => c.estado === "Por cobrar");
-      if (
-        tienePorCobrar &&
-        !notifiedMesas.some(
-          (mesa) =>
-            mesa.id === tienePorCobrar.id && mesa.estado === "Por cobrar"
-        )
-      ) {
-        // Mostrar la notificación solo si la mesa no ha sido notificada previamente
-        setShowBadgePorCobrar(true);
-        enqueueSnackbar(`Mesa ${tienePorCobrar.id} en espera de cobro`, {
-          variant: "warning",
-          autoHideDuration: 6000,
-          anchorOrigin: {
-            vertical: "top",
-            horizontal: "right",
-          },
-        });
-        // Agregar la mesa a las mesas notificadas
-        setNotifiedMesas((prevNotified) => [
-          ...prevNotified,
-          { id: tienePorCobrar.id, estado: "Por cobrar" },
-        ]);
-        // Reproducir sonido si necesario
-        if (audioPlayerRef.current && audioPlayerRef.current.audioEl.current) {
-          const audioElement = audioPlayerRef.current.audioEl.current;
-          audioElement.addEventListener("canplaythrough", () => {
-            audioElement
-              .play()
-              .catch((error) =>
-                console.error("Error al reproducir el audio:", error)
-              );
-          });
-          audioElement.load();
-        }
-      } else {
-        setShowBadgePorCobrar(false);
-      }
-    }
-  }, [comandas, enqueueSnackbar, notifiedMesas]);
+  // useEffect(() => {
+  //   if (comandas) {
+  //     const tienePorCobrar = comandas.find((c) => c.estado === "Por cobrar");
+  //     if (
+  //       tienePorCobrar &&
+  //       !notifiedMesas.some(
+  //         (mesa) =>
+  //           mesa.id === tienePorCobrar.id && mesa.estado === "Por cobrar"
+  //       )
+  //     ) {
+  //       // Mostrar la notificación solo si la mesa no ha sido notificada previamente
+  //       setShowBadgePorCobrar(true);
+  //       enqueueSnackbar(`Mesa ${tienePorCobrar.mesa} en espera de cobro`, {
+  //         variant: "warning",
+  //         autoHideDuration: 6000,
+  //         anchorOrigin: {
+  //           vertical: "top",
+  //           horizontal: "right",
+  //         },
+  //       });
+  //       // Agregar la mesa a las mesas notificadas
+  //       setNotifiedMesas((prevNotified) => [
+  //         ...prevNotified,
+  //         { id: tienePorCobrar.id, estado: "Por cobrar" },
+  //       ]);
+  //       // Reproducir sonido si necesario
+  //       if (audioPlayerRef.current && audioPlayerRef.current.audioEl.current) {
+  //         const audioElement = audioPlayerRef.current.audioEl.current;
+  //         audioElement.addEventListener("canplaythrough", () => {
+  //           audioElement
+  //             .play()
+  //             .catch((error) =>
+  //               console.error("Error al reproducir el audio:", error)
+  //             );
+  //         });
+  //         audioElement.load();
+  //       }
+  //     } else {
+  //       setShowBadgePorCobrar(false);
+  //     }
+  //   }
+  // }, [comandas, enqueueSnackbar, notifiedMesas]);
 
-  // Efecto para manejar las mesas "Pagado"
-  useEffect(() => {
-    if (comandas) {
-      const tienePagado = comandas.find((c) => c.estado === "Pagado");
-      if (
-        tienePagado &&
-        !notifiedMesas.some(
-          (mesa) => mesa.id === tienePagado.id && mesa.estado === "Pagado"
-        )
-      ) {
-        // Mostrar la notificación solo si la mesa no ha sido notificada previamente
-        setShowBadgePagado(true);
-        enqueueSnackbar(`Mesa ${tienePagado.id} ha sido pagada`, {
-          variant: "success",
-          autoHideDuration: 6000,
-          anchorOrigin: {
-            vertical: "top",
-            horizontal: "right",
-          },
-        });
-        // Agregar la mesa a las mesas notificadas
-        setNotifiedMesas((prevNotified) => [
-          ...prevNotified,
-          { id: tienePagado.id, estado: "Pagado" },
-        ]);
-        // Reproducir sonido si necesario
-        if (audioPlayerRef.current && audioPlayerRef.current.audioEl.current) {
-          const audioElement = audioPlayerRef.current.audioEl.current;
-          audioElement.addEventListener("canplaythrough", () => {
-            audioElement
-              .play()
-              .catch((error) =>
-                console.error("Error al reproducir el audio:", error)
-              );
-          });
-          audioElement.load();
-        }
-      } else {
-        setShowBadgePagado(false);
-      }
-    }
-  }, [comandas, enqueueSnackbar, notifiedMesas]);
+  // // Efecto para manejar las mesas "Pagado"
+  // useEffect(() => {
+  //   if (comandas) {
+  //     const tienePagado = comandas.find((c) => c.estado === "Pagado");
+  //     if (
+  //       tienePagado &&
+  //       !notifiedMesas.some(
+  //         (mesa) => mesa.id === tienePagado.id && mesa.estado === "Pagado"
+  //       )
+  //     ) {
+  //       // Mostrar la notificación solo si la mesa no ha sido notificada previamente
+  //       setShowBadgePagado(true);
+  //       enqueueSnackbar(`Mesa ${tienePagado.mesa} ha sido pagada`, {
+  //         variant: "success",
+  //         autoHideDuration: 6000,
+  //         anchorOrigin: {
+  //           vertical: "top",
+  //           horizontal: "right",
+  //         },
+  //       });
+  //       // Agregar la mesa a las mesas notificadas
+  //       setNotifiedMesas((prevNotified) => [
+  //         ...prevNotified,
+  //         { id: tienePagado.id, estado: "Pagado" },
+  //       ]);
+  //       // Reproducir sonido si necesario
+  //       if (audioPlayerRef.current && audioPlayerRef.current.audioEl.current) {
+  //         const audioElement = audioPlayerRef.current.audioEl.current;
+  //         audioElement.addEventListener("canplaythrough", () => {
+  //           audioElement
+  //             .play()
+  //             .catch((error) =>
+  //               console.error("Error al reproducir el audio:", error)
+  //             );
+  //         });
+  //         audioElement.load();
+  //       }
+  //     } else {
+  //       setShowBadgePagado(false);
+  //     }
+  //   }
+  // }, [comandas, enqueueSnackbar, notifiedMesas]);
 
   useEffect(() => {
     if (showBadgePorCobrar && tabIndex !== 2) {
@@ -755,7 +823,7 @@ export default function DashboardCajero() {
                         </Badge>
                       }
                     />
-                    <Tab label={`Pagando`} />
+                    <Tab label={`Cobrando`} />
                     <Tab
                       label={
                         <Badge

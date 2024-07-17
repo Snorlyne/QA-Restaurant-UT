@@ -21,7 +21,10 @@
       }
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/favicon.png",
+      "cors": {
+        "origin": ["*"]
+      }
     },
     "platforms": ["ios", "android", "web"]
   }

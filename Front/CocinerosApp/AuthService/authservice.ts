@@ -57,10 +57,12 @@ const authService = {
             const token = data.result.jwTtoken;
             const usuario = data.result.nombre;
             const rol = data.result.rol;
+            const empresa = data.result.empresa;
 
             await setStorageItem('token', token);
             await setStorageItem('usuario', usuario);
             await setStorageItem('role', rol);
+            await setStorageItem('empresa', empresa);
 
             return rol;
         } catch (error) {
@@ -73,6 +75,7 @@ const authService = {
         await removeStorageItem('token');
         await removeStorageItem('usuario');
         await removeStorageItem('role');
+        await removeStorageItem('empresa');
 
         // Redirigir al usuario a la página de inicio de sesión o la página de inicio
         navigation.navigate('Login'); // Ajusta la ruta según tu aplicación
@@ -85,7 +88,14 @@ const authService = {
     },
     getRole: async (): Promise<string | null> => {
         return await getStorageItem('role');
-    }
+    },
+    getCompany: async (): Promise<number | null> => {
+        const empresaCookie = await getStorageItem('empresa');
+        if (empresaCookie !== null) {
+            return parseInt(empresaCookie);
+        }
+        return null;
+    },
 };
 
 export default authService;

@@ -27,12 +27,12 @@ import { IVentaPerYear } from "../../../interfaces/IVentaPerYear";
 
 const fakeSalesData = [
   { mes: "January", valor: 650, anio: 2023 },
-  { mes: "February", valor: 590, anio: 2023 },
-  { mes: "March", valor: 800, anio: 2023 },
+  { mes: "February", valor: 590.99, anio: 2023 },
+  { mes: "March", valor: 800.12, anio: 2023 },
   { mes: "April", valor: 430.80, anio: 2023 },
   { mes: "May", valor: 560, anio: 2023 },
-  { mes: "June", valor: 550, anio: 2023 },
-  { mes: "July", valor: 400, anio: 2023 },
+  { mes: "June", valor: 750, anio: 2023 },
+  { mes: "July", valor: 1200, anio: 2023 },
 ];
 
 Chart.register(
@@ -48,7 +48,7 @@ Chart.register(
 );
 
 export default function YearSales() {
-  const [totalSales, setTotalSales] = useState(0);
+  const [totalSales, setTotalSales] = useState("0");
   const [sales, setSales] = useState<IVentaPerYear[]>([]);
   const [chartData, setChartData] = useState<any>({
     labels: [],
@@ -112,7 +112,8 @@ export default function YearSales() {
     setChartData(processedData);
     // Calcular el total de ventas del año seleccionado
     const total = filteredData.reduce((acc, item) => acc + item.valor, 0);
-    setTotalSales(total);
+    const formattedTotal = total.toFixed(2);
+    setTotalSales(formattedTotal);
   }, [sales, selectedYear]);
 
   const options: Partial<ChartOptions<"line">> = {

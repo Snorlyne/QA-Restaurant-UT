@@ -47,5 +47,10 @@ namespace BaseWeb.SignalR
             // Enviar a todas las conexiones del grupo correspondiente
             await Clients.Group(companyId).SendAsync("OnOrderDeleted", res);
         }
+        public async Task OnOrderUpdated(string companyId, object res)
+        {
+            // Enviar a todas las conexiones del grupo correspondiente
+            await Clients.Group(companyId).SendAsync("OnOrderUpdated", res);
+        }
     }
 }

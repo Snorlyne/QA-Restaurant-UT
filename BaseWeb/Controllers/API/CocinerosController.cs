@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Mvc;
 using Services.IServicio;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.SignalR;
+using BaseWeb.SignalR;
 
 namespace API.Controllers
 {
@@ -12,9 +14,12 @@ namespace API.Controllers
     public class CocinerosController : ControllerBase
     {
         private readonly ICocinerosServicio _cocinerosServicio;
+        private readonly IHubContext<CommandHub> _hubContext;
 
-        public CocinerosController(ICocinerosServicio cocinerosServicio)
+
+        public CocinerosController(ICocinerosServicio cocinerosServicio, IHubContext<CommandHub> hubContext)
         {
+            _hubContext = hubContext;
             _cocinerosServicio = cocinerosServicio;
         }
 
@@ -43,10 +48,21 @@ namespace API.Controllers
             {
                 return BadRequest(new Response<bool> { IsSuccess = false, Message = "El campo nuevoEstado es requerido." });
             }
+            var companyIdClaim = User.Claims.FirstOrDefault(c => c.Type == "companyId");
+            if (companyIdClaim == null)
+            {
+                return BadRequest(new { isSuccess = false, message = "CompanyId claim not found." });
+            }
+            if (!int.TryParse(companyIdClaim.Value, out int companyId))
+            {
+                return BadRequest(new { isSuccess = false, message = "Invalid CompanyId claim value." });
+            }
 
             var response = await _cocinerosServicio.ActualizarEstadoOrden(ordenId, request.NuevoEstado);
             if (response.IsSuccess)
             {
+                await _hubContext.Clients.Group(companyId.ToString()).SendAsync("OnOrderUpdated", response.Result);
+
                 return Ok(response);
             }
             return BadRequest(response);

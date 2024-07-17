@@ -1,10 +1,11 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, Modal, ScrollView, SafeAreaView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import authService from '../AuthService/authservice';
 import apiClient from '../AuthService/authInterceptor';
 import { useParams } from "react-router-dom";
+import commandHub from '../AuthService/CommandHub';
 
 interface Status {
     id: number;
@@ -54,6 +55,8 @@ const OrderScreen: React.FC = () => {
     const token = authService.getToken();
     const [loading, setLoading] = useState(false);
     const { id } = useParams();
+    const connectionRef = useRef<any>(null);
+
 
     useEffect(() => {
         fetchOrders();
@@ -130,6 +133,44 @@ const OrderScreen: React.FC = () => {
     const closeModal = () => {
         setModalVisible(false);
     };
+    useEffect(() => {
+    let isConnected = false;
+    const fetchData = async () => {
+      try {
+        const connection = await commandHub();
+        await connection.start();
+        isConnected = true;
+        console.log('Conexión establecida correctamente.');
+
+        connection.on('OnCommandCreated', (command) => {
+          // Actualizar estado de comandas
+          fetchOrders();
+        });
+        connection.on('OnCommandDeleted', (command) => {
+          // Actualizar estado de comandas
+          fetchOrders();
+        });
+        connection.on('OnOrderDeleted', (command) => {
+          // Actualizar estado de comandas
+          fetchOrders();
+        });
+
+        connectionRef.current = connection;
+
+
+      } catch (error) {
+        console.error('Error al iniciar la conexión:', error);
+      }
+    };
+
+    fetchData();
+    return () => {
+        if (isConnected) {
+            connectionRef.current?.stop();
+            console.log('Conexión detenida.');
+        }
+      };
+    }, []);
 
     return (
         <div style={{ maxHeight: '100vh', overflowY: 'scroll' }}>

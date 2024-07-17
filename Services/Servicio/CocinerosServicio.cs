@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Domain.Entidades;
+using static Domain.ViewModels.CommandVM;
 
 namespace Services.Servicio
 {
@@ -29,7 +30,7 @@ namespace Services.Servicio
                     .Include(o => o.Status)
                     .Include(o => o.Inventario)
                     .ThenInclude(o => o.Categorias)
-                    .Where(o => o.Inventario.Categorias.FK_Company == companyId)
+                    .Where(o => o.Inventario.Categorias.FK_Company == companyId && o.Fecha.Date == DateTime.Today && (o.Status.Id == 1 || o.Status.Id == 2))
                     .Select(o => new OrderViewDTO
                     {
                         Id = o.Id,
@@ -55,30 +56,37 @@ namespace Services.Servicio
                 return new Response<List<OrderViewDTO>>(ex.Message);
             }
         }
-        public async Task<Response<bool>> ActualizarEstadoOrden(int ordenId, string nuevoEstado)
+        public async Task<Response<CommandOrderUpdateStatusVM>> ActualizarEstadoOrden(int ordenId, string nuevoEstado)
         {
             try
             {
                 var orden = await _context.Orders.FindAsync(ordenId);
                 if (orden == null)
                 {
-                    return new Response<bool>("Orden no encontrada.");
+                    return new Response<CommandOrderUpdateStatusVM>("Orden no encontrada.");
                 }
 
                 var estado = await _context.Status.FirstOrDefaultAsync(s => s.Nombre == nuevoEstado);
                 if (estado == null)
                 {
-                    return new Response<bool>("Estado no encontrado.");
+                    return new Response<CommandOrderUpdateStatusVM>("Estado no encontrado.");
                 }
 
                 orden.FK_status_id = estado.Id;
                 await _context.SaveChangesAsync();
 
-                return new Response<bool>(true);
+                CommandOrderUpdateStatusVM res = new()
+                {
+                    Id = ordenId,
+                    Mesa = orden.Mesa,
+                    Status = estado.Id
+                };
+
+                return new Response<CommandOrderUpdateStatusVM>(res);
             }
             catch (Exception ex)
             {
-                return new Response<bool>(ex.Message);
+                return new Response<CommandOrderUpdateStatusVM>(ex.Message);
             }
         }
 

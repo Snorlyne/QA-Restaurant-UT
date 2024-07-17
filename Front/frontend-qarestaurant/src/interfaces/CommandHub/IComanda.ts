@@ -5,6 +5,7 @@ export default interface ICommanda {
     total: number;
     fecha: Date;
     restaurante: number;
+    tipo: string;
     ordenes: Orden[];
 }
 interface Orden {

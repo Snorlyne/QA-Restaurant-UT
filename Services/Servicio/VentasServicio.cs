@@ -27,16 +27,17 @@ namespace Services.Servicio
             try
             {
                 List<VentasVM> ventasVMs = await _context.OrdersInCommands
-                    .Include(c => c.Order)
-                    .Include(c => c.Command)
-                    .Where(x => x.Command.Restaurante == companyId && x.Order.Status.Nombre == "Pagado")
-                    .GroupBy(x => new { Mes = x.Command.Fecha.Month, Anio = x.Command.Fecha.Year, x.Command.Total })
-                    .Select(g => new VentasVM
-                    {
-                        Mes = monthNames[g.Key.Mes - 1],
-                        Anio = g.Key.Anio,
-                        Valor = g.Key.Total
-                    }).ToListAsync();
+                .Include(c => c.Order)
+                .Include(c => c.Command)
+                .Where(x => x.Command.Restaurante == companyId && x.Order.Status.Nombre == "Pagado")
+                .GroupBy(x => new { Mes = x.Command.Fecha.Month, Anio = x.Command.Fecha.Year })
+                .Select(g => new VentasVM
+                {
+                    Mes = monthNames[g.Key.Mes - 1], // Convertir el número de mes a nombre
+                    Anio = g.Key.Anio,
+                    Valor = Math.Round(g.Sum(x => x.Command.Total), 2) // Sumar el total de todas las ventas del mes y año
+                })
+                .ToListAsync();
 
                 return new Response<List<VentasVM>>(ventasVMs);
             }

@@ -53,6 +53,10 @@ namespace BaseWeb.Controllers.API
             var personIdClaim = User.Claims.FirstOrDefault(c => c.Type == "personId");
             var personId = int.Parse(personIdClaim.Value);
             var response = await _meseroServicio.PedirTicket(id, companyId);
+            if (response.IsSuccess)
+            {
+                await _hubContext.Clients.Group(companyId.ToString()).SendAsync("OnCommandUpdated", response.Result);
+            }
             return Ok(response);
         }
         [HttpPut("CobrarComanda/{id}")]
@@ -63,6 +67,10 @@ namespace BaseWeb.Controllers.API
             var personIdClaim = User.Claims.FirstOrDefault(c => c.Type == "personId");
             var personId = int.Parse(personIdClaim.Value);
             var response = await _meseroServicio.CobrarComanda(id, companyId);
+            if (response.IsSuccess)
+            {
+                await _hubContext.Clients.Group(companyId.ToString()).SendAsync("OnCommandUpdated", response.Result);
+            }
             return Ok(response);
         }
     }
