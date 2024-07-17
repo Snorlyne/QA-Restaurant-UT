@@ -54,13 +54,6 @@ const Login: React.FC = () => {
               onChangeText={(text) => setPassword(text)}
               secureTextEntry
             />
-            <View style={styles.checkboxContainer}>
-              <CheckBox
-                checked={rememberMe}
-                onPress={() => setRememberMe(!rememberMe)}
-              />
-              <Text style={styles.checkboxLabel}>Mantener sesión abierta</Text>
-            </View>
             <TouchableOpacity style={styles.button} onPress={handleLogin}>
               <Text style={styles.buttonText}>Iniciar sesión</Text>
             </TouchableOpacity>

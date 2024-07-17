@@ -217,7 +217,7 @@ export default function Inventario() {
 
       <Grid item >
       <Card sx={{borderRadius:5}}>
-        <CardContent>
+        <CardContent sx={{height: "68vh"}}>
         <Box sx={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 2 }}>
           <TextField
             variant="outlined"
@@ -251,11 +251,9 @@ export default function Inventario() {
                 />
                 <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', flex: 1, marginLeft: 2, }}>
                   <Box sx={{ flex: 1 }}>
-                    <CardContent sx={{ flex: '1 0 auto', padding: '8px', }}>
                       <Typography component='div' variant='h6'>
                         {product.nombre}
                       </Typography>
-                    </CardContent>
                   </Box>
                   <Box sx={{ display: 'flex', justifyContent: 'flex-end', paddingRight: 1, paddingBottom: 1 }}>
                     
@@ -344,7 +342,7 @@ export default function Inventario() {
           />
         </Grid>
 
-        <Box sx={{ display: 'flex', justifyContent: 'end', marginTop: 2 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'end', marginTop: 2, position: "relative", top: "42vh" }}>
           <Pagination
             count={Math.ceil(filteredRows.length / ITEMS_PER_PAGE)}
             page={page}

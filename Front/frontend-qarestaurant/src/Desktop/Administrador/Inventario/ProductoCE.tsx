@@ -381,7 +381,7 @@ export default function EmpleadoCEComponent() {
             }}
           >
             <Grid container spacing={3} p={2}>
-              <Grid item xs={12} md={6} lg={6}>
+            <Grid item xs={12} md={6} lg={6}>
                 <Grid container justifyContent="center" alignItems="center">
                   <Grid item xs={12} md={12} lg={12}>
                     <div
@@ -390,7 +390,12 @@ export default function EmpleadoCEComponent() {
                         border: "2px dashed #ccc",
                         padding: "15px 0",
                         textAlign: "center",
-                        width: "100%",
+                        maxWidth: "100%",
+                        minHeight: "200px",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        flexWrap: "wrap",
                       }}
                     >
                       {file && File !== null && (
@@ -405,7 +410,12 @@ export default function EmpleadoCEComponent() {
                         />
                       )}
                       <input {...getInputProps()} />
-                      <Typography variant="body1">
+                      <Typography
+                        variant="body1"
+                        sx={{
+                          width: "100%",
+                        }}
+                      >
                         Arrastra y suelta aquí una imagen o haz clic para
                         seleccionarla.
                       </Typography>
@@ -529,7 +539,7 @@ export default function EmpleadoCEComponent() {
                   alignItems="center"
                   sx={{
                     ...(file == null && {
-                      marginTop: { xs: 0, md: 15 },
+                      marginTop: { xs: 0, md: 5 },
                     }),
                   }}
                 >

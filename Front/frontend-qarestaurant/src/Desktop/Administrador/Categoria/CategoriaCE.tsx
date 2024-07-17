@@ -222,7 +222,7 @@ export default function EmpleadoCEComponent() {
         >
           <Box
             sx={{
-              height: "100%",
+              height: 530,
               width: "100%",
             }}
           >

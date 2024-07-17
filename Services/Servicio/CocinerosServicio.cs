@@ -30,7 +30,10 @@ namespace Services.Servicio
                     .Include(o => o.Status)
                     .Include(o => o.Inventario)
                     .ThenInclude(o => o.Categorias)
-                    .Where(o => o.Inventario.Categorias.FK_Company == companyId && o.Fecha.Date == DateTime.Today && (o.Status.Id == 1 || o.Status.Id == 2))
+                    .Where(o => o.Inventario.Categorias.FK_Company == companyId 
+                    && o.Fecha.Date == DateTime.Today 
+                    && (o.Status.Id == 1 || o.Status.Id == 2)
+                    && o.Inventario.Preparado == true)
                     .Select(o => new OrderViewDTO
                     {
                         Id = o.Id,
