@@ -342,7 +342,11 @@ export default function Inventario() {
           />
         </Grid>
 
-        <Box sx={{ display: 'flex', justifyContent: 'end', marginTop: 2, position: "relative", top: "42vh" }}>
+        <Box sx={{  ...(rows.length === 0 && {
+                      display: "none",
+                    }), ...(rows.length > 0 && {
+                      display: "flex",
+                    }), justifyContent: 'end', marginTop: 2, position: "relative", top: "42vh" }}>
           <Pagination
             count={Math.ceil(filteredRows.length / ITEMS_PER_PAGE)}
             page={page}
