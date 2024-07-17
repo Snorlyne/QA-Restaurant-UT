@@ -38,7 +38,12 @@ namespace BaseWeb.Controllers.API
             var personIdClaim = User.Claims.FirstOrDefault(c => c.Type == "personId");
             var personId = int.Parse(personIdClaim.Value);
             var response = await _meseroServicio.CrearComandaYOrdenes(personId, companyId, req);
+            if (response.IsSuccess) 
+            {
+                await _hubContext.Clients.Group(companyId.ToString()).SendAsync("OnCommandCreated", response.Result);
+            }
             return Ok(response);
+
         }
         [HttpPut("PedirTicket/{id}")]
         public async Task<IActionResult> PedirTicket(int id)

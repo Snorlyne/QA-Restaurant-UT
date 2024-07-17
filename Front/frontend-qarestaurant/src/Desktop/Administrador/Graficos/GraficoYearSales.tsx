@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Line } from "react-chartjs-2";
 import {
   Chart,
@@ -22,15 +22,17 @@ import {
   Box,
   Typography,
 } from "@mui/material";
+import ventasServices from "../../../services/VentasServices";
+import { IVentaPerYear } from "../../../interfaces/IVentaPerYear";
 
 const fakeSalesData = [
-  { month: "January", value: 650, year: 2023 },
-  { month: "February", value: 590, year: 2023 },
-  { month: "March", value: 800, year: 2023 },
-  { month: "April", value: 0, year: 2023 },
-  { month: "May", value: 560, year: 2023 },
-  { month: "June", value: 550, year: 2023 },
-  { month: "July", value: 400, year: 2023 },
+  { mes: "January", valor: 650, anio: 2023 },
+  { mes: "February", valor: 590, anio: 2023 },
+  { mes: "March", valor: 800, anio: 2023 },
+  { mes: "April", valor: 430.80, anio: 2023 },
+  { mes: "May", valor: 560, anio: 2023 },
+  { mes: "June", valor: 550, anio: 2023 },
+  { mes: "July", valor: 400, anio: 2023 },
 ];
 
 Chart.register(
@@ -47,6 +49,7 @@ Chart.register(
 
 export default function YearSales() {
   const [totalSales, setTotalSales] = useState(0);
+  const [sales, setSales] = useState<IVentaPerYear[]>([]);
   const [chartData, setChartData] = useState<any>({
     labels: [],
     datasets: [
@@ -65,19 +68,40 @@ export default function YearSales() {
   // Estado inicial con el año actual seleccionado por defecto
   const [selectedYear, setSelectedYear] = useState<number | null>(currentYear);
 
-  useEffect(() => {
-    // Filtrar datos por el año seleccionado
-    const filteredData = fakeSalesData.filter((item) =>
-      selectedYear ? item.year === selectedYear : true
-    );
+  const fetchData = useCallback(async () => {
+    // setLoading(true);
+    try {
+      const data = await ventasServices.getPearYear();
+      setSales(data);
+    } catch (error) {
+      console.error("Error:", error);
+    }
+    // setLoading(false);
+  }, []);
 
+  useEffect(() => {
+    fetchData();
+    // Obtener el total de ventas del año actual
+  }, [fetchData])
+
+  useEffect(() => {
+    let filteredData: IVentaPerYear[] = [];
+
+    if(selectedYear === 2023){
+      filteredData = fakeSalesData.filter((item) =>
+          selectedYear ? item.anio === selectedYear : true
+        );
+    }
+    else{
+      filteredData = sales.filter((item) => item.anio === selectedYear);
+    }
     // Procesar los datos al formato requerido por Chart.js
     const processedData = {
-      labels: filteredData.map((item) => item.month),
+      labels: filteredData.map((item) => item.mes),
       datasets: [
         {
           label: "Ventas Mensuales",
-          data: filteredData.map((item) => item.value),
+          data: filteredData.map((item) => item.valor),
           fill: false,
           borderColor: "rgb(75, 192, 192)",
           tension: 0.1,
@@ -87,9 +111,9 @@ export default function YearSales() {
 
     setChartData(processedData);
     // Calcular el total de ventas del año seleccionado
-    const total = filteredData.reduce((acc, item) => acc + item.value, 0);
+    const total = filteredData.reduce((acc, item) => acc + item.valor, 0);
     setTotalSales(total);
-  }, [selectedYear]);
+  }, [sales, selectedYear]);
 
   const options: Partial<ChartOptions<"line">> = {
     responsive: true,
@@ -146,7 +170,7 @@ export default function YearSales() {
             <MenuItem key={currentYear} value={currentYear}>
               {currentYear}
             </MenuItem>
-            {Array.from(new Set(fakeSalesData.map((item) => item.year))).map(
+            {Array.from(new Set(fakeSalesData.map((item) => item.anio))).map(
               (year) => (
                 <MenuItem key={year} value={year}>
                   {year}

@@ -12,7 +12,7 @@ namespace Services.IServicio
     public interface IMeseroServicio
     {
         Task<Response<List<ViewComandasMeseroVM>>> ObtenerComandas(int personId, int companyId);
-        Task<Response<object>> CrearComandaYOrdenes(int idPerson, int companyId, CommandCreateVM req);
+        Task<Response<CommandViewVM>> CrearComandaYOrdenes(int idPerson, int companyId, CommandCreateVM req);
         Task<Response<CommandUpdateStatusVM>> CobrarComanda(int idCommand, int companyId);
         Task<Response<CommandUpdateStatusVM>> PedirTicket(int idCommand, int companyId);
     }

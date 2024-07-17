@@ -39,6 +39,7 @@ import commandHub from "../../services/CommandHubService";
 import IComanda from "../../interfaces/Cajero/IComanda";
 import { useSnackbar } from "notistack";
 import ReactAudioPlayer from "react-audio-player";
+import ICommanda from "../../interfaces/CommandHub/IComanda";
 
 const statusMap: { [key: number]: string } = {
   1: "Activo",
@@ -60,8 +61,9 @@ export default function DashboardCajero() {
   const [isMounted, setIsMounted] = useState(false);
   const [showBadgePorCobrar, setShowBadgePorCobrar] = useState(false);
   const [showBadgePagado, setShowBadgePagado] = useState(false);
-  const [appearedIds, setAppearedIds] = useState<number[]>([]);  
-  const [notifiedMesas, setNotifiedMesas] = useState<{id:number,estado:string}[]>([]);
+  const [notifiedMesas, setNotifiedMesas] = useState<
+    { id: number; estado: string }[]
+  >([]);
   const { enqueueSnackbar } = useSnackbar();
   const name = authService.getUser();
   const audioPlayerRef = useRef<ReactAudioPlayer>(null);
@@ -394,9 +396,6 @@ export default function DashboardCajero() {
         );
       }
       setIsMounted(true); // Marcar que los datos se han cargado
-      data.forEach((element) => {
-        setAppearedIds((prevIds) => [...prevIds, element.id]);
-      });
     } catch (error) {
       console.error("Error:", error);
     }
@@ -421,9 +420,69 @@ export default function DashboardCajero() {
     };
 
     startConnection();
+    // Function to transform incoming command data
+    const transformCommandData = (command:ICommanda) => {
+      return {
+        id: command.id,
+        meseroCargo: command.propietario,
+        cobrador: command.cobrador || "",
+        total: command.total,
+        mesa: command.ordenes.length > 0 ? command.ordenes[0].mesa : 0,
+        estado:
+          command.ordenes.length > 0 ? statusMap[command.ordenes[0].status.id] : "",
+        imagen:
+          command.ordenes.length > 0
+            ? command.ordenes[0].producto.imagenInventario
+            : "",
+        ordenes: command.ordenes.map((orden) => ({
+          id: orden.id,
+          estado: orden.status.nombre,
+          producto: {
+            nombre: orden.producto.nombre,
+            precio: orden.producto.precio,
+          },
+        })),
+      };
+    };
+
     connection.on("OnCommandCreated", (command) => {
-      setComandas((prevCommands) => (prevCommands || []).concat([command]));
-      setAppearedIds((prevIds) => [...prevIds, command.id]);
+      const newCommand = transformCommandData(command);
+      setComandas((prevComandas) => {
+        const existingComanda = prevComandas && prevComandas.find((c) => c.id === newCommand.id);
+        if (existingComanda) {
+          newCommand.ordenes.forEach((newOrder) => {
+            const existingOrder = existingComanda.ordenes.find(
+              (o) => o.id === newOrder.id
+            );
+            if (!existingOrder) {
+              existingComanda.ordenes.push(newOrder);
+              existingComanda.total = newCommand.total;
+            }
+          });
+          return [...prevComandas];
+        } else {
+          if (audioPlayerRef.current && audioPlayerRef.current.audioEl.current) {
+            const audioElement = audioPlayerRef.current.audioEl.current;
+            audioElement.addEventListener("canplaythrough", () => {
+              audioElement
+                .play()
+                .catch((error) =>
+                  console.error("Error al reproducir el audio:", error)
+                );
+            });
+            enqueueSnackbar(`Mesa ${newCommand.mesa} ha sido agregada`, {
+              variant: "success",
+              autoHideDuration: 6000,
+              anchorOrigin: {
+                vertical: "top",
+                horizontal: "right",
+              },
+            });
+            audioElement.load();
+          }
+          return prevComandas !== null ? [...prevComandas, newCommand] : [newCommand];
+        }
+      });
     });
 
     connection.on("OnCommandUpdated", (data) => {
@@ -480,7 +539,13 @@ export default function DashboardCajero() {
   useEffect(() => {
     if (comandas) {
       const tienePorCobrar = comandas.find((c) => c.estado === "Por cobrar");
-      if (tienePorCobrar && !notifiedMesas.some((mesa) => mesa.id === tienePorCobrar.id && mesa.estado === "Por cobrar")) {
+      if (
+        tienePorCobrar &&
+        !notifiedMesas.some(
+          (mesa) =>
+            mesa.id === tienePorCobrar.id && mesa.estado === "Por cobrar"
+        )
+      ) {
         // Mostrar la notificación solo si la mesa no ha sido notificada previamente
         setShowBadgePorCobrar(true);
         enqueueSnackbar(`Mesa ${tienePorCobrar.id} en espera de cobro`, {
@@ -492,26 +557,38 @@ export default function DashboardCajero() {
           },
         });
         // Agregar la mesa a las mesas notificadas
-        setNotifiedMesas((prevNotified) => [...prevNotified, { id: tienePorCobrar.id, estado: "Por cobrar" }]); 
+        setNotifiedMesas((prevNotified) => [
+          ...prevNotified,
+          { id: tienePorCobrar.id, estado: "Por cobrar" },
+        ]);
         // Reproducir sonido si necesario
         if (audioPlayerRef.current && audioPlayerRef.current.audioEl.current) {
           const audioElement = audioPlayerRef.current.audioEl.current;
           audioElement.addEventListener("canplaythrough", () => {
-            audioElement.play().catch((error) => console.error("Error al reproducir el audio:", error));
+            audioElement
+              .play()
+              .catch((error) =>
+                console.error("Error al reproducir el audio:", error)
+              );
           });
-          audioElement.load(); 
+          audioElement.load();
         }
       } else {
         setShowBadgePorCobrar(false);
       }
     }
   }, [comandas, enqueueSnackbar, notifiedMesas]);
-  
+
   // Efecto para manejar las mesas "Pagado"
   useEffect(() => {
     if (comandas) {
       const tienePagado = comandas.find((c) => c.estado === "Pagado");
-      if (tienePagado && !notifiedMesas.some((mesa) => mesa.id === tienePagado.id && mesa.estado === "Pagado")) {
+      if (
+        tienePagado &&
+        !notifiedMesas.some(
+          (mesa) => mesa.id === tienePagado.id && mesa.estado === "Pagado"
+        )
+      ) {
         // Mostrar la notificación solo si la mesa no ha sido notificada previamente
         setShowBadgePagado(true);
         enqueueSnackbar(`Mesa ${tienePagado.id} ha sido pagada`, {
@@ -523,12 +600,19 @@ export default function DashboardCajero() {
           },
         });
         // Agregar la mesa a las mesas notificadas
-        setNotifiedMesas((prevNotified) => [...prevNotified, { id: tienePagado.id, estado: "Pagado" }]);
+        setNotifiedMesas((prevNotified) => [
+          ...prevNotified,
+          { id: tienePagado.id, estado: "Pagado" },
+        ]);
         // Reproducir sonido si necesario
         if (audioPlayerRef.current && audioPlayerRef.current.audioEl.current) {
           const audioElement = audioPlayerRef.current.audioEl.current;
           audioElement.addEventListener("canplaythrough", () => {
-            audioElement.play().catch((error) => console.error("Error al reproducir el audio:", error));
+            audioElement
+              .play()
+              .catch((error) =>
+                console.error("Error al reproducir el audio:", error)
+              );
           });
           audioElement.load();
         }
@@ -744,8 +828,6 @@ export default function DashboardCajero() {
                           <LazyLoad
                             style={{
                               display: "grid",
-                              opacity: appearedIds.includes(mesa.id) ? 1 : 0, // Aplicar opacidad
-                              transition: "opacity 0.5s ease-out", // Animación de transición
                             }}
                           >
                             <div
@@ -760,10 +842,11 @@ export default function DashboardCajero() {
                                     : mesa.estado === "Pagando"
                                     ? "red"
                                     : "gray",
-                                position: "absolute",
                                 borderRadius: "5px",
                                 alignSelf: "flex-start",
                                 justifySelf: "flex-end",
+                                position: "relative",
+                                top: "12px",
                               }}
                             ></div>
                             <Card
