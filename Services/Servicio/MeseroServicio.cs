@@ -46,6 +46,7 @@ namespace Services.Servicio
                         {
                             Id = oic.Order.Id,
                             Estado = oic.Order.Status.Nombre,
+                            Fecha = oic.Order.Fecha,
                             Producto = new ProductoMeseroVM
                             {
                                 Nombre = oic.Order.Inventario.Nombre                                

@@ -1,10 +1,10 @@
-// DashboardMeseros.tsx
 import React, { useState, useEffect } from "react";
 import { Button, Card, CardContent, Grid, Typography, Checkbox, FormControlLabel, Box } from "@mui/material";
 import AddIcon from '@mui/icons-material/Add';
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { Order, ApiResponse } from "./Orders";
+import { ApiResponse, ViewComandasMeseroVM } from './Orders'; // Ajusta la ruta de importación según tu estructura de proyecto
+import authService from "../services/AuthServices";
 
 interface ITool {
     title: string;
@@ -27,13 +27,21 @@ const DashboardMeseros: React.FC = () => {
 
     const fetchOrders = async () => {
         try {
-            const response = await axios.get<ApiResponse>('https://localhost:7047/APIOrder/listaOrdenes');
+            // Obtén el token de autenticación de donde lo estés almacenando
+            const token = authService.getToken();
+
+            const response = await axios.get<ApiResponse>('https://localhost:7047/Mesero/Comandas', {
+                headers: {
+                    Authorization: `Bearer ${token}` // Ajusta el tipo de autenticación si es necesario
+                }
+            });
+
             if (response.data.isSuccess) {
-                const orders = response.data.result.map((order: Order) => ({
+                const orders = response.data.result.map((order: ViewComandasMeseroVM) => ({
                     title: `Mesa ${order.mesa}`,
-                    description: order.adicional,
-                    pedido: new Date(order.fecha).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }),
-                    pedidos: [order.inventario.nombre]
+                    description: order.estado,
+                    pedido: order.ordenes.length > 0 ? new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }) : 'N/A',
+                    pedidos: order.ordenes.map(o => o.producto.nombre)
                 }));
                 setTools(orders);
                 setCheckedState(orders.map(tool => tool.pedidos.map(() => false)));
@@ -102,13 +110,12 @@ const DashboardMeseros: React.FC = () => {
                                             }}>{tool.title}</Typography>
                                         </Grid>
                                         <Grid item sx={{ display: 'flex', gap: 1 }}>
-
                                             <Typography variant="body2" fontWeight={600}>Ultimo pedido a las: {tool.pedido}</Typography>
                                         </Grid>
                                         <Grid item mt={1}>
                                             <Typography 
-                                            variant="body2"
-                                            sx={{color: areAllChecked(toolIndex) ? '#00a507' : '#aab800',}}
+                                                variant="body2"
+                                                sx={{color: areAllChecked(toolIndex) ? '#00a507' : '#aab800',}}
                                             >
                                                 {areAllChecked(toolIndex) ? 'Pedidos listos' : 'Pedidos en preparación'}
                                             </Typography>                       
@@ -171,7 +178,6 @@ const DashboardMeseros: React.FC = () => {
                                         </Box>
                                     </Grid>
                                 </Grid>
-
                             </CardContent>
                         </Card>
                     </Grid>

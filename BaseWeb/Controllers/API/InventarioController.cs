@@ -8,7 +8,7 @@ using static Domain.ViewModels.InventarioVM;
 namespace BaseWeb.Controllers.API
 {
     [ApiController]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin,Waiter")]
     [Route("[controller]")]
     public class InventarioController : ControllerBase
     {

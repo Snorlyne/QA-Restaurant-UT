@@ -19,6 +19,8 @@ namespace Domain.ViewModels
         {
             public int Id { get; set; }
             public string Estado { get; set; }
+
+            public DateTime Fecha { get; set; }
             public ProductoMeseroVM Producto { get; set; }
         }
         public class ProductoMeseroVM

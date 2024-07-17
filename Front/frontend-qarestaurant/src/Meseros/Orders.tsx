@@ -1,30 +1,27 @@
-export interface Status {
-    id: number;
+// Define la interfaz para ProductoMeseroVM
+export interface ProductoMeseroVM {
     nombre: string;
 }
 
-export interface Person {
+// Define la interfaz para OrdenMeseroVM
+export interface OrdenMeseroVM {
     id: number;
-    nombre: string;
+    estado: string;
+    fecha: string;
+    producto: ProductoMeseroVM;
 }
 
-export interface Inventario {
-    id: number;
-    nombre: string;
-}
-
-export interface Order {
+// Define la interfaz para ViewComandasMeseroVM
+export interface ViewComandasMeseroVM {
     id: number;
     mesa: number;
-    fecha: string;
-    adicional: string;
-    status: Status;
-    person: Person;
-    inventario: Inventario;
+    estado: string;
+    ordenes: OrdenMeseroVM[];
 }
 
+// Define la interfaz para la respuesta de la API
 export interface ApiResponse {
     isSuccess: boolean;
     message: string | null;
-    result: Order[];
+    result: ViewComandasMeseroVM[];
 }
