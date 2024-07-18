@@ -47,7 +47,7 @@ const Login: React.FC = () => {
           navigate("/unauthorized");
           break;
         case "Waiter":
-          navigate("/dashboard");
+          navigate("/meseros2");
           break;
         case "Cashier":
           navigate("/cajeros");

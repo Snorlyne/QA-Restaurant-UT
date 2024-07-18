@@ -2,20 +2,32 @@ import React from 'react';
 import styled from 'styled-components';
 import { useState } from 'react';
 
-
+interface Product {
+  id: number;
+  nombre: string;
+  imagenInventario: string | null;
+  categoria: string;
+  descripcion: string;
+  precio: number;
+  quantity: number;
+}
 interface OrderItemProps {
   image: string;
   title: string;
   quantity: number;
   onAdd: () => void;
   onRemove: () => void;
-  onAddExtras: () => void;
-  onInfoClick: () => void;
+  // onAddQuantity: () => void;
+  // onRemoveQuantity: () => void;
+  // onAddExtras: (producto: Product) => void; // <-- Actualizar la firma de la función
+  // onInfoClick: (producto: Product) => void; // <-- Actualizar la firma de la función
+  product?: Product;
 }
 
 
 const OrderItemContainer = styled.div`
   display: flex;
+
   align-items: center;
   background-color: #EEF2FF;
   border-radius: 20px;
@@ -115,33 +127,33 @@ const InfoIcon = styled.div`
   }
 `;
 
-const OrderItem: React.FC<OrderItemProps> = ({ image, title, onAddExtras, onInfoClick }) => {
-  const [quantity, setQuantity] = useState(0); // Inicializa el estado de quantity a 0
+const OrderItem: React.FC<OrderItemProps> = ({ image, title, onAdd, onRemove, product }) => {
+  const [quantity, setQuantity] = useState(0);
 
   const handleAdd = () => {
-    setQuantity(quantity + 1); // Incrementa quantity en 1
+    setQuantity(quantity + 1);
+    onAdd();
   };
 
   const handleRemove = () => {
-    if (quantity > 0) { // Solo disminuye quantity si es mayor que 0
-      setQuantity(quantity - 1); // Disminuye quantity en 1
+    if (quantity > 0) {
+      setQuantity(quantity - 1);
+      onRemove();
     }
   };
 
   return (
-<>
-<InfoIcon onClick={onInfoClick}>i</InfoIcon>
-  <OrderItemContainer>
-    <ItemImage src={image} alt={title} />
-    <ItemDetails>
-      <ItemTitle>{title}</ItemTitle>
-    </ItemDetails>
-    <ActionButton bgColor="#28a745" onClick={handleAdd}>+</ActionButton>
-    <Quantity>{quantity}</Quantity>
-    <ActionButton bgColor="#dc3545" onClick={handleRemove}>-</ActionButton>
-  </OrderItemContainer>
-  <AddExtrasButton onClick={onAddExtras}>Agregar adiciones</AddExtrasButton>
-</>
+    <>
+      <OrderItemContainer>
+        <ItemImage src={image} alt={title} />
+        <ItemDetails>
+          <ItemTitle>{title}</ItemTitle>
+        </ItemDetails>
+        <ActionButton bgColor="#28a745" onClick={handleAdd}>+</ActionButton>
+        <Quantity>{quantity}</Quantity>
+        <ActionButton bgColor="#dc3545" onClick={handleRemove}>-</ActionButton>
+      </OrderItemContainer>
+    </>
   );
 };
 

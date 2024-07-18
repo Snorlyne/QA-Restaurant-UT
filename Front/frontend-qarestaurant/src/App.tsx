@@ -1,9 +1,5 @@
 import React from "react";
-import {
-  BrowserRouter as Router,
-  Route,
-  Routes,
-} from "react-router-dom";
+import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import Dashboard from "./Desktop/Administrador/Dashboard";
 import DashboardMeseros from "./Meseros/DashboardMeseros";
 import DashboardMeseros2 from "./Meseros/DashboardMeseros2";
@@ -21,15 +17,37 @@ const App: React.FC = () => {
         <Route path="/unauthorized" element={<Unauthorized />} />
         <Route
           path="/dashboard/*"
-          element={<ProtectedRoute roles={["Root", "Admin"]} element={<Dashboard />} />}
+          element={
+            <ProtectedRoute roles={["Root", "Admin"]} element={<Dashboard />} />
+          }
         />
         <Route
           path="/cajeros/*"
-          element={<ProtectedRoute roles={["Cashier"]} element={<DashboardCajero />} />}
+          element={
+            <ProtectedRoute roles={["Cashier"]} element={<DashboardCajero />} />
+          }
         />
-        <Route path="/meseros" element={<DashboardMeseros />}></Route>
-        <Route path="/meseros2" element={<DashboardMeseros2 />}></Route>
-        <Route path="/GuardarPedidos" element={<GuardarPedidos />}></Route>
+        <Route
+          path="/meseros2"
+          element={
+            <ProtectedRoute
+              roles={["Waiter"]}
+              element={<DashboardMeseros2 />}
+            />
+          }
+        ></Route>
+        <Route
+          path="/GuardarPedidos/:id"
+          element={
+            <ProtectedRoute roles={["Waiter"]} element={<GuardarPedidos />} />
+          }
+        ></Route>
+        <Route
+          path="/GuardarPedidos"
+          element={
+            <ProtectedRoute roles={["Waiter"]} element={<GuardarPedidos />} />
+          }
+        ></Route>
         <Route path="*" element={<NotFound />} />
       </Routes>
     </Router>

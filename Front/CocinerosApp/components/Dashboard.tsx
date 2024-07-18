@@ -224,7 +224,7 @@ const OrderScreen: React.FC = () => {
                       </Text>
                       <Text style={styles.table}>Mesa N: #{order.mesa}</Text>
                     </View>
-                    <Text style={styles.note}>Nota: {order.adicional}</Text>
+                    {/* <Text style={styles.note}>Nota: {order.adicional}</Text> */}
                     <View style={styles.buttonContainer}>
                       {order.status.nombre === "En preparación" ? (
                         <View style={styles.inPreparationContainer}>

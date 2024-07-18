@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace BaseWeb.Controllers.API
 {
     [ApiController]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin, Waiter")]
     [Route("[controller]")]
     public class CategoriaController : ControllerBase
     {
